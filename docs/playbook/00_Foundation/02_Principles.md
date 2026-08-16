@@ -43,7 +43,7 @@ decision_record: none
 - **R3.3** — Free tier: **1 Wallet** (Cash Wallet). Freemium: **3 Wallets**. Premium: **Unlimited Wallets**.
 - **R3.4** — Free tier: **0 Goals**. Freemium: **3 Goals**. Premium: **Unlimited Goals**.
 - **R3.5** — Free tier: **No web access**. Freemium: **Web view, lagged, read-mostly**. Premium: **Real-time sync + full web editing**.
-- **R3.6** — Free tier: **No export**. Freemium: **JSON backup only**. Premium: **CSV, PDF, and structured export**.
+- **R3.6** — Free tier: **Self-service export of raw data (device backup)**. Freemium: **JSON backup only**. Premium: **CSV, PDF, and structured export**. Export formats other than the raw backup are tier-gated.
 - **R3.7** — Debt tracking is a **Premium feature** (v2 scope). It is explicitly excluded from Free and Freemium.
 - **R3.8** — A user's own data — transaction history, categories, amounts — may never be held hostage behind a paywall. Export of *your own data* must be possible even if the app is uninstalled and reinstalled.
 

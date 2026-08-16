@@ -27,7 +27,7 @@ decision_record: none
 - BR-W2. A Wallet's balance must always equal the sum of all Transactions affecting it (income +, expense -, transfer in +, transfer out -).
 - BR-W3. Deleting a Wallet is forbidden if its balance is non-zero or it has active Assignments or active Goals.
 - BR-W4. The Free tier may have exactly 1 Wallet. Freemium: maximum 3. Premium: unlimited.
-- BR-W5. Transferring money between Wallets creates exactly two Transaction records: one expense from the source, one income to the destination. Both share the same timestamp and a transfer reference.
+- BR-W5. Transferring money between Wallets creates exactly one Transaction record of type 'transfer', with wallet_id as source and to_wallet_id as destination. Both Wallet balances are updated atomically by the Engine. (See E-T4, E-T6)
 
 ## Category Rules
 
@@ -78,6 +78,6 @@ decision_record: none
 ## Cross-Cutting Rules
 
 - BR-X1. Every Rand must belong to exactly one Wallet at all times.
-- BR-X2. Every Rand in a Wallet is either unassigned (available) or assigned (to an Assignment or Goal). There is no third state.
-- BR-X3. The sum of all Wallet balances equals the sum of all unassigned money + all Assignment amounts + all Goal current_amounts. This is the conservation of money invariant.
+- BR-X2. Every Rand in a Wallet is either unassigned (available) or assigned (to an Assignment or Goal). There is no third state. When Assignments + Goal reservations exceed the Wallet balance, unassigned is negative: this is the overcommitted state, and it always equals a negative Safe-to-Spend (see BR-S5).
+- BR-X3. The sum of all Wallet balances equals the sum of all unassigned money + all Assignment amounts + all Goal current_amounts. This is the conservation of money invariant. The invariant holds exactly; unassigned may be negative, but the equation never breaks.
 - BR-X4. Time is handled in the user's local timezone. No UTC conversion for date-bound logic. A transaction logged at 23:55 on 31 August stays on 31 August even if the server thinks it's 1 September.

@@ -54,7 +54,7 @@ One of the three sacred lenses. A real-time view of what is *truly free to spend
 Money borrowed outside formal banking — typically from family, friends, or mashonisas. Tracked manually in NUMI. A Premium feature (v2).
 
 **Device**  
-The user's phone. The authoritative source of truth for all financial data. See also: Source of Truth.
+The user's phone. The authoritative source of truth for all financial data. In a multi-device setup, the phone remains authoritative: per R6.5, the last write from the device wins over any web edit. Sync never silently discards data — the user is notified of conflicts and divergent ledger data remains recoverable (see Sync, Source of Truth).
 
 ---
 
@@ -139,7 +139,7 @@ The emotional state that follows invisible spending — understanding what happe
 The single most important number in NUMI. Calculated as: total uncommitted money divided by days remaining until next expected income. Updated in real time. The answer to "Will my money last?"
 
 **Source of Truth**  
-The device (phone). The local database is the authoritative ledger. Cloud is a mirror. When they conflict, the device wins.
+The device (phone). The local database is the authoritative ledger. Cloud is a mirror. When they conflict, the device wins (per R6.2/R6.5). Sync never silently discards data: the user is notified of conflicts, and diverged copies are recoverable.
 
 **Spoken-for**  
 Money that has been assigned to a category or goal. It is not locked or hidden; it is labeled. The user can still spend it, but they do so with visible consequences.
@@ -148,7 +148,7 @@ Money that has been assigned to a category or goal. It is not locked or hidden; 
 A communal savings or investment club common in South Africa. May be represented as a Wallet in NUMI.
 
 **Sync**  
-The act of pushing device data to the cloud or pulling cloud data to another device. Must be non-blocking, user-initiated or scheduled, never silent overwriting.
+The act of pushing device data to the cloud or pulling cloud data to another device. Must be non-blocking, user-initiated or scheduled. When web and device disagree, the device wins silently — meaning no confirmation prompt — while the user is notified that newer data exists and will overwrite the web copy.
 
 ---
 

@@ -112,7 +112,7 @@ The result of "giving every Rand a job." Makes Safe-to-Spend calculable.
 
 Rules:
 - A1. Amount must be positive.
-- A2. Sum of Assignments + Sum of Goal reservations for a Wallet cannot exceed that Wallet's balance.
+- A2. Enforced when creating or increasing an Assignment: Sum of active Assignments + Sum of Goal reservations for a Wallet cannot exceed that Wallet's balance. Later expenses may push Safe-to-Spend negative without invalidating existing Assignments.
 - A3. Belongs to exactly one Period, one Category, one Wallet.
 - A4. Immutable once created. To change: delete old, create new.
 - A5. Archived when Period closes. Do not affect future Periods.
@@ -163,5 +163,7 @@ Category classifies many Transactions (expenses only).
 - Safe-to-Spend global = sum of all Wallet Safe-to-Spend values
 - Assignment Spent = sum of expense Transactions in this Category, this Period, this Wallet
 - Assignment Remaining = Assignment.amount - Assignment Spent
-- Days Remaining in Period = end_date - today
-- Daily Safe-to-Spend = Safe-to-Spend / Days Remaining (rounded down)
+- Days Remaining in Period = end_date - today. If the Period ends today, Days Remaining is 0; if expired, it is negative. (Division by zero or negative daily amounts is prevented by the Engine: see below.)
+- Daily Safe-to-Spend = Safe-to-Spend / Days Remaining (rounded down to the nearest Rand), only when Days Remaining > 0. If Days Remaining == 0: Daily Safe-to-Spend = Safe-to-Spend (the whole amount is available today). If Days Remaining < 0 (Period expired): Daily Safe-to-Spend = 0 and the Period must be closed.
+- Period expiry is an explicit Engine transition, not a read-time side effect: when end_date passes, the Engine closes the Period, sets is_active = false, and archives its Assignments (idempotent — repeated checks have no further effect). Reads and derived-value calculations only read state; they never mutate it.
+- Clamping: Daily Safe-to-Spend is clamped to a minimum of 0. A negative Safe-to-Spend with positive Days Remaining yields 0 for the day; the negative balance itself remains visible in the Wallet and in Safe-to-Spend (overspending state).
