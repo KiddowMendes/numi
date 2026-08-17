@@ -1,23 +1,75 @@
 ---
 version: 1.0.0
-status: Planned
-owner: Product
-related_documents: []
-decision_record: null
+status: Draft
+owner: Elton Pascoal
+related_documents:
+  - "docs/playbook/02_Product_Mechanics/02_User_States.md"
+  - "docs/playbook/04_Design_System/03_Patterns.md"
+  - "docs/playbook/05_Features/01_Onboarding/Flow.md"
+decision_record: none
 ---
 
-# Overview
+# 01 — Onboarding: Overview
 
-> **Status:** Planned
+> The first 60 seconds. No tutorial. No account wall. Just the fastest path to "Will my money last?"
 
-This document is intentionally reserved for a future iteration of the NUMI Playbook.
+---
 
-It exists so that:
+## User Problem
 
-- cross-references throughout the Playbook remain valid;
-- architecture reviews have a stable document structure;
-- future implementation work has a predefined location.
+"I just downloaded this app. I don't know if it's for me. I don't want to create an account. I just want to see if it works."
 
-No engineering decisions have been made for this topic yet.
+---
 
-Once implementation planning reaches this area, this document will be expanded and its status changed from **Planned** to **Draft**.
+## What Onboarding Does
+
+1. Validates the user's choice to download NUMI in under 3 seconds.
+2. Creates the minimum viable state to answer "Will my money last?" (1 Wallet + 1 Period).
+3. Never asks for personal data, internet, or payment.
+
+---
+
+## Lens Mapping
+
+| Lens | Served? | How |
+|---|---|---|
+| **Current** | Yes | Safe-to-Spend appears as soon as Period is created. |
+| **Planned** | Yes | User assigns money to Categories during setup. |
+| **Actual** | No | No transactions yet. Actual is empty. |
+
+---
+
+## Success Criteria
+
+- User sees Safe-to-Spend within 60 seconds of first app open.
+- Zero screens before the first Wallet creation.
+- No account creation, no email, no phone number.
+- User can skip Period creation and still use the app (Safe-to-Spend shows "--").
+
+---
+
+## Tier Behavior
+
+| Tier | Onboarding Difference |
+|---|---|
+| **Free** | Default. 1 Wallet. No Goals. |
+| **Freemium** | Prompted to create account *after* onboarding complete. Not before. |
+| **Premium** | Same as Free until onboarding is done. |
+
+---
+
+## Out of Scope
+
+- Tutorial carousel
+- Tooltips or coach marks
+- Bank linking or import
+- Demo data
+- Video or animated explainer
+
+---
+
+## What Happens After This Document
+
+Onboarding is implemented as the default route in `apps/mobile/src/screens/` and `apps/web/app/page.tsx`. It is the first thing a user sees.
+
+Next: Flow.md — the step-by-step journey.
