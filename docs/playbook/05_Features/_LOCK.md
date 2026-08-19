@@ -26,21 +26,21 @@ ADR required for changes to Locked features. New features may be added as Planne
 
 | File | Status | Locked Date | Last ADR |
 |---|---|---|---|
-| 01_Onboarding/Overview.md | Planned | — | — |
-| 01_Onboarding/Flow.md | Planned | — | — |
-| 01_Onboarding/Screens.md | Planned | — | — |
-| 01_Onboarding/Edge_Cases.md | Planned | — | — |
-| 02_Budget_Setup/Overview.md | Planned | — | — |
-| 02_Budget_Setup/Flow.md | Planned | — | — |
-| 02_Budget_Setup/Screens.md | Planned | — | — |
-| 02_Budget_Setup/Edge_Cases.md | Planned | — | — |
+| 01_Onboarding/Overview.md | Draft | — | — |
+| 01_Onboarding/Flow.md | Draft | — | — |
+| 01_Onboarding/Screens.md | Draft | — | — |
+| 01_Onboarding/Edge_Cases.md | Draft | — | — |
+| 02_Budget_Setup/Overview.md | Draft | — | — |
+| 02_Budget_Setup/Flow.md | Draft | — | — |
+| 02_Budget_Setup/Screens.md | Draft | — | — |
+| 02_Budget_Setup/Edge_Cases.md | Draft | — | — |
 | 03_Daily_Budgeting/Overview.md | Planned | — | — |
 | 03_Daily_Budgeting/Flow.md | Planned | — | — |
 | 03_Daily_Budgeting/Screens.md | Planned | — | — |
 | 03_Daily_Budgeting/Edge_Cases.md | Planned | — | — |
-| 04_Spending/Overview.md | Planned | — | — |
-| 04_Spending/Flow.md | Planned | — | — |
-| 04_Spending/Screens.md | Planned | — | — |
+| 04_Spending/Overview.md | Draft | — | — |
+| 04_Spending/Flow.md | Draft | — | — |
+| 04_Spending/Screens.md | Draft | — | — |
 | 04_Spending/Edge_Cases.md | Planned | — | — |
 | 05_Debt_Tracking/Overview.md | Planned | — | — |
 | 05_Debt_Tracking/Flow.md | Planned | — | — |
