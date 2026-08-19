@@ -27,6 +27,6 @@ ADR required for breaking changes (new tokens, removed components). Additions th
 | File | Status | Locked Date | Last ADR |
 |---|---|---|---|
 | 01_Tokens.md | Draft | — | ADR-007 |
-| 02_Components.md | Planned | — | — |
-| 03_Patterns.md | Planned | — | — |
-| 04_Platform_Adaptations.md | Planned | — | — |
+| 02_Components.md | Draft | — | — |
+| 03_Patterns.md | Draft | — | — |
+| 04_Platform_Adaptations.md | Draft | — | — |
