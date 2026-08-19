@@ -26,8 +26,8 @@ ADR required.
 
 | File | Status | Locked Date | Last ADR |
 |---|---|---|---|
-| 01_Tech_Stack.md | Planned | — | — |
-| 02_System_Design.md | Planned | — | — |
-| 03_Monorepo_Structure.md | Planned | — | — |
+| 01_Tech_Stack.md | Draft | — | — |
+| 02_System_Design.md | Draft | — | — |
+| 03_Monorepo_Structure.md | Draft | — | — |
 | 04_Offline_First_Strategy.md | Planned | — | — |
-| 05_Security.md | Planned | — | — |
+| 05_Security.md | Draft | — | — |
