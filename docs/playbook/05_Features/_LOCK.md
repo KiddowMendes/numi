@@ -34,7 +34,7 @@ ADR required for changes to Locked features. New features may be added as Planne
 | 02_Budget_Setup/Flow.md | Draft | — | — |
 | 02_Budget_Setup/Screens.md | Draft | — | — |
 | 02_Budget_Setup/Edge_Cases.md | Draft | — | — |
-| 03_Daily_Budgeting/Overview.md | Planned | — | — |
+| 03_Daily_Budgeting/Overview.md | Draft | — | — |
 | 03_Daily_Budgeting/Flow.md | Planned | — | — |
 | 03_Daily_Budgeting/Screens.md | Planned | — | — |
 | 03_Daily_Budgeting/Edge_Cases.md | Planned | — | — |
