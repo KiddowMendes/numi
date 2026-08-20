@@ -25,7 +25,7 @@ ADR required for changes that affect other developers or CI/CD. Solo workflow tw
 
 | File | Status | Locked Date | Last ADR |
 |---|---|---|---|
-| 01_Coding_Standards.md | Planned | — | — |
-| 02_Git_Workflow.md | Planned | — | — |
-| 03_Testing_Strategy.md | Planned | — | — |
-| 04_Release_Process.md | Planned | — | — |
+| 01_Coding_Standards.md | Draft | — | — |
+| 02_Git_Workflow.md | Draft | — | — |
+| 03_Testing_Strategy.md | Draft | — | — |
+| 04_Release_Process.md | Draft | — | — |

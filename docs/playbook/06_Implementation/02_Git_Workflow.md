@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-status: Planned
+status: Draft
 owner: Product
 related_documents: []
 decision_record: null
@@ -8,16 +8,50 @@ decision_record: null
 
 # 02 — Git Workflow
 
-> **Status:** Planned
+> **Status:** Draft
 
-This document is intentionally reserved for a future iteration of the NUMI Playbook.
+## Model
 
-It exists so that:
+- Single long-lived branch: `main`. No `develop`.
+- Feature work is committed directly to `main` (solo developer). Branch only when you expect multiple commits and want checkpoint safety: `feature/<short-name>`.
+- Experimentation that may be discarded: `spike/<short-name>` (the only branch that may be deleted after use).
 
-- cross-references throughout the Playbook remain valid;
-- architecture reviews have a stable document structure;
-- future implementation work has a predefined location.
+## Commit Conventions
 
-No engineering decisions have been made for this topic yet.
+Format: `type(scope): subject` — lowercase, imperative, 72 chars max.
 
-Once implementation planning reaches this area, this document will be expanded and its status changed from **Planned** to **Draft**.
+| Type | Use for |
+|---|---|
+| `feat` | New capability |
+| `fix` | Bug fix |
+| `docs` | Playbook, README, ADR changes |
+| `refactor` | Behavior-preserving change |
+| `chore` | Tooling, CI, deps |
+| `test` | Tests only |
+| `perf` | Performance |
+| `style` | Formatting, no behavior change |
+
+Scopes: `mobile`, `web`, `domain`, `design-system`, `database`, `playbook`, `context`, `adr`, `repo`.
+
+Subject is a sentence of what happens, not what happened: `fix(domain): return available balance not total balance`.
+
+## Tags
+
+- Cut per package: `mobile@vX.Y.Z`, `web@vX.Y.Z`, `domain@vX.Y.Z`.
+- Tags are created only by the release process (`04_Release_Process.md`).
+
+## Before Every Push
+
+1. `pnpm format` (prettier)
+2. `pnpm lint` (eslint)
+3. `pnpm test` (Vitest for domain, Jest for mobile/web)
+4. `pnpm build` (tsc + bundler)
+
+If any step fails, fix or revert before pushing. Never push a red build.
+
+## Rules
+
+- Never force-push `main`.
+- Never amend a pushed commit.
+- No merge commits on `main`; rebase or commit straight.
+- `git add -A` only after `git status` review. Stage intentionally.
