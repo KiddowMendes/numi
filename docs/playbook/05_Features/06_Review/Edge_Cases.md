@@ -122,6 +122,6 @@ decision_record: none
 
 ## What Happens After This Document
 
-The v1 Features layer is complete. All five features (Onboarding, Budget Setup, Daily Budgeting, Spending, Review) are specified.
+Specified: Onboarding, Budget Setup, Spending, and Review. Still Planned (stubs): Daily Budgeting and Debt Tracking.
 
 Next: docs/playbook/06_Implementation/01_Coding_Standards.md
