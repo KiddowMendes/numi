@@ -25,6 +25,6 @@ ADR required for MVP scope changes. Phase additions/reordering may be updated wi
 
 | File | Status | Locked Date | Last ADR |
 |---|---|---|---|
-| 01_MVP_Scope.md | Planned | — | — |
-| 02_Phases.md | Planned | — | — |
+| 01_MVP_Scope.md | Draft | — | — |
+| 02_Phases.md | Draft | — | — |
 | 03_Known_Unknowns.md | Planned | — | — |
