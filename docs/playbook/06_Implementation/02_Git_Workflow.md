@@ -44,7 +44,7 @@ Subject is a sentence of what happens, not what happened: `fix(domain): return a
 
 1. `pnpm format` (prettier)
 2. `pnpm lint` (eslint)
-3. `pnpm test` (Vitest for domain, Jest for mobile/web)
+3. `pnpm test` (Vitest for domain + web, Jest for mobile)
 4. `pnpm build` (tsc + bundler)
 
 If any step fails, fix or revert before pushing. Never push a red build.

@@ -28,7 +28,7 @@ decision_record: null
 ## Web (Vercel)
 
 - `main` push to `apps/web` deploys automatically to the production alias.
-- The web app is a static export — no server runtime. Auth tokens are httpOnly cookies handled by Supabase Auth; secrets never live in the web bundle.
+- The web app is a static export — no server runtime. Auth is handled by Supabase Auth (session in browser storage); secrets and tokens never live in the web bundle.
 - Previews on pull requests; no `staging` environment in v1.
 
 ## Domain (npm)

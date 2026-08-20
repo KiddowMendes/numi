@@ -15,7 +15,7 @@ decision_record: null
 - **Language:** TypeScript only. No JavaScript files in `apps/` or `packages/`.
 - **tsconfig:** Strict mode on. No `any`, no `@ts-ignore`. If a type fight takes more than a few minutes, extract a type alias or fix the upstream type instead of casting.
 - **Money:** All money values are integer cents (`number`). Never floats. Conversions happen only in `packages/utils/src/currency.ts`.
-- **Validation:** Engine mutating functions return `Result<State, EngineError[]>` (see `01_Domain/04_Engine_API.md`). Do not throw inside the engine; collect errors and return them.
+- **Validation:** Engine mutating functions return `Result<AppState, EngineError>` (see `01_Domain/04_Engine_API.md`). Do not throw inside the engine; collect errors and return them.
 
 ## Naming
 
