@@ -5,93 +5,94 @@ owner: Elton Pascoal
 related_documents:
   - "docs/playbook/05_Features/06_Review/Overview.md"
   - "docs/playbook/05_Features/06_Review/Screens.md"
-  - "docs/playbook/02_Product_Mechanics/03_Behavioral_Loops.md"
 decision_record: none
 ---
 
 # 06 — Review: Flow
 
-> What happened? Did my money last? What should I do differently next time?
+> The honest post-mortem. No grades, just facts.
 
 ---
 
-## Flow 1: Period Ended — Summary
+## Flow 1: Automatic Prompt at Period End
 
-**Trigger:** Today > active Period end_date. User opens app.
+**Trigger:** `today > active_period.end_date`, user opens app.
 
 **Steps:**
-1. HomeScreen shows Period Ended state.
-2. User opens Review. The summary loads first, showing:
-   - Income received in the Period.
-   - Spent (sum of expense Transactions in the Period's date range).
-   - Unspent (sum of positive Assignment remainders).
-   - Overspent (sum of negative Assignment remainders, shown only if > 0).
-3. Numbers only, plain language: "You planned R[planned]. You spent R[spent]. R[unspent] is still yours." No score. No "well done" or "you failed."
-4. Unspent stated as a good thing: money that survived, not money that was wasted.
-5. Two actions: "Start a new period" (primary) and "See categories" (secondary).
+1. HomeScreen shows PeriodEndedBanner.
+2. Banner: "Your [Period name] has ended. Review or start fresh?"
+3. User taps "Review" → ReviewScreen.
+4. Or taps "Start new period" → Budget Setup flow (skip review).
 
 ---
 
-## Flow 2: Planned vs Actual
+## Flow 2: Review a Closed Period
 
-**Trigger:** User taps "See categories" from the summary.
+**Trigger:** User taps "Review" from banner, or navigates to History → selects a closed Period.
 
 **Steps:**
-1. Table lists every Assignment from the closed Period.
-2. Columns: Category, Planned, Actual (assignment_spent), Remaining (assignment_remaining).
-3. Rows sorted by Remaining ascending, so overspent Categories surface first.
-4. Negative Remaining renders as a plain negative number. No red, no warning color.
-5. Tap a row to see the individual expenses that made up that Category's Actual.
+1. ReviewScreen opens.
+2. Top: Period summary card.
+   - Name, dates, duration.
+   - Total income, total spent, unspent/overspent.
+   - Unspent shown as "R[amount] left over" (never "underspent").
+3. Middle: Category-by-category breakdown.
+   - Each row: Category name, Planned, Actual, Difference.
+   - Difference: absolute value, neutral color.
+   - No arrows, no up/down moral indicators.
+4. Bottom: Suggested next Period.
+   - "Start [Month] Budget with these amounts?"
+   - Pre-filled Assignments based on Actuals.
+   - User can adjust before creating.
+5. Actions:
+   - Primary: "Start new period" (goes to Budget Setup with suggestions).
+   - Ghost: "Close" (returns to HomeScreen).
 
 ---
 
-## Flow 3: Adjustment Suggestions
+## Flow 3: Review from History
 
-**Trigger:** User taps "Start a new period" from the summary, or creates a Period in Budget Setup.
+**Trigger:** User in HistoryScreen, taps a closed Period header.
 
 **Steps:**
-1. Suggested Assignments pre-fill from the closed Period's Actual amounts, rounded up to a convenient number.
-2. Neutral, factual phrasing: "You planned R2,000 for Food. You spent R2,300. Next time, consider R2,500."
-3. Suggestions are suggestions, not defaults — editable before saving.
-4. Categories that no longer exist (deleted since close) are skipped.
-5. User can adjust, accept, or clear all (Start Fresh path from Budget Setup).
+1. ReviewScreen opens for that specific Period.
+2. Same content as Flow 2.
+3. "Start new period" button hidden (Period is old, not just ended).
+4. Action: "Close" only.
 
 ---
 
-## Flow 4: Unspent Money Resolution
+## Flow 4: Skip Review
 
-**Trigger:** Summary shows unspent > 0.
+**Trigger:** User dismisses PeriodEndedBanner without reviewing.
 
-**Steps:**
-1. Under the summary: "R[amount] unspent. Include it in the next period?"
-2. Tap → unspent is carried into the new Period as unassigned money in the Wallet.
-3. Dismiss → unspent stays unassigned. Either way the money stays theirs; the choice is explicit, not assumed.
-
----
-
-## Flow 5: Start Next Period
-
-**Trigger:** User taps "Start a new period".
-
-**Steps:**
-1. Review hands off to the Budget Setup create flow (PeriodSetupSheet).
-2. Name pre-filled with date pattern. Start = today. End = today + 30 days (or same duration as the closed Period).
-3. Assignments pre-filled from Flow 3 suggestions.
-4. Save. New Period active. Safe-to-Spend recalculates.
-5. Review closes. HomeScreen returns to the Current lens.
+**Behavior:**
+- Banner does not reappear for that Period.
+- Review remains accessible via History → Period header.
+- No nagging. User agency.
 
 ---
 
-## Flow 6: Extend Closed Period
+## Flow 5: Extend Closed Period
 
-**Trigger:** Period ended but income arrived late. User is not ready for a new Period.
+**Trigger:** Period ended before income arrived. User is not ready to start a new Period.
 
 **Steps:**
-1. From the summary: "Extend this period" (secondary action).
+1. ReviewScreen → "Extend this period" (secondary action on the summary card).
 2. Sheet: new end date picker. Must be after the original end_date.
-3. Confirm. Period reopens with its original Assignments, re-committed at their remaining amounts.
-4. State change only — no Transactions. Conservation of money holds (C15): only what is still in the Wallet gets re-committed.
-5. Safe-to-Spend recalculates.
+3. Confirm. Period reopens with its Assignments re-committed at their remaining amounts.
+4. State change only — no Transactions. Safe-to-Spend recalculates.
+
+---
+
+## Tone Rules
+
+| Do | Don't |
+|---|---|
+| "You planned R2,000 for Food. You spent R2,300." | "You overspent Food by R300." |
+| "R500 left over." | "You failed to spend R500." |
+| "Next time, consider R2,500 for Food." | "You need to cut Food spending." |
+| "Start a new period when you're ready." | "Fix your budget now." |
 
 ---
 
@@ -99,18 +100,12 @@ decision_record: none
 
 | If User... | Then... |
 |---|---|
-| Ignores Review | Nothing. Period stays closed. History preserved. Prompt remains on HomeScreen. |
-| Had zero Transactions in the Period | Summary shows zeros. No celebration, no punishment. New Period still offered. |
-| Overspent the Period | Overspent shown as a plain negative number. Suggestions adjust down. No warning state. |
-| Has unspent money | Treated as a win, re-allocable in one tap. Never framed as "leftover" or wasted. |
-| Closes Review without acting | Returns to HomeScreen Period Ended state. Nothing is auto-created. |
-| Reviews an archived Period (Freemium web) | Same summary and Planned vs Actual. No suggestions, no exit ramp. Read-only. |
-| Extends a Period with no money left | Valid. Period reopens with assignments of R0 where nothing remains. Daily Safe-to-Spend may be 0. |
+| Reviews, then kills app | ReviewScreen state not saved. Re-open via History. |
+| Starts new Period mid-review | ReviewScreen dismissed. New Period created. |
+| Has 0 transactions in Period | Review shows: "No transactions logged this period." Suggestion: start fresh. |
 
 ---
 
 ## What Happens After This Document
 
-Review closes the learning loop: it turns reality into the next plan. If either exit ramp breaks, the loop dead-ends and the user stops budgeting.
-
-Next: Screens.md.
+ReviewScreen is the final screen in the v1 feature set. Next: Screens.md.
