@@ -130,7 +130,7 @@ decision_record: none
 
 **Symptoms:** User edited Assignments on web while mobile was offline; mobile's offline Transactions now arrive.
 
-**Expected:** Last write from the device wins (R6.5). The mobile Transaction stands; the conflicting web edit is rejected with a clear, neutral message "This change was made offline and conflicts — your newer change stands."
+**Expected:** Last write from the device wins (R6.5). The mobile Transaction stands; the conflicting web edit is rejected with a clear, neutral message "Your phone has newer data." (OF13).
 
 **Forbidden:** Merge screens, conflict pickers, or silently dropping either change.
 
