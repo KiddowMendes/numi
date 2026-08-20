@@ -42,7 +42,7 @@ ADR required for changes to Locked features. New features may be added as Planne
 | 04_Spending/Flow.md | Draft | — | — |
 | 04_Spending/Screens.md | Draft | — | — |
 | 04_Spending/Edge_Cases.md | Draft | — | — |
-| 05_Debt_Tracking/Overview.md | Planned | — | — |
+| 05_Debt_Tracking/Overview.md | Draft | — | — |
 | 05_Debt_Tracking/Flow.md | Planned | — | — |
 | 05_Debt_Tracking/Screens.md | Planned | — | — |
 | 05_Debt_Tracking/Edge_Cases.md | Planned | — | — |
