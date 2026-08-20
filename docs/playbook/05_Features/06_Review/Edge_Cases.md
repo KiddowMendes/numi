@@ -122,6 +122,6 @@ decision_record: none
 
 ## What Happens After This Document
 
-Specified: Onboarding, Budget Setup, Spending, and Review. Still Planned (stubs): Daily Budgeting and Debt Tracking.
+Specified: Onboarding, Budget Setup, Daily Budgeting, Spending, and Review. Still Planned (stubs): Debt Tracking.
 
 Next: docs/playbook/06_Implementation/01_Coding_Standards.md
