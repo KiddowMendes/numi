@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-status: Draft
+status: Locked
 owner: Elton Pascoal
 related_documents:
   - "docs/playbook/07_Roadmap/01_MVP_Scope.md"

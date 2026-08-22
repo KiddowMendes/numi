@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-status: Draft
+status: Locked
 owner: Elton Pascoal
 related_documents:
   - "docs/playbook/05_Features/01_Onboarding/Overview.md"

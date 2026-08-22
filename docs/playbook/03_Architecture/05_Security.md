@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-status: Draft
+status: Locked
 owner: Elton Pascoal
 related_documents:
   - "docs/playbook/03_Architecture/04_Offline_First_Strategy.md"

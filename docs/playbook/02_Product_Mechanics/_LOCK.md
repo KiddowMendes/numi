@@ -26,7 +26,7 @@ ADR required. Same process as `00_Foundation`.
 
 | File | Status | Locked Date | Last ADR |
 |---|---|---|---|
-| 01_Invariants.md | Draft | — | — |
-| 02_User_States.md | Draft | — | — |
-| 03_Behavioral_Loops.md | Draft | — | — |
-| 04_Data_Flow.md | Draft | — | — |
+| 01_Invariants.md | Locked | 2026-08-22 | — |
+| 02_User_States.md | Locked | 2026-08-22 | — |
+| 03_Behavioral_Loops.md | Locked | 2026-08-22 | — |
+| 04_Data_Flow.md | Locked | 2026-08-22 | — |

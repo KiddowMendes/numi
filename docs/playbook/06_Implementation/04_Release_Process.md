@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-status: Draft
+status: Locked
 owner: Product
 related_documents: [03_Architecture/02_System_Design.md, 07_Roadmap/01_MVP_Scope.md]
 decision_record: null

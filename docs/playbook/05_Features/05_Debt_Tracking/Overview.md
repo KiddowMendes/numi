@@ -1,11 +1,9 @@
 ---
 version: 1.0.0
-status: Draft
+status: Planned
 owner: Elton Pascoal
 related_documents:
-  - "docs/playbook/00_Foundation/02_Principles.md"
-  - "docs/playbook/00_Foundation/03_Glossary.md"
-  - "docs/playbook/07_Roadmap/01_MVP_Scope.md"
+  - "docs/playbook/05_Features/04_Spending/Overview.md"
   - "docs/playbook/07_Roadmap/02_Phases.md"
 decision_record: none
 ---

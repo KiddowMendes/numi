@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-status: Draft
+status: Locked
 owner: Product
 related_documents: [03_Architecture/03_Monorepo_Structure.md, 01_Domain/04_Engine_API.md]
 decision_record: null

@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-status: Draft
+status: Locked
 owner: Product
 related_documents: [01_Domain/03_Calculations.md, 01_Domain/02_Business_Rules.md, 06_Implementation/01_Coding_Standards.md]
 decision_record: null

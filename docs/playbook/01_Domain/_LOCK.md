@@ -37,7 +37,7 @@ Once Locked, a file may only be changed via this process:
 
 | File | Status | Locked Date | Last ADR |
 |---|---|---|---|
-| 01_Entities.md | Draft | — | — |
-| 02_Business_Rules.md | Draft | — | — |
-| 03_Calculations.md | Draft | — | — |
-| 04_Engine_API.md | Draft | — | — |
+| 01_Entities.md | Locked | 2026-08-22 | — |
+| 02_Business_Rules.md | Locked | 2026-08-22 | — |
+| 03_Calculations.md | Locked | 2026-08-22 | — |
+| 04_Engine_API.md | Locked | 2026-08-22 | — |

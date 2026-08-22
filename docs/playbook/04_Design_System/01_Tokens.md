@@ -1,6 +1,6 @@
 ---
 version: 2.0.0
-status: Draft
+status: Locked
 owner: Elton Pascoal
 related_documents:
   - "docs/playbook/00_Foundation/01_Manifesto.md"
