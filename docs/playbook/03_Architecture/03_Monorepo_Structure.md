@@ -127,7 +127,6 @@ packages/
 
 **Repo note:**
 - The three `@repo/*` packages are create-turborepo leftovers. Remove them once `tooling/` configs are in use.
-- All `@numi/*` packages currently have empty `package.json` files (0 bytes). `name` must be set (`@numi/domain`, etc.) before workspace references work.
 - `packages/database` does not exist yet. It is created when the sync layer (v2) begins.
 
 ---
@@ -210,11 +209,11 @@ packages/database   packages/domain      packages/utils
 
 | Package | Import Name | Scope | State |
 |---|---|---|---|
-| Domain | `@numi/domain` | Business engine | Exists, empty package.json |
+| Domain | `@numi/domain` | Business engine | Exists |
 | Database | `@numi/database` | SQLite repository | Not created yet |
-| Design System | `@numi/design-system` | Tokens | Exists, empty package.json |
-| Types | `@numi/types` | Shared interfaces | Exists, empty package.json |
-| Utils | `@numi/utils` | Currency, date helpers | Exists, empty package.json |
+| Design System | `@numi/design-system` | Tokens | Exists |
+| Types | `@numi/types` | Shared interfaces | Exists |
+| Utils | `@numi/utils` | Currency, date helpers | Exists |
 
 ---
 
