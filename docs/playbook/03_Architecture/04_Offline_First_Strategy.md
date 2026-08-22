@@ -3,188 +3,188 @@ version: 1.0.0
 status: Locked
 owner: Elton Pascoal
 related_documents:
-  - "docs/playbook/02_Product_Mechanics/04_Data_Flow.md"
-  - "docs/playbook/02_Product_Mechanics/01_Invariants.md"
-  - "docs/playbook/02_Product_Mechanics/02_User_States.md"
-  - "docs/playbook/00_Foundation/02_Principles.md"
   - "docs/playbook/03_Architecture/02_System_Design.md"
-  - "docs/playbook/03_Architecture/05_Security.md"
+  - "docs/playbook/02_Product_Mechanics/04_Data_Flow.md"
+  - "docs/playbook/00_Foundation/02_Principles.md"
 decision_record: none
 ---
 
-# 04 — Offline First Strategy
+# 04 — Offline-First Strategy
 
-> The device is the source of truth. The cloud is a mirror, and the web is a mirror of that mirror.
-
----
-
-## The Offline-First Identity
-
-**OF1. The core experience never requires a network.**
-
-- In airplane mode, the user can log transactions, create Assignments, and view safe-to-spend exactly as if online (I7).
-- The only features that degrade are those that require connectivity by definition: sync and the web view.
-- No nagging banners demanding connection (I7).
-
-**OF2. The local database is the authoritative ledger.**
-
-- The cloud is a mirror, never a master (R6.1).
-- The web app has no local authority; it is a mirror of the mirror (System Design boundary rules).
-
-**OF3. v1 ships without any cloud dependency.**
-
-- Sync is a v2, Premium-only capability (System Design v1/v2 boundaries; Tech Stack §Sync Infrastructure).
-- v1 must not bake in assumptions that prevent v2: the Sync Layer is an optional adapter around the Repository, not a replacement.
+> The device is never waiting for permission to be correct. Sync is something that happens *to* the truth, not something the truth depends on.
 
 ---
 
-## Data Stores and Authority
+## Scope
 
-| Store | Purpose | Authority |
-|---|---|---|
-| Local Database (device) | Authoritative ledger. All entities. | Source of truth (R6.1) |
-| In-Memory State | Current AppState passed to the Engine. | Derived from local DB |
-| Cloud Mirror (Freemium/Premium) | Copy of device data for web and multi-device. | Mirror only |
-| Web Cache | Lagged read-only copy for the web app. | Mirror of the mirror |
+This document is the single source of truth for **how sync, conflict resolution, and the sync queue actually work**. Other documents reference these mechanics but do not define them:
 
----
+- `03_Architecture/02_System_Design.md` — names the Sync Layer and its failure domains.
+- `02_Product_Mechanics/04_Data_Flow.md` — sketches the push/pull paths and the outbox pattern.
+- `03_Architecture/05_Security.md` — defines what sync payloads must protect.
+- `04_Design_System/03_Patterns.md` — defines what the *user* sees when sync degrades.
 
-## The Offline Path (v1)
+If any of those documents conflicts with this one on a sync mechanic, this document wins; they should be read as UI/security consequences of the rules defined here.
 
-**OF4. State is loaded once at launch, then kept in memory.**
-
-- Load-at-start pattern: Repository reads all tables, maps rows to entities, assembles `AppState` on boot.
-- Reads afterwards come from in-memory state — no DB reads per render (read flow in `04_Data_Flow.md`).
-
-**OF5. Writes apply to state immediately and persist asynchronously.**
-
-- Engine returns new `AppState`; the UI updates immediately, fire-and-forget.
-- Repository writes changed entities to SQLite in the background; the UI never waits.
-- If the DB write fails, queue for retry. Do not roll back in-memory state.
-- If persistence keeps failing, warn the user but keep using in-memory state.
+This document governs **Freemium and Premium tiers only**. Free tier has no cloud and none of this applies — Free tier's "sync" is the manual JSON export in `05_Security.md` (S11).
 
 ---
 
-## The Sync Path (v2, Premium)
+## Foundational Rule
 
-**OF6. Sync is device-initiated and never blocking.**
+**R6.1 restated as an architectural constraint:** the local database on the device is the only ledger the Engine ever writes against. Nothing — not a cloud push acknowledgment, not a pending sync state, not a web edit — is permitted to block, delay, or roll back a local Engine operation. Sync is strictly an *outbound* concern layered on top of a ledger that has already committed.
 
-- The device pushes changes; the cloud never pulls.
-- The web app reads from the cloud and is always lagged unless a sync just completed.
-- The app must never freeze while syncing (R6.4).
-
-**OF7. The Sync Layer never writes to the local DB directly.**
-
-- All incoming state changes pass through the Engine so invariants are preserved (System Design boundary rules).
-
-| Trigger | Notes |
-|---|---|
-| App open | Only if online |
-| Pull-to-refresh | User-initiated |
-| Every 15 minutes | Premium only, user-configurable |
-
-While the app is closed, no sync occurs. A user returning after an inactive period (S8) catches up on the next open — no aggressive background behavior.
+This is why the Sync Layer sits outside the Engine boundary in `02_System_Design.md`: it consumes completed operations, it does not participate in producing them.
 
 ---
 
 ## The Sync Queue
 
-**OF8. The queue is a persistent outbox on the device.**
+An outbox pattern, persisted locally so it survives app kill.
 
-- Survives app kill.
-- Each item: operation type, entity ID, timestamp, checksum.
-- Push flow: device completes operation → queue item appended → background sync pushes → cloud acknowledges → item removed.
+**Queue item shape:**
 
-**OF9. Queue items are never dropped.**
+```
+{
+  id: string,
+  operation_type: string,   // e.g. "logExpense", "createAssignment"
+  entity_id: string,
+  payload_checksum: string,
+  created_at: Date,
+  attempt_count: number,
+  status: 'pending' | 'syncing' | 'failed'
+}
+```
 
-- Failed syncs retry with exponential backoff.
-- Device offline: continue normally, queue for later.
+**Enqueue rule:** every successful Engine operation that mutates `AppState` appends exactly one queue item, in the same local transaction as the DB write it belongs to (per I6 — the operation is atomic from the user's perspective; queuing failure must not be visible to the user, but must not silently drop the item either).
 
-**OF10. The queue is invisible in the core UI.**
+**Dequeue rule:** an item is removed from the queue only after the cloud acknowledges receipt AND checksum match. A push that times out or errors leaves the item in `pending`.
 
-- No pending-sync badges or counts on budgeting screens.
-- Sync health lives in Settings / diagnostics only.
+**Retention limit:** 5,000 pending items. This ceiling exists to bound worst-case local storage and retry cost, not because 5,000 unsynced operations are expected in practice — see Escalation below for what happens if it's reached.
+
+---
+
+## Push Flow (Device → Cloud)
+
+```
+[Engine commits AppState] ──► [Local DB write] ──► [Queue item appended]
+                                                          │
+                                                          ▼
+                                              [Background sync trigger]
+                                                          │
+                                                          ▼
+                                                   [Push to Cloud]
+                                                          │
+                                        ┌─────────────────┴─────────────────┐
+                                        ▼                                   ▼
+                                 [Cloud acknowledges]              [Push fails / times out]
+                                        │                                   │
+                                        ▼                                   ▼
+                              [Queue item removed]              [Retry with backoff — see below]
+```
+
+**Trigger conditions for a sync attempt:**
+- App enters foreground (if online).
+- User pulls to refresh.
+- Every 15 minutes while the app is foregrounded, Premium tier only, user-configurable (per `01_Tech_Stack.md`'s Supabase real-time notes).
+- Freemium tier syncs on the first three triggers only — no scheduled interval sync (manual backup cadence, consistent with R3.5's "lagged" web view for Freemium).
+
+**What is never a trigger:** a sync attempt never blocks a UI transition. If a sync is in flight when the user navigates away or logs another transaction, the sync continues in the background; it does not need the screen that initiated it.
+
+---
+
+## Pull Flow (Web / Secondary Device)
+
+```
+[Web app requests state] ──► [Cloud returns latest known state + timestamp]
+                                                │
+                              ┌─────────────────┴─────────────────┐
+                              ▼                                   ▼
+                    [Timestamp is current]              [Timestamp is stale]
+                              │                                   │
+                              ▼                                   ▼
+                   [Full read/write access]              [Stale banner, read-only]
+```
+
+**Staleness definition:** cloud data is stale if the device has queue items still `pending` at the time the web app fetches, or if the cloud's `last_synced_at` timestamp is older than a threshold (default: 5 minutes) from the current time. Either condition alone is sufficient to mark stale — this is intentionally conservative; a false "stale" flag costs nothing, a false "fresh" flag risks a rejected web edit or worse, a silently lost one.
+
+**Web app has no local authority (per `02_System_Design.md`).** It never queues its own outbox. Every web write is a direct, synchronous request to the cloud, evaluated against the Conflict Resolution rule below before being accepted.
 
 ---
 
 ## Conflict Resolution
 
-**OF11. The device wins, always.**
+**The rule is intentionally simple (R6.5): the device always wins.**
 
-- Last write from the device wins; no complex merge algorithms (R6.5).
-- Diverged copies are never silently discarded — the user is notified (R6.2).
+There is no field-level merge, no three-way diff, no "keep both" prompt. This is a deliberate simplification traded off against complexity the team does not have bandwidth to build correctly for v1 — see `00_Foundation/01_Manifesto.md` Principle 6.
 
-**OF12. The ordering signal is device timestamp + checksum.**
+**Resolution procedure, on a web write attempt:**
 
-- Comparisons use the timestamp attached to each queue item or entity, verified by its checksum.
-- Device clock skew is a known limitation of this model and receives no extra machinery in v2.
+1. Web app submits a write with the `last_synced_at` timestamp it read the state at.
+2. Cloud compares that timestamp against the device's most recent successful push.
+3. If the device has pushed anything newer than the web app's read: **reject the web write.** Return the current cloud state and an explicit conflict reason.
+4. If the device has not pushed anything newer: **accept the web write**, update cloud state, and mark it as authoritative until the device's next push supersedes it (which it eventually will, since the device pushes on every foreground/refresh/interval trigger).
 
-**OF13. Web edits on stale data are rejected by timestamp check.**
-
-- When a web edit arrives, the cloud checks the device timestamp.
-- If the device has newer data: the edit is rejected with "Your phone has newer data." (R6.5, System Design conflict rules).
-- This implements the device-acknowledgement requirement of `04_Data_Flow.md` as a cloud-side check — there is no separate staging bucket for web edits.
+**What "the device wins" does NOT mean:**
+- It does not mean device data silently overwrites a web edit the user just made. The rejection is explicit and shown to the user (I3): *"Your phone has newer data."*
+- It does not mean the web edit is deleted from history. Rejected writes are logged locally in the web session (not persisted server-side) so the user can see what they attempted and manually re-apply it against fresh state if it's still relevant.
+- It does not mean two devices racing each other produce undefined behavior. Only one authoritative device path exists per user account in v1 (multi-device write conflicts are out of scope until Phase 5's family-sharing work; a second phone signed into the same account should be treated as a known unknown, not a supported configuration, until then).
 
 ---
 
-## Web App Behavior
+## Retry & Backoff
 
-**OF14. The web app shows its lag honestly.**
+Applies to push attempts only (pull is synchronous and simply fails/succeeds per request; a failed pull just means the web app shows a network-error read-only state, per `04_Design_System/03_Patterns.md`).
 
-- On open: fetch from cloud, display lagged data, show sync status.
-- If cloud data is older than the device: stale banner and read-only mode (R6.3).
-- Exact message: **"Your phone has newer data. Sync to see the latest."** (R6.2)
-- This satisfies I3: the user must never act on stale numbers without knowing they are stale.
+| Parameter | Value |
+|---|---|
+| Initial backoff | 30 seconds |
+| Backoff growth | Doubles each attempt |
+| Backoff cap | 10 minutes |
+| Max attempts per sync run | 20 |
+| Queue retention limit | 5,000 pending items |
+
+**After 20 failed attempts:** the sync run stops for that session. It resumes on the next trigger condition (foreground, pull-to-refresh, or interval), starting the backoff sequence fresh. Data is never dropped — only the retry *cadence* resets, not the queue contents.
+
+**If the queue reaches its 5,000-item retention limit:** this is treated as an escalation, not a silent truncation. Per `04_Design_System/03_Patterns.md`'s Sync Failure pattern, the banner escalates from the subtle "Sync pending" state to a blocking prompt asking the user to retry manually or contact support. The oldest queued changes are never dropped to make room — the device remains the authoritative ledger regardless of how large the backlog gets.
 
 ---
 
 ## Failure Modes
 
-| Failure | Behavior |
-|---|---|
-| Device offline | Continue normally; queue sync for later |
-| Cloud push fails | Retry with exponential backoff; never drop queue items |
-| Cloud pull fails (web) | Show last known or error state; retry on refresh |
-| DB write fails | In-memory state stays correct; retry queue; warn if persistent |
-| DB corruption on device | App enters read-only; prompt restore (see below) |
-| App killed mid-transaction | Resume from last known good DB state on relaunch |
-| User deletes app | Free: data gone by design (no account, no cloud). Freemium/Premium: restore from cloud backup |
+| Failure | What Happens Locally | What the User Sees | Recovery |
+|---|---|---|---|
+| Device offline | Nothing — Engine and local DB are unaffected | Nothing (no banner, per R4.4 and I7) | Sync resumes automatically on reconnect |
+| Push times out | Queue item stays `pending` | Nothing, until repeated failures escalate the banner | Backoff retry per table above |
+| Push succeeds but ack is lost | Item may be retried once more; cloud dedupes by checksum | Nothing | Cloud-side idempotency via `payload_checksum` prevents double-application |
+| Cloud rejects a web write (conflict) | N/A — device-side, unaffected | Web app: explicit "Your phone has newer data" message | User re-applies the edit on fresh data if still needed |
+| Cloud unreachable (web pull) | N/A | Web app: "Cannot reach server. Data may be outdated." Read-only. | Retry button; web app never invents state |
+| Local DB write fails (storage full) | In-memory `AppState` remains correct for the session; DB write queued for retry | Toast after repeated failure: "Unable to save. Free up space and try again." | Per Onboarding EC10 — same underlying storage-failure handling, not sync-specific |
+| Local DB corruption detected (C15 fails) | App enters read-only mode | Blocking banner, forced export/restore flow | Per `05_Security.md` and `04_Design_System/03_Patterns.md` Data Corruption pattern |
+| Queue exceeds retention limit | Queue itself is untouched (no drop) | Banner escalates to blocking, prompts manual retry/support | User-driven; data is never lost, only delayed |
 
 ---
 
-## Corruption and Restore
+## Tier Applicability
 
-**OF16. Restore is a full overwrite of the last-known-good backup.**
-
-- Restore replaces the device DB wholesale; no merge with surviving rows (no-complex-merge, R6.5).
-- Freemium/Premium: cloud backup is encrypted with the user's sync key; restore requires the same account plus device authentication (S12).
-- Free tier: plaintext JSON export is the user's own responsibility (S11).
-- The app stays read-only until the restore is resolved.
-
----
-
-## Account and Tier Edge Cases
-
-**OF17. Cloud account deletion never touches local data.**
-
-- Deleting the cloud account keeps the local ledger intact (R6.6).
-- Unsubscribing from Premium never deletes local history (R6.6).
+| Tier | Local Ledger | Sync Queue | Push Triggers | Web Access |
+|---|---|---|---|---|
+| Free | Yes (SQLite) | None — no cloud exists | N/A | None (manual JSON export only, S11) |
+| Freemium | Yes (SQLite) | Yes | Foreground, pull-to-refresh, manual backup | Read-mostly, stale-gated (R3.5) |
+| Premium | Yes (SQLite) | Yes | Foreground, pull-to-refresh, 15-min interval | Full read/write when fresh (R3.5) |
 
 ---
 
-## v1 vs v2 Boundaries
+## What This Document Does Not Cover
 
-| Component | v1 | v2 |
-|---|---|---|
-| Sync Layer | Absent. No cloud. | Supabase integration. |
-| Web App | Static landing page or read-only demo. | Full mirror with real-time sync. |
-
-v1 must not bake in assumptions that prevent v2.
+- **Multi-device write conflicts** (two phones on one account) — explicitly deferred; see `07_Roadmap/03_Known_Unknowns.md`.
+- **End-to-end payload encryption details** — the *requirement* is defined in `05_Security.md` (S5); the specific KDF/cipher choice belongs to an implementation ADR when the sync package is built.
+- **Self-hosted sync option** — Phase 5 scope per `07_Roadmap/02_Phases.md`; this document assumes Supabase-managed cloud per `01_Tech_Stack.md`.
 
 ---
 
 ## What Happens After This Document
 
-This strategy is implemented in `03_Monorepo_Structure.md` (package layout; `packages/database` is created when sync work begins) and guarded by `02_Product_Mechanics/04_Data_Flow.md`. Data-at-rest and in-transit protections are specified in `05_Security.md`.
+This strategy is implemented by `packages/database`'s sync adapter when Phase 4 (Premium & Sync) begins — see `03_Monorepo_Structure.md`'s note that `packages/database` does not exist yet and is created at that point. Until then, this document exists so that `02_System_Design.md`, `05_Security.md`, and the sync-affecting Design System patterns have a single mechanic they can all cite without duplicating or drifting from each other.
 
-Next: docs/playbook/03_Architecture/05_Security.md
+Next: with Architecture's two remaining Draft files (this one and the ones already complete) in place, `03_Architecture/_LOCK.md` criteria can be re-evaluated for a full-directory lock pass.
