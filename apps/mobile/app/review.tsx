@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -22,6 +23,13 @@ export default function ReviewScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ThemedView style={styles.content}>
+        <ThemedText
+          type="smallBold"
+          themeColor="textSecondary"
+          onPress={() => router.back()}
+        >
+          ← Back
+        </ThemedText>
         <ThemedText type="title">Review</ThemedText>
 
         {activePeriod && (

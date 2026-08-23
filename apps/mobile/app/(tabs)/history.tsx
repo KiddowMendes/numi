@@ -16,7 +16,7 @@ export default function SpendingScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ThemedView style={styles.content}>
-        <ThemedText type="title">Spending</ThemedText>
+        <ThemedText type="title">History</ThemedText>
 
         {transactions.length === 0 ? (
           <ThemedView style={styles.empty}>

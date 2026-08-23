@@ -20,7 +20,7 @@ export default function DailyBudgetingScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ThemedView style={styles.content}>
-        <ThemedText type="title">Daily Budgeting</ThemedText>
+        <ThemedText type="title">Home</ThemedText>
 
         <ThemedView style={styles.card}>
           <ThemedText type="smallBold" themeColor="textSecondary">

@@ -22,27 +22,36 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Budget',
+          title: 'Home',
           tabBarIcon: ({ color }) => (
             <ThemedText type="small" style={{ color }}>$</ThemedText>
           ),
         }}
       />
       <Tabs.Screen
-        name="spending"
+        name="plan"
         options={{
-          title: 'Spending',
+          title: 'Plan',
           tabBarIcon: ({ color }) => (
-            <ThemedText type="small" style={{ color }}>-</ThemedText>
+            <ThemedText type="small" style={{ color }}>P</ThemedText>
           ),
         }}
       />
       <Tabs.Screen
-        name="review"
+        name="history"
         options={{
-          title: 'Review',
+          title: 'History',
           tabBarIcon: ({ color }) => (
-            <ThemedText type="small" style={{ color }}>R</ThemedText>
+            <ThemedText type="small" style={{ color }}>H</ThemedText>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color }) => (
+            <ThemedText type="small" style={{ color }}>S</ThemedText>
           ),
         }}
       />
