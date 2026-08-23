@@ -8,7 +8,6 @@ export type {
   Wallet,
   Category,
   Goal,
-  GoalStatus,
   Assignment,
   Transaction,
   TransactionType,

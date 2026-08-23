@@ -3,16 +3,35 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { EngineProvider, useStore } from '@/store';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
+function Routing() {
+  const activePeriod = useStore((s) => s.appState.activePeriod);
   const colorScheme = useColorScheme();
+
+  // expo-router file-based routing:
+  //   (onboarding)/  → when no active period
+  //   (tabs)/        → when active period exists
+  //
+  // We use a key on ThemeProvider to force re-render when the route group changes.
+  // The actual routing is driven by the file system — expo-router handles the rest.
+  // Here we just ensure the right theme and splash behavior.
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider
+      key={activePeriod ? 'tabs' : 'onboarding'}
+      value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AnimatedSplashOverlay />
-      <AppTabs />
     </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <EngineProvider>
+      <Routing />
+    </EngineProvider>
   );
 }

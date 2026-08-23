@@ -110,7 +110,7 @@ export function createEngine(initialState: AppState): EngineAPI {
 
         const transferCheck = canTransfer(wallet, toWallet, state.assignments, state.goals, tx.amount);
         if (!transferCheck.valid) {
-          return err([{ code: 'INSUFFICIENT_BALANCE', message: transferCheck.error }]);
+          return err([{ code: 'INSUFFICIENT_BALANCE', message: transferCheck.error ?? 'Insufficient balance' }]);
         }
       }
 

@@ -17,9 +17,9 @@ const GOAL_LIMITS: Record<string, number> = {
  * Checks if creating a wallet or goal would exceed tier limits.
  */
 export function canCreateWallet(user: User, currentCount: number): boolean {
-  return currentCount < WALLET_LIMITS[user.tier];
+  return currentCount < (WALLET_LIMITS[user.tier] ?? Infinity);
 }
 
 export function canCreateGoal(user: User, currentCount: number): boolean {
-  return currentCount < GOAL_LIMITS[user.tier];
+  return currentCount < (GOAL_LIMITS[user.tier] ?? Infinity);
 }
