@@ -259,4 +259,8 @@ export class Repository {
       DELETE FROM schema_version;
     `);
   }
+
+  close(): void {
+    this.db.close();
+  }
 }

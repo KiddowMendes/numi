@@ -1,8 +1,20 @@
-import Database from 'better-sqlite3';
+import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import { Repository } from '../src/repository.js';
 
-export function createTestDb(): { db: Database.Database; repo: Repository } {
-  const db = new Database(':memory:');
+let SQL: Awaited<ReturnType<typeof initSqlJs>>;
+
+export async function ensureSqlJs(): Promise<void> {
+  if (!SQL) {
+    SQL = await initSqlJs();
+  }
+}
+
+export function createTestDb(): { db: SqlJsDatabase; repo: Repository } {
+  const db = new SQL.Database();
   const repo = new Repository(db);
   return { db, repo };
+}
+
+export function destroyTestDb(db: SqlJsDatabase): void {
+  db.close();
 }

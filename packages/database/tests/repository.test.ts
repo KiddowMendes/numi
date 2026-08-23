@@ -1,7 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createTestDb } from './helpers.js';
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
+import { ensureSqlJs, createTestDb } from './helpers.js';
 import type { Repository } from '../src/repository.js';
 import type { AppState } from '@numi/domain';
+
+beforeAll(async () => {
+  await ensureSqlJs();
+});
 
 describe('Repository', () => {
   let repo: Repository;
@@ -245,6 +249,7 @@ describe('Repository', () => {
 
   describe('Goal', () => {
     it('upserts and gets all goals', () => {
+      repo.upsertWallet(state.wallets[0]!);
       repo.upsertGoal(state.goals[0]!);
       const goals = repo.getAllGoals();
       expect(goals).toHaveLength(1);
@@ -252,6 +257,7 @@ describe('Repository', () => {
     });
 
     it('updates goal progress', () => {
+      repo.upsertWallet(state.wallets[0]!);
       repo.upsertGoal(state.goals[0]!);
       repo.upsertGoal({ ...state.goals[0]!, current_amount: 750000 });
       const goals = repo.getAllGoals();
@@ -259,6 +265,7 @@ describe('Repository', () => {
     });
 
     it('handles null deadline', () => {
+      repo.upsertWallet(state.wallets[0]!);
       repo.upsertGoal({
         id: 'g2',
         name: 'Emergency',
@@ -275,6 +282,9 @@ describe('Repository', () => {
 
   describe('Assignment', () => {
     it('upserts and gets all assignments', () => {
+      repo.upsertWallet(state.wallets[0]!);
+      repo.upsertPeriod(state.periods[0]!);
+      repo.upsertCategory(state.categories[0]!);
       repo.upsertAssignment(state.assignments[0]!);
       const assignments = repo.getAllAssignments();
       expect(assignments).toHaveLength(1);
@@ -282,6 +292,9 @@ describe('Repository', () => {
     });
 
     it('updates assignment amount', () => {
+      repo.upsertWallet(state.wallets[0]!);
+      repo.upsertPeriod(state.periods[0]!);
+      repo.upsertCategory(state.categories[0]!);
       repo.upsertAssignment(state.assignments[0]!);
       repo.upsertAssignment({ ...state.assignments[0]!, amount: 400000 });
       const assignments = repo.getAllAssignments();
@@ -291,6 +304,9 @@ describe('Repository', () => {
 
   describe('Transaction', () => {
     it('upserts and gets all transactions', () => {
+      repo.upsertWallet(state.wallets[0]!);
+      repo.upsertWallet(state.wallets[1]!);
+      repo.upsertCategory(state.categories[0]!);
       repo.upsertTransaction(state.transactions[0]!);
       repo.upsertTransaction(state.transactions[1]!);
       const txs = repo.getAllTransactions();
@@ -300,6 +316,7 @@ describe('Repository', () => {
     });
 
     it('handles income transactions', () => {
+      repo.upsertWallet(state.wallets[0]!);
       repo.upsertTransaction({
         id: 't3',
         amount: 200000,
