@@ -13,7 +13,7 @@ export function canTransfer(
   assignments: Assignment[],
   goals: Goal[],
   amount: number,
-): { valid: boolean; error?: string } {
+): { valid: true } | { valid: false; error: string } {
   if (fromWallet.id === toWallet.id) {
     return { valid: false, error: 'Cannot transfer to same wallet' };
   }
