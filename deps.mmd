@@ -1,0 +1,40 @@
+graph TD
+    subgraph Apps
+        web["web<br/>(Next.js 16)"]
+        mobile["mobile<br/>(Expo 57)"]
+    end
+
+    subgraph Packages
+        database["@numi/database"]
+        domain["@numi/domain"]
+        types["@numi/types"]
+        utils["@numi/utils"]
+        design["@numi/design-system"]
+    end
+
+    subgraph Tooling
+        eslint["@repo/eslint-config"]
+        tsconfig["@repo/typescript-config"]
+    end
+
+    web --> eslint
+    web --> tsconfig
+
+    mobile --> database
+    mobile --> domain
+
+    database --> domain
+    database --> types
+
+    domain --> types
+    domain --> utils
+
+    design --> types
+
+    classDef app fill:#f9f,stroke:#333,stroke-width:2px
+    classDef pkg fill:#bbf,stroke:#333,stroke-width:2px
+    classDef tool fill:#bfb,stroke:#333,stroke-width:2px
+
+    class web,mobile app
+    class database,domain,types,utils,design pkg
+    class eslint,tsconfig tool
