@@ -13,3 +13,4 @@ export { canExpense } from './expense-validation.js';
 export { canCreateWallet, canCreateGoal } from './tier-limit.js';
 export { calculatePeriodClose } from './period-close.js';
 export { checkConservation } from './conservation.js';
+export { closePeriodState } from './period-close.js';

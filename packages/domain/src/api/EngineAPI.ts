@@ -7,6 +7,7 @@ import type { Category } from '../entities/Category.js';
 import type { Goal } from '../entities/Goal.js';
 import type { Assignment } from '../entities/Assignment.js';
 import type { Transaction } from '../entities/Transaction.js';
+import type { Period } from '../entities/Period.js';
 import {
   calculateWalletBalance,
   calculateAvailableBalance,
@@ -23,6 +24,7 @@ import {
   canCreateWallet,
   canCreateGoal,
   calculatePeriodClose,
+  closePeriodState,
   checkConservation,
 } from '../calculations/index.js';
 
@@ -44,6 +46,11 @@ export type EngineAPI = {
   createGoal(goal: Goal): Result<Goal, EngineError>;
   updateGoal(id: string, patch: Partial<Pick<Goal, 'current_amount'>>): Result<Goal, EngineError>;
   deleteGoal(id: string): Result<void, EngineError>;
+
+  // Periods
+  createPeriod(input: { name: string; startDate: Date; endDate: Date }): Result<Period, EngineError>;
+  closePeriod(): Result<Period, EngineError>;
+  getActivePeriod(): Period | null;
 
   // Queries
   getWalletBalance(walletId: string): Result<number, EngineError>;
@@ -340,6 +347,62 @@ export function createEngine(initialState: AppState): EngineAPI {
     checkConservation(): Result<{ valid: boolean; discrepancy: number }, EngineError> {
       const result = checkConservation(state.wallets, state.assignments, state.goals);
       return ok(result);
+    },
+
+    createPeriod(input: { name: string; startDate: Date; endDate: Date }): Result<Period, EngineError> {
+      if (input.endDate <= input.startDate) {
+        return err([{ code: 'INVALID_STATE', message: 'Period end date must be after start date' }]);
+      }
+
+      if (state.activePeriod) {
+        const { periods, wallets, activePeriod } = closePeriodState({
+          activePeriod: state.activePeriod,
+          periods: state.periods,
+          wallets: state.wallets,
+          assignments: state.assignments,
+          transactions: state.transactions,
+        });
+        state = { ...state, periods, wallets, activePeriod };
+      }
+
+      const newPeriod: Period = {
+        id: crypto.randomUUID(),
+        name: input.name,
+        start_date: input.startDate,
+        end_date: input.endDate,
+        is_active: true,
+        created_at: new Date(),
+      };
+
+      state = {
+        ...state,
+        periods: [...state.periods, newPeriod],
+        activePeriod: newPeriod,
+      };
+
+      return ok(newPeriod);
+    },
+
+    closePeriod(): Result<Period, EngineError> {
+      if (!state.activePeriod) {
+        return err([{ code: 'INVALID_STATE', message: 'No active period to close' }]);
+      }
+
+      const closedPeriod = state.activePeriod;
+      const { periods, wallets, activePeriod } = closePeriodState({
+        activePeriod: state.activePeriod,
+        periods: state.periods,
+        wallets: state.wallets,
+        assignments: state.assignments,
+        transactions: state.transactions,
+      });
+      state = { ...state, periods, wallets, activePeriod };
+
+      return ok({ ...closedPeriod, is_active: false });
+    },
+
+    getActivePeriod(): Period | null {
+      return state.activePeriod ?? null;
     },
   };
 }

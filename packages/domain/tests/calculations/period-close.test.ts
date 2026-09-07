@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculatePeriodClose } from '../../src/calculations/period-close.js';
+import { calculatePeriodClose, closePeriodState } from '../../src/calculations/period-close.js';
 import { factories } from '../factories/index.js';
 
 describe('C14 - Period Close Calculation', () => {
@@ -44,5 +44,67 @@ describe('C14 - Period Close Calculation', () => {
     ];
     const result = calculatePeriodClose(period, assignments, txs);
     expect(result.totalRemaining).toBe(30000);
+  });
+});
+
+describe('closePeriodState', () => {
+  const now = new Date();
+  const period = factories.createPeriod({
+    id: 'p1',
+    start_date: new Date(now.getFullYear(), now.getMonth(), 1),
+    end_date: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+  });
+  const wallet = factories.createWallet({ id: 'w1', balance: 100000 });
+  const assignment = factories.createAssignment({ id: 'a1', period_id: 'p1', wallet_id: 'w1', amount: 50000, category_id: 'c1' });
+  const tx = factories.createTransaction({
+    wallet_id: 'w1',
+    amount: 20000,
+    type: 'expense',
+    category_id: 'c1',
+    date: new Date(now.getFullYear(), now.getMonth(), 15),
+  });
+
+  it('should return updated state with unassigned money added to wallet', () => {
+    const state = {
+      activePeriod: period,
+      periods: [period],
+      wallets: [wallet],
+      assignments: [assignment],
+      transactions: [tx],
+    };
+    const result = closePeriodState(state);
+    expect(result.activePeriod).toBeNull();
+    expect(result.periods[0].is_active).toBe(false);
+    expect(result.wallets[0].balance).toBe(130000);
+  });
+
+  it('should not change wallet balance when totalRemaining is zero', () => {
+    const spentTx = factories.createTransaction({
+      wallet_id: 'w1',
+      amount: 50000,
+      type: 'expense',
+      category_id: 'c1',
+      date: new Date(now.getFullYear(), now.getMonth(), 15),
+    });
+    const state = {
+      activePeriod: period,
+      periods: [period],
+      wallets: [wallet],
+      assignments: [assignment],
+      transactions: [spentTx],
+    };
+    const result = closePeriodState(state);
+    expect(result.wallets[0].balance).toBe(100000);
+  });
+
+  it('should throw when no active period', () => {
+    const state = {
+      activePeriod: null,
+      periods: [],
+      wallets: [wallet],
+      assignments: [],
+      transactions: [],
+    };
+    expect(() => closePeriodState(state)).toThrow('No active period to close');
   });
 });

@@ -556,4 +556,134 @@ describe('EngineAPI', () => {
       }
     });
   });
+
+  describe('createPeriod', () => {
+    it('should create a new period', () => {
+      const state = makeState({ activePeriod: undefined, periods: [] });
+      const engine = createEngine(state);
+      const start = new Date('2024-01-01');
+      const end = new Date('2024-01-31');
+      const result = engine.createPeriod({ name: 'January', startDate: start, endDate: end });
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.name).toBe('January');
+        expect(result.value.is_active).toBe(true);
+      }
+      const active = engine.getActivePeriod();
+      expect(active?.name).toBe('January');
+    });
+
+    it('should fail when end date is before start date', () => {
+      const state = makeState({ activePeriod: undefined, periods: [] });
+      const engine = createEngine(state);
+      const result = engine.createPeriod({
+        name: 'Invalid',
+        startDate: new Date('2024-01-31'),
+        endDate: new Date('2024-01-01'),
+      });
+      expect(result.ok).toBe(false);
+    });
+
+    it('should close existing active period when creating new one', () => {
+      const engine = createEngine(makeState());
+      const start = new Date('2024-02-01');
+      const end = new Date('2024-02-28');
+      const result = engine.createPeriod({ name: 'February', startDate: start, endDate: end });
+      expect(result.ok).toBe(true);
+      const active = engine.getActivePeriod();
+      expect(active?.name).toBe('February');
+      const allPeriods = engine.getState().periods;
+      expect(allPeriods.find((p) => p.name === 'Current Period')?.is_active).toBe(false);
+    });
+
+    it('should return unassigned money to wallets when closing period', () => {
+      const state = makeState({
+        assignments: [factories.createAssignment({ wallet_id: 'w1', amount: 50000, period_id: 'p1' })],
+      });
+      const engine = createEngine(state);
+      const start = new Date('2024-02-01');
+      const end = new Date('2024-02-28');
+      engine.createPeriod({ name: 'February', startDate: start, endDate: end });
+      const balance = engine.getWalletBalance('w1');
+      expect(balance.ok).toBe(true);
+      if (balance.ok) {
+        expect(balance.value).toBe(150000);
+      }
+    });
+
+    it('should handle period with zero remaining (no wallet balance change)', () => {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const state = makeState({
+        activePeriod: factories.createPeriod({ id: 'p1', is_active: true, start_date: start, end_date: end }),
+        periods: [factories.createPeriod({ id: 'p1', is_active: true, start_date: start, end_date: end })],
+        assignments: [
+          factories.createAssignment({ id: 'a1', wallet_id: 'w1', amount: 50000, period_id: 'p1', category_id: 'cat_1' }),
+        ],
+        transactions: [
+          factories.createTransaction({ wallet_id: 'w1', amount: 50000, type: 'expense', category_id: 'cat_1', date: new Date(start.getTime() + 1000 * 60 * 60 * 24 * 5) }),
+        ],
+      });
+      const engine = createEngine(state);
+      const newStart = new Date('2024-02-01');
+      const newEnd = new Date('2024-02-28');
+      engine.createPeriod({ name: 'February', startDate: newStart, endDate: newEnd });
+      const balance = engine.getWalletBalance('w1');
+      expect(balance.ok).toBe(true);
+      if (balance.ok) {
+        expect(balance.value).toBe(100000);
+      }
+    });
+
+    it('should return unassigned money when calling closePeriod directly', () => {
+      const state = makeState({
+        assignments: [factories.createAssignment({ wallet_id: 'w1', amount: 30000, period_id: 'p1' })],
+      });
+      const engine = createEngine(state);
+      const balanceBefore = engine.getWalletBalance('w1');
+      expect(balanceBefore.ok).toBe(true);
+      if (balanceBefore.ok) expect(balanceBefore.value).toBe(100000);
+
+      engine.closePeriod();
+
+      const balanceAfter = engine.getWalletBalance('w1');
+      expect(balanceAfter.ok).toBe(true);
+      if (balanceAfter.ok) expect(balanceAfter.value).toBe(130000);
+    });
+  });
+
+  describe('closePeriod', () => {
+    it('should close active period', () => {
+      const engine = createEngine(makeState());
+      const result = engine.closePeriod();
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.is_active).toBe(false);
+      }
+      expect(engine.getActivePeriod()).toBeNull();
+    });
+
+    it('should fail when no active period', () => {
+      const state = makeState({ activePeriod: undefined, periods: [] });
+      const engine = createEngine(state);
+      const result = engine.closePeriod();
+      expect(result.ok).toBe(false);
+    });
+  });
+
+  describe('getActivePeriod', () => {
+    it('should return active period', () => {
+      const engine = createEngine(makeState());
+      const period = engine.getActivePeriod();
+      expect(period?.name).toBe('Current Period');
+    });
+
+    it('should return null when no active period', () => {
+      const state = makeState({ activePeriod: undefined, periods: [] });
+      const engine = createEngine(state);
+      const period = engine.getActivePeriod();
+      expect(period).toBeNull();
+    });
+  });
 });
