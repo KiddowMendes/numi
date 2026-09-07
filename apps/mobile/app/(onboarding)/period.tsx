@@ -10,7 +10,7 @@ import { Spacing } from '@/constants/theme';
 
 export default function OnboardingPeriod() {
   const router = useRouter();
-  const { engine, repository } = useEngine();
+  const { engine } = useEngine();
   const syncFromEngine = useStore((s) => s.syncFromEngine);
 
   const [periodName, setPeriodName] = useState('This Month');
@@ -20,31 +20,20 @@ export default function OnboardingPeriod() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-    const result = engine.createWallet({
-      id: `wallet-period-${Date.now()}`,
-      name: 'Period Wallet',
-      type: 'cash',
-      balance: 0,
-      currency: 'ZAR',
-      created_at: now,
-    });
-
-    // Create the active period
-    repository.upsertPeriod({
-      id: `period-${Date.now()}`,
+    const result = engine.createPeriod({
       name: periodName,
-      start_date: startOfMonth,
-      end_date: endOfMonth,
-      is_active: true,
-      created_at: now,
+      startDate: startOfMonth,
+      endDate: endOfMonth,
     });
 
-    // Reload state and navigate to main app
-    const freshState = repository.loadState();
-    engine.getState = () => freshState;
+    if (!result.ok) {
+      // TODO: surface error to user
+      console.error('Failed to create period:', result.errors);
+      return;
+    }
 
-    // Force full state replacement
-    useStore.setState({ appState: freshState });
+    // Sync store from engine (engine already updated its internal state)
+    syncFromEngine();
     router.replace({ pathname: '/' });
   }
 
