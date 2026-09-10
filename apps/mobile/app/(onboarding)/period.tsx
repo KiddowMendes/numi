@@ -1,68 +1,103 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Button } from '@/components/ui/button';
 import { useEngine, useStore } from '@/store';
-import { Spacing } from '@/constants/theme';
+import { formatDate } from '@/lib/format';
+import { spacing } from '@/constants/tokens';
 
-export default function OnboardingPeriod() {
+function getCurrentMonthRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  return { start, end };
+}
+
+export default function PeriodSetupScreen() {
   const router = useRouter();
   const { engine } = useEngine();
   const syncFromEngine = useStore((s) => s.syncFromEngine);
 
-  const [periodName, setPeriodName] = useState('This Month');
+  const { start, end } = getCurrentMonthRange();
+  const [periodName, setPeriodName] = useState('My Budget');
 
-  function handleComplete() {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  function handleContinue() {
+    if (!periodName.trim()) return;
 
     const result = engine.createPeriod({
-      name: periodName,
-      startDate: startOfMonth,
-      endDate: endOfMonth,
+      name: periodName.trim(),
+      startDate: start,
+      endDate: end,
     });
 
     if (!result.ok) {
-      // TODO: surface error to user
       console.error('Failed to create period:', result.errors);
       return;
     }
 
-    // Sync store from engine (engine already updated its internal state)
     syncFromEngine();
-    router.replace({ pathname: '/' });
+    router.push({ pathname: '/category' });
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ThemedView style={styles.content}>
-        <ThemedText type="title">Set Your Period</ThemedText>
-        <ThemedText type="default" themeColor="textSecondary">
-          A period is your budgeting cycle — typically a month.
-        </ThemedText>
-
-        <View style={styles.periodCard}>
-          <ThemedText type="default">Current cycle</ThemedText>
-          <ThemedText type="subtitle">{periodName}</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            {new Date().toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' })}
+        <ThemedView style={styles.header}>
+          <ThemedText type="heading1" themeColor="textPrimary">
+            Set Your Period
           </ThemedText>
-        </View>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.button,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={handleComplete}>
-          <ThemedText type="default" style={styles.buttonText}>
-            Start Budgeting
+          <ThemedText type="body" themeColor="textSecondary">
+            A period is your budgeting cycle — typically a month.
           </ThemedText>
-        </Pressable>
+        </ThemedView>
+
+        <ThemedView style={styles.form}>
+          <ThemedView style={styles.field}>
+            <ThemedText type="label" themeColor="textSecondary">
+              Period name
+            </ThemedText>
+            <TextInput
+              value={periodName}
+              onChangeText={setPeriodName}
+              placeholder="e.g. My Budget"
+              placeholderTextColor="#999"
+              autoCapitalize="words"
+              style={[styles.input, { color: '#dbf2ff' }]}
+            />
+          </ThemedView>
+
+          <ThemedView style={styles.dateRange}>
+            <ThemedView style={styles.dateField}>
+              <ThemedText type="caption" themeColor="textMuted">
+                Start
+              </ThemedText>
+              <ThemedText type="body" themeColor="textPrimary">
+                {formatDate(start)}
+              </ThemedText>
+            </ThemedView>
+
+            <ThemedText type="body" themeColor="textMuted">
+              —
+            </ThemedText>
+
+            <ThemedView style={styles.dateField}>
+              <ThemedText type="caption" themeColor="textMuted">
+                End
+              </ThemedText>
+              <ThemedText type="body" themeColor="textPrimary">
+                {formatDate(end)}
+              </ThemedText>
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
+
+        <Button variant="primary" size="lg" onPress={handleContinue}>
+          Continue
+        </Button>
       </ThemedView>
     </SafeAreaView>
   );
@@ -74,29 +109,34 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.six,
-    gap: Spacing.three,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing['3xl'],
+    gap: spacing.xl,
   },
-  periodCard: {
-    backgroundColor: '#F0F0F3',
-    borderRadius: 12,
-    padding: Spacing.four,
-    marginTop: Spacing.four,
-    gap: Spacing.one,
+  header: {
+    gap: spacing.sm,
   },
-  button: {
-    backgroundColor: '#208AEF',
-    borderRadius: 12,
-    paddingVertical: Spacing.three,
+  form: {
+    flex: 1,
+    gap: spacing.xl,
+  },
+  field: {
+    gap: spacing.sm,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#35476e',
+    borderRadius: 4,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    fontSize: 16,
+  },
+  dateRange: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Spacing.four,
+    gap: spacing.md,
   },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+  dateField: {
+    gap: spacing.xs,
   },
 });
