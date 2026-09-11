@@ -14,6 +14,7 @@ import type { Category } from '@numi/domain';
 export default function CategorySetupScreen() {
   const { engine } = useEngine();
   const syncFromEngine = useStore((s) => s.syncFromEngine);
+  const completeOnboarding = useStore((s) => s.completeOnboarding);
   const categories = useStore((s) => s.appState.categories);
   const wallets = useStore((s) => s.appState.wallets);
   const activePeriod = useStore((s) => s.appState.activePeriod);
@@ -46,7 +47,7 @@ export default function CategorySetupScreen() {
     });
 
     syncFromEngine();
-    // Stack key changes from 'onboarding' to 'tabs' via activePeriod update
+    completeOnboarding();
   }
 
   function updateAmount(categoryId: string, value: string) {

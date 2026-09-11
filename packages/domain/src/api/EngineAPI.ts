@@ -1,5 +1,6 @@
 import type { Result, EngineError } from '@numi/types';
 import { ok, err } from '@numi/types';
+import { generateUUID } from '@numi/utils';
 import type { AppState } from '../state';
 import type { User } from '../entities/User';
 import type { Wallet } from '../entities/Wallet';
@@ -48,7 +49,7 @@ export type EngineAPI = {
   deleteGoal(id: string): Result<void, EngineError>;
 
   // Periods
-  createPeriod(input: { name: string; startDate: Date; endDate: Date }): Result<Period, EngineError>;
+  createPeriod(input: { id?: string; name: string; startDate: Date; endDate: Date }): Result<Period, EngineError>;
   closePeriod(): Result<Period, EngineError>;
   getActivePeriod(): Period | null;
 
@@ -349,7 +350,7 @@ export function createEngine(initialState: AppState): EngineAPI {
       return ok(result);
     },
 
-    createPeriod(input: { name: string; startDate: Date; endDate: Date }): Result<Period, EngineError> {
+    createPeriod(input: { id?: string; name: string; startDate: Date; endDate: Date }): Result<Period, EngineError> {
       if (input.endDate <= input.startDate) {
         return err([{ code: 'INVALID_STATE', message: 'Period end date must be after start date' }]);
       }
@@ -366,7 +367,7 @@ export function createEngine(initialState: AppState): EngineAPI {
       }
 
       const newPeriod: Period = {
-        id: crypto.randomUUID(),
+        id: input.id ?? generateUUID(),
         name: input.name,
         start_date: input.startDate,
         end_date: input.endDate,

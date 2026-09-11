@@ -568,9 +568,42 @@ describe('EngineAPI', () => {
       if (result.ok) {
         expect(result.value.name).toBe('January');
         expect(result.value.is_active).toBe(true);
+        expect(typeof result.value.id).toBe('string');
+        expect(result.value.id.length).toBeGreaterThan(0);
       }
       const active = engine.getActivePeriod();
       expect(active?.name).toBe('January');
+    });
+
+    it('should use explicit id if provided', () => {
+      const state = makeState({ activePeriod: undefined, periods: [] });
+      const engine = createEngine(state);
+      const start = new Date('2024-01-01');
+      const end = new Date('2024-01-31');
+      const result = engine.createPeriod({ id: 'period-custom-123', name: 'January', startDate: start, endDate: end });
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.id).toBe('period-custom-123');
+      }
+    });
+
+    it('should generate id even if crypto is not available globally', () => {
+      const originalCrypto = globalThis.crypto;
+      try {
+        // @ts-expect-error simulating environment without crypto
+        delete globalThis.crypto;
+        const state = makeState({ activePeriod: undefined, periods: [] });
+        const engine = createEngine(state);
+        const start = new Date('2024-01-01');
+        const end = new Date('2024-01-31');
+        const result = engine.createPeriod({ name: 'January', startDate: start, endDate: end });
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          expect(result.value.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+        }
+      } finally {
+        globalThis.crypto = originalCrypto;
+      }
     });
 
     it('should fail when end date is before start date', () => {

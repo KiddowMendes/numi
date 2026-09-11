@@ -29,6 +29,7 @@ export default function PeriodSetupScreen() {
     if (!periodName.trim()) return;
 
     const result = engine.createPeriod({
+      id: `period-${Date.now()}`,
       name: periodName.trim(),
       startDate: start,
       endDate: end,

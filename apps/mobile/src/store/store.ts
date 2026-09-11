@@ -8,6 +8,8 @@ type StoreState = {
   appState: AppState;
   /** Reference to the Engine instance — set once on mount */
   engine: EngineAPI | null;
+  /** Whether user has finished the onboarding flow */
+  isOnboarded: boolean;
 };
 
 type StoreActions = {
@@ -15,6 +17,8 @@ type StoreActions = {
   setEngine: (engine: EngineAPI) => void;
   /** Sync store.appState from engine.getState() after a mutation */
   syncFromEngine: () => void;
+  /** Complete the onboarding flow and show main tabs */
+  completeOnboarding: () => void;
 };
 
 export const useStore = create<StoreState & StoreActions>((set, get) => ({
@@ -29,9 +33,15 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
     transactions: [],
   },
   engine: null,
+  isOnboarded: false,
 
   setEngine: (engine) => {
-    set({ engine, appState: engine.getState() });
+    const appState = engine.getState();
+    set({
+      engine,
+      appState,
+      isOnboarded: !!appState.activePeriod && (appState.assignments.length > 0 || appState.transactions.length > 0),
+    });
   },
 
   syncFromEngine: () => {
@@ -39,5 +49,9 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
     if (engine) {
       set({ appState: engine.getState() });
     }
+  },
+
+  completeOnboarding: () => {
+    set({ isOnboarded: true });
   },
 }));

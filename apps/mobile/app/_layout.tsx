@@ -1,3 +1,5 @@
+import '@/lib/polyfill';
+
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -13,7 +15,7 @@ setTimeout(() => {
 }, 5000);
 
 function Routing() {
-  const activePeriod = useStore((s) => s.appState.activePeriod);
+  const isOnboarded = useStore((s) => s.isOnboarded);
   const colorScheme = useColorScheme();
 
   const [fontsLoaded] = useFonts({
@@ -37,10 +39,10 @@ function Routing() {
     <ThemeProvider
       value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack
-        key={activePeriod ? 'tabs' : 'onboarding'}
+        key={isOnboarded ? 'tabs' : 'onboarding'}
         screenOptions={{ headerShown: false }}
       >
-        {activePeriod ? (
+        {isOnboarded ? (
           <Stack.Screen name="(tabs)" />
         ) : (
           <Stack.Screen name="(onboarding)" />
