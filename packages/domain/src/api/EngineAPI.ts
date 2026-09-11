@@ -1,13 +1,13 @@
 import type { Result, EngineError } from '@numi/types';
 import { ok, err } from '@numi/types';
-import type { AppState } from '../state.js';
-import type { User } from '../entities/User.js';
-import type { Wallet } from '../entities/Wallet.js';
-import type { Category } from '../entities/Category.js';
-import type { Goal } from '../entities/Goal.js';
-import type { Assignment } from '../entities/Assignment.js';
-import type { Transaction } from '../entities/Transaction.js';
-import type { Period } from '../entities/Period.js';
+import type { AppState } from '../state';
+import type { User } from '../entities/User';
+import type { Wallet } from '../entities/Wallet';
+import type { Category } from '../entities/Category';
+import type { Goal } from '../entities/Goal';
+import type { Assignment } from '../entities/Assignment';
+import type { Transaction } from '../entities/Transaction';
+import type { Period } from '../entities/Period';
 import {
   calculateWalletBalance,
   calculateAvailableBalance,
@@ -26,7 +26,7 @@ import {
   calculatePeriodClose,
   closePeriodState,
   checkConservation,
-} from '../calculations/index.js';
+} from '../calculations/index';
 
 export type EngineAPI = {
   getState(): AppState;

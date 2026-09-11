@@ -1,7 +1,7 @@
-import type { Assignment } from '../entities/Assignment.js';
-import type { Goal } from '../entities/Goal.js';
-import type { Period } from '../entities/Period.js';
-import type { Wallet } from '../entities/Wallet.js';
+import type { Assignment } from '../entities/Assignment';
+import type { Goal } from '../entities/Goal';
+import type { Period } from '../entities/Period';
+import type { Wallet } from '../entities/Wallet';
 
 /**
  * C2. Wallet Available Balance.

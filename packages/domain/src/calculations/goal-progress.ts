@@ -1,4 +1,4 @@
-import type { Goal } from '../entities/Goal.js';
+import type { Goal } from '../entities/Goal';
 
 /**
  * C8. Goal Progress.

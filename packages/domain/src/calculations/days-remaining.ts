@@ -1,4 +1,4 @@
-import type { Period } from '../entities/Period.js';
+import type { Period } from '../entities/Period';
 import { daysRemaining as calcDaysRemaining } from '@numi/utils';
 
 /**

@@ -1,7 +1,7 @@
-import type { Assignment } from '../entities/Assignment.js';
-import type { Period } from '../entities/Period.js';
-import type { Transaction } from '../entities/Transaction.js';
-import { calculateAssignmentSpent } from './assignment-spent.js';
+import type { Assignment } from '../entities/Assignment';
+import type { Period } from '../entities/Period';
+import type { Transaction } from '../entities/Transaction';
+import { calculateAssignmentSpent } from './assignment-spent';
 
 /**
  * C7. Assignment Remaining.

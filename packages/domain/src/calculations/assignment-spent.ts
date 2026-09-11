@@ -1,6 +1,6 @@
-import type { Assignment } from '../entities/Assignment.js';
-import type { Period } from '../entities/Period.js';
-import type { Transaction } from '../entities/Transaction.js';
+import type { Assignment } from '../entities/Assignment';
+import type { Period } from '../entities/Period';
+import type { Transaction } from '../entities/Transaction';
 
 /**
  * C6. Assignment Spent.

@@ -1,9 +1,9 @@
-import type { Assignment } from '../entities/Assignment.js';
-import type { Goal } from '../entities/Goal.js';
-import type { Period } from '../entities/Period.js';
-import type { Wallet } from '../entities/Wallet.js';
-import { calculateGlobalSafeToSpend } from './global-safe-to-spend.js';
-import { calculateDaysRemaining } from './days-remaining.js';
+import type { Assignment } from '../entities/Assignment';
+import type { Goal } from '../entities/Goal';
+import type { Period } from '../entities/Period';
+import type { Wallet } from '../entities/Wallet';
+import { calculateGlobalSafeToSpend } from './global-safe-to-spend';
+import { calculateDaysRemaining } from './days-remaining';
 
 /**
  * C5. Daily Safe-to-Spend.

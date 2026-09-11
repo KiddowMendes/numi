@@ -1,2 +1,2 @@
-export { createEngine } from './EngineAPI.js';
-export type { EngineAPI } from './EngineAPI.js';
+export { createEngine } from './EngineAPI';
+export type { EngineAPI } from './EngineAPI';

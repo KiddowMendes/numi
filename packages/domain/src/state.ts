@@ -6,7 +6,7 @@ import type {
   Goal,
   Assignment,
   Transaction,
-} from './entities/index.js';
+} from './entities/index';
 
 export type AppState = {
   user: User;

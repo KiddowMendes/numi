@@ -1,5 +1,5 @@
-import type { Transaction } from '../entities/Transaction.js';
-import type { Wallet } from '../entities/Wallet.js';
+import type { Transaction } from '../entities/Transaction';
+import type { Wallet } from '../entities/Wallet';
 
 /**
  * C1. Wallet Balance Verification.

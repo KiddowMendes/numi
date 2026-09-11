@@ -1,7 +1,7 @@
-import type { Assignment } from '../entities/Assignment.js';
-import type { Goal } from '../entities/Goal.js';
-import type { Wallet } from '../entities/Wallet.js';
-import { calculateAvailableBalance } from './available-balance.js';
+import type { Assignment } from '../entities/Assignment';
+import type { Goal } from '../entities/Goal';
+import type { Wallet } from '../entities/Wallet';
+import { calculateAvailableBalance } from './available-balance';
 
 /**
  * C3. Global Safe-to-Spend.

@@ -1,4 +1,4 @@
-export type { AppState } from './state.js';
+export type { AppState } from './state';
 
 // Entities
 export type {
@@ -11,7 +11,7 @@ export type {
   Assignment,
   Transaction,
   TransactionType,
-} from './entities/index.js';
+} from './entities/index';
 
 // Calculations
 export {
@@ -32,8 +32,8 @@ export {
   canCreateGoal,
   calculatePeriodClose,
   checkConservation,
-} from './calculations/index.js';
+} from './calculations/index';
 
 // Engine API
-export { createEngine } from './api/index.js';
-export type { EngineAPI } from './api/index.js';
+export { createEngine } from './api/index';
+export type { EngineAPI } from './api/index';
