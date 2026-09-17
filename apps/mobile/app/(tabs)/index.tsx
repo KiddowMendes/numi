@@ -1,17 +1,25 @@
+import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { FAB } from '@/components/ui/fab';
+import { TransactionLogSheet } from '@/components/ui/transaction-log-sheet';
 import { useStore } from '@/store';
 import { Spacing } from '@/constants/theme';
 import { formatCurrency } from '@/lib/format';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function DailyBudgetingScreen() {
+  const theme = useTheme();
   const wallets = useStore((s) => s.appState.wallets);
   const activePeriod = useStore((s) => s.appState.activePeriod);
   const assignments = useStore((s) => s.appState.assignments);
+  const transactions = useStore((s) => s.appState.transactions);
   const engine = useStore((s) => s.engine);
+
+  const [sheetVisible, setSheetVisible] = useState(false);
 
   const safeToSpendResult = engine?.getDailySafeToSpend();
   const safeToSpend = safeToSpendResult?.ok ? safeToSpendResult.value : null;
@@ -46,6 +54,15 @@ export default function DailyBudgetingScreen() {
           </ThemedText>
         )}
       </ThemedView>
+
+      <FAB onPress={() => setSheetVisible(true)}>
+        <ThemedText type="heading2" style={styles.fabText}>+</ThemedText>
+      </FAB>
+
+      <TransactionLogSheet
+        visible={sheetVisible}
+        onClose={() => setSheetVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -63,5 +80,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: Spacing.four,
     gap: Spacing.one,
+  },
+  fabText: {
+    color: '#ffffff',
   },
 });

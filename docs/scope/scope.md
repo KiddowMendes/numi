@@ -59,13 +59,13 @@ Client side mirror of the mobile experience. Static export, no backend. Stays as
 The core loop. Let users record income and expenses from the home screen so the safe to spend number actually changes and the app becomes usable. This is the thinnest real thread through the full stack: UI form to engine calculation to screen update.
 **Done when:** a user can tap the FAB on the home screen, pick income or expense, enter an amount, pick a category (for expenses), add an optional note, confirm, and see the safe to spend number update immediately while the transaction appears in history.
 - [x] Design it (spec): `/architect transaction entry` · [0001](../specs/0001-transaction-entry.md)
-- [ ] Build it: /develop transaction entry
-  - [ ] Store actions and draft state
-  - [ ] Dependencies: toast and date picker
-  - [ ] TransactionLogSheet form
-  - [ ] CategoryChip component
-  - [ ] FAB wiring and confirm flow
-  - [ ] End-to-end testing and edge cases
+- [x] Build it: /develop transaction entry
+  - [x] Store actions and draft state
+  - [x] Dependencies: toast and date picker
+  - [x] TransactionLogSheet form
+  - [x] CategoryChip component
+  - [x] FAB wiring and confirm flow
+  - [x] End-to-end testing and edge cases
 - [ ] Verify it: /check verify transaction entry
 - [ ] Test it: /test transaction entry
 

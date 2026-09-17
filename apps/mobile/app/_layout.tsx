@@ -5,6 +5,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { Component, type ReactNode, useEffect } from 'react';
 import { Text, useColorScheme, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import { EngineProvider, useStore } from '@/store';
 
@@ -85,6 +86,7 @@ export default function RootLayout() {
     <ErrorBoundary>
       <EngineProvider>
         <Routing />
+        <Toast />
       </EngineProvider>
     </ErrorBoundary>
   );
