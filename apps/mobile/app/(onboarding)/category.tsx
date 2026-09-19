@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { FlatList, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from "react";
+import { FlatList, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Button } from '@/components/ui/button';
-import { AmountInput } from '@/components/ui/amount-input';
-import { useEngine, useStore } from '@/store';
-import { formatCurrency } from '@/lib/format';
-import { spacing, categoryColors } from '@/constants/tokens';
-import type { Category } from '@numi/domain';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Button } from "@/components/ui/button";
+import { AmountInput } from "@/components/ui/amount-input";
+import { useEngine, useStore } from "@/store";
+import { formatCurrency } from "@/lib/format";
+import { spacing, categoryColors } from "@/constants/tokens";
+import type { Category } from "@numi/domain";
 
 export default function CategorySetupScreen() {
   const { engine } = useEngine();
@@ -20,6 +20,7 @@ export default function CategorySetupScreen() {
   const activePeriod = useStore((s) => s.appState.activePeriod);
 
   const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
 
   const wallet = wallets[0];
 
@@ -27,16 +28,31 @@ export default function CategorySetupScreen() {
     return Math.round((parseFloat(amounts[categoryId]) || 0) * 100);
   }
 
-  const totalAssigned = categories.reduce((sum, cat) => sum + getAmount(cat.id), 0);
+  const totalAssigned = categories.reduce(
+    (sum, cat) => sum + getAmount(cat.id),
+    0,
+  );
 
   function handleComplete() {
-    if (!activePeriod || !wallet) return;
+    console.log(activePeriod, wallet, totalAssigned);
 
-    categories.forEach((cat) => {
+    if (!activePeriod || !wallet) {
+      setError(
+        "Something is missing. Go back and check your wallet and period.",
+      );
+      return;
+    }
+    if (totalAssigned > wallet.balance) {
+      setError(
+        `You only have ${formatCurrency(wallet.balance)} in this wallet.`,
+      );
+      return;
+    }
+
+    for (const cat of categories) {
       const cents = getAmount(cat.id);
-      if (cents <= 0) return;
-
-      engine.createAssignment({
+      if (cents <= 0) continue;
+      const result = engine.createAssignment({
         id: `assignment-${cat.id}-${Date.now()}`,
         period_id: activePeriod.id,
         category_id: cat.id,
@@ -44,7 +60,11 @@ export default function CategorySetupScreen() {
         amount: cents,
         created_at: new Date(),
       });
-    });
+      if (!result.ok) {
+        setError("Could not save that plan. Check your amounts.");
+        return;
+      }
+    }
 
     syncFromEngine();
     completeOnboarding();
@@ -61,14 +81,17 @@ export default function CategorySetupScreen() {
     return (
       <ThemedView style={styles.categoryRow}>
         <ThemedView style={styles.categoryLeft}>
-          <ThemedView style={[styles.categoryDot, { backgroundColor: catColor }]} />
+          <ThemedView
+            style={[styles.categoryDot, { backgroundColor: catColor }]}
+          />
           <ThemedText type="body" themeColor="textPrimary">
             {item.name}
           </ThemedText>
         </ThemedView>
         <AmountInput
-          value={amounts[item.id] ?? ''}
+          value={amounts[item.id] ?? ""}
           onChangeText={(v) => updateAmount(item.id, v)}
+          style={{ flex: 1 }}
         />
       </ThemedView>
     );
@@ -103,6 +126,12 @@ export default function CategorySetupScreen() {
             </ThemedText>
           </ThemedView>
 
+          {error && (
+            <ThemedText type="label" themeColor="stateAlert">
+              {error}
+            </ThemedText>
+          )}
+
           <Button variant="primary" size="lg" onPress={handleComplete}>
             Start Budgeting
           </Button>
@@ -119,25 +148,24 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing['3xl'],
+    paddingTop: spacing["3xl"],
     gap: spacing.xl,
   },
   header: {
     gap: spacing.sm,
   },
   list: {
-    flex: 1,
     gap: spacing.md,
   },
   categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: spacing.md,
   },
   categoryLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     minWidth: 100,
   },
@@ -151,8 +179,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

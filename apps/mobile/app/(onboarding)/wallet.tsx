@@ -1,22 +1,23 @@
-import { useState } from 'react';
-import { StyleSheet, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useState } from "react";
+import { StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Button } from '@/components/ui/button';
-import { AmountInput } from '@/components/ui/amount-input';
-import { SegmentedControl } from '@/components/ui/segmented-control';
-import { useEngine, useStore } from '@/store';
-import { spacing } from '@/constants/tokens';
-type WalletType = 'cash' | 'bank' | 'stokvel' | 'savings';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Button } from "@/components/ui/button";
+import { AmountInput } from "@/components/ui/amount-input";
+import { SegmentedControl } from "@/components/ui/segmented-control";
+import { TextField } from "@/components/ui/text-field";
+import { useEngine, useStore } from "@/store";
+import { spacing } from "@/constants/tokens";
+type WalletType = "cash" | "bank" | "stokvel" | "savings";
 
 const WALLET_TYPES: { label: string; value: WalletType }[] = [
-  { label: 'Cash', value: 'cash' },
-  { label: 'Bank', value: 'bank' },
-  { label: 'Stokvel', value: 'stokvel' },
-  { label: 'Savings', value: 'savings' },
+  { label: "Cash", value: "cash" },
+  { label: "Bank", value: "bank" },
+  { label: "Stokvel", value: "stokvel" },
+  { label: "Savings", value: "savings" },
 ];
 
 export default function WalletSetupScreen() {
@@ -24,9 +25,9 @@ export default function WalletSetupScreen() {
   const { engine } = useEngine();
   const syncFromEngine = useStore((s) => s.syncFromEngine);
 
-  const [name, setName] = useState('Cash Wallet');
-  const [walletType, setWalletType] = useState<WalletType>('cash');
-  const [balance, setBalance] = useState('');
+  const [name, setName] = useState("Cash Wallet");
+  const [walletType, setWalletType] = useState<WalletType>("cash");
+  const [balance, setBalance] = useState("");
 
   function handleContinue() {
     if (!name.trim()) return;
@@ -37,13 +38,13 @@ export default function WalletSetupScreen() {
       name: name.trim(),
       type: walletType,
       balance: Math.round((parseFloat(balance) || 0) * 100),
-      currency: 'ZAR',
+      currency: "ZAR",
       created_at: now,
     });
 
     if (result.ok) {
       syncFromEngine();
-      router.push({ pathname: '/period' });
+      router.push({ pathname: "/period" });
     }
   }
 
@@ -64,13 +65,11 @@ export default function WalletSetupScreen() {
             <ThemedText type="label" themeColor="textSecondary">
               Wallet name
             </ThemedText>
-            <TextInput
+            <TextField
               value={name}
               onChangeText={setName}
               placeholder="e.g. Cash Wallet"
-              placeholderTextColor="#999"
               autoCapitalize="words"
-              style={[styles.input, { color: '#dbf2ff' }]}
             />
           </ThemedView>
 
@@ -108,7 +107,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing['3xl'],
+    paddingTop: spacing["3xl"],
     gap: spacing.xl,
   },
   header: {
@@ -120,13 +119,5 @@ const styles = StyleSheet.create({
   },
   field: {
     gap: spacing.sm,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#35476e',
-    borderRadius: 4,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    fontSize: 16,
   },
 });

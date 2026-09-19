@@ -1,10 +1,14 @@
-import { forwardRef, useState } from 'react';
-import { StyleSheet, TextInput, type TextStyle, type ViewStyle } from 'react-native';
+import { forwardRef, useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type ViewStyle,
+} from "react-native";
 
-import { ThemedView } from '@/components/themed-view';
-import { color, radius, spacing, typography } from '@/constants/tokens';
-import { useTheme } from '@/hooks/use-theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { radius, spacing } from "@/constants/tokens";
+import { useTheme } from "@/hooks/use-theme";
 
 export type AmountInputProps = {
   value: string;
@@ -16,89 +20,72 @@ export type AmountInputProps = {
 };
 
 export const AmountInput = forwardRef<TextInput, AmountInputProps>(
-  ({ value, onChangeText, currency = 'R', error, style, placeholder = '0.00' }, ref) => {
+  (
+    { value, onChangeText, currency = "R", error, style, placeholder = "0.00" },
+    ref,
+  ) => {
     const theme = useTheme();
-    const scheme = useColorScheme();
-    const mode = scheme === 'unspecified' ? 'light' : scheme;
     const [focused, setFocused] = useState(false);
 
     const borderColor = error
-      ? theme.expense
+      ? theme.stateAlert
       : focused
         ? theme.primary
-        : theme.borderSubtle;
-
-    const handleChange = (text: string) => {
-      const cleaned = text.replace(/[^0-9.]/g, '');
-      onChangeText?.(cleaned);
-    };
+        : theme.border;
 
     return (
-      <ThemedView
+      <View
         style={[
           styles.container,
-          { borderColor },
-          error && styles.error,
+          { borderColor, backgroundColor: theme.surfaceRaised },
           style,
-        ]}>
-        <ThemedView style={styles.currencyBadge}>
-          <TextInput
-            editable={false}
-            value={currency}
-            style={[styles.currency, { color: theme.textSecondary }]}
-          />
-        </ThemedView>
+        ]}
+      >
+        <View style={[styles.badge, { borderRightColor: theme.borderSubtle }]}>
+          <Text style={[styles.currency, { color: theme.textMuted }]}>
+            {currency}
+          </Text>
+        </View>
         <TextInput
           ref={ref}
           value={value}
-          onChangeText={handleChange}
+          onChangeText={(t) => onChangeText?.(t.replace(/[^0-9.]/g, ""))}
           keyboardType="decimal-pad"
           placeholder={placeholder}
-          placeholderTextColor={theme.textMuted}
+          placeholderTextColor={theme.textDisabled}
           style={[styles.input, { color: theme.textPrimary }]}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         />
-      </ThemedView>
+      </View>
     );
   },
 );
-
-AmountInput.displayName = 'AmountInput';
+AmountInput.displayName = "AmountInput";
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderRadius: radius.sm,
-    minHeight: 56,
-    overflow: 'hidden',
-  } as ViewStyle,
-  error: {
-    borderWidth: 2,
-  } as ViewStyle,
-  currencyBadge: {
-    paddingHorizontal: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    height: 56,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    overflow: "hidden",
+  },
+  badge: {
+    alignSelf: "stretch",
+    justifyContent: "center",
+    paddingHorizontal: spacing.lg,
     borderRightWidth: 1,
-    borderRightColor: '#E0E0E0',
-    justifyContent: 'center',
-    height: '100%' as unknown as number,
   },
-  currency: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '600' as TextStyle['fontWeight'],
-    lineHeight: 19,
-  },
+  currency: { fontFamily: "Inter", fontSize: 16, fontWeight: "600" },
   input: {
     flex: 1,
-    fontFamily: 'Inter',
-    fontSize: 22,
-    fontWeight: '700' as TextStyle['fontWeight'],
-    lineHeight: 26,
-    paddingVertical: spacing.md,
+    height: "100%",
     paddingHorizontal: spacing.lg,
-    fontVariant: ['tabular-nums' as const],
+    fontFamily: "Inter",
+    fontSize: 22,
+    fontWeight: "700",
+    fontVariant: ["tabular-nums"],
   },
 });

@@ -1,14 +1,15 @@
-import { useState } from 'react';
-import { StyleSheet, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useState } from "react";
+import { StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Button } from '@/components/ui/button';
-import { useEngine, useStore } from '@/store';
-import { formatDate } from '@/lib/format';
-import { spacing } from '@/constants/tokens';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Button } from "@/components/ui/button";
+import { TextField } from "@/components/ui/text-field";
+import { useEngine, useStore } from "@/store";
+import { formatDate } from "@/lib/format";
+import { spacing } from "@/constants/tokens";
 
 function getCurrentMonthRange() {
   const now = new Date();
@@ -23,7 +24,7 @@ export default function PeriodSetupScreen() {
   const syncFromEngine = useStore((s) => s.syncFromEngine);
 
   const { start, end } = getCurrentMonthRange();
-  const [periodName, setPeriodName] = useState('My Budget');
+  const [periodName, setPeriodName] = useState("My Budget");
 
   function handleContinue() {
     if (!periodName.trim()) return;
@@ -36,12 +37,12 @@ export default function PeriodSetupScreen() {
     });
 
     if (!result.ok) {
-      console.error('Failed to create period:', result.errors);
+      console.error("Failed to create period:", result.errors);
       return;
     }
 
     syncFromEngine();
-    router.push({ pathname: '/category' });
+    router.push({ pathname: "/category" });
   }
 
   return (
@@ -61,13 +62,11 @@ export default function PeriodSetupScreen() {
             <ThemedText type="label" themeColor="textSecondary">
               Period name
             </ThemedText>
-            <TextInput
+            <TextField
               value={periodName}
               onChangeText={setPeriodName}
               placeholder="e.g. My Budget"
-              placeholderTextColor="#999"
               autoCapitalize="words"
-              style={[styles.input, { color: '#dbf2ff' }]}
             />
           </ThemedView>
 
@@ -111,7 +110,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing['3xl'],
+    paddingTop: spacing["3xl"],
     gap: spacing.xl,
   },
   header: {
@@ -124,17 +123,9 @@ const styles = StyleSheet.create({
   field: {
     gap: spacing.sm,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#35476e',
-    borderRadius: 4,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    fontSize: 16,
-  },
   dateRange: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.md,
   },
   dateField: {
