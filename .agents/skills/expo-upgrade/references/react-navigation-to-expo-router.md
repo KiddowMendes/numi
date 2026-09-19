@@ -33,6 +33,7 @@ npx expo-codemod sdk-56-expo-router-react-navigation-replace '**/*.{ts,tsx,js,js
 | `@react-navigation/stack`             | `expo-router/js-stack`                                                   |
 | `@react-navigation/bottom-tabs`       | `expo-router/js-tabs`                                                    |
 | `@react-navigation/material-top-tabs` | `expo-router/js-top-tabs`                                                |
+| `@react-navigation/drawer`           | `expo-router/drawer`                                                     |
 | `@react-navigation/native-stack`      | No direct equivalent. Use the `Stack` layout from `expo-router` instead. |
 
 **Stack caveat:** Do NOT rewrite `import { Stack } from "expo-router"` to `expo-router/js-stack`. The root `Stack` is the Expo Router layout component used in route files; only use `expo-router/js-stack` when replacing a `@react-navigation/stack` JS stack navigator.

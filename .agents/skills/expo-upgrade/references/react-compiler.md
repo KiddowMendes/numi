@@ -4,7 +4,13 @@ React Compiler is stable in Expo SDK 54 and later. It automatically memoizes com
 
 ## Enabling React Compiler
 
-Add to `app.json`:
+Install the babel plugin:
+
+```bash
+npx expo install babel-plugin-react-compiler@beta
+```
+
+Then add to `app.json`:
 
 ```json
 {

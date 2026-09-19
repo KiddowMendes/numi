@@ -158,7 +158,6 @@ Hidden from users but crucial for discoverability. Use comma-separated keywords 
 - No duplicates from title/subtitle
 - Include singular forms (Apple handles plurals)
 - Add synonyms and alternate spellings
-- Include competitor brand names (carefully)
 - Use digits instead of spelled numbers ("5" not "five")
 - Skip articles and prepositions
 

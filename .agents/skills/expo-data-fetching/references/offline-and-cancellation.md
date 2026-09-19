@@ -63,6 +63,11 @@ useEffect(() => {
 **With React Query** (automatic):
 
 ```tsx
-// React Query automatically cancels requests when queries are invalidated
-// or components unmount
+// React Query does NOT cancel requests on invalidation or unmount by default.
+// Cancellation only occurs when the query function consumes the provided signal,
+// for example by passing it to fetch:
+useQuery({
+  queryKey: ['data', url],
+  queryFn: ({ signal }) => fetch(url, { signal }).then(r => r.json()),
+});
 ```

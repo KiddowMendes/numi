@@ -190,7 +190,7 @@ npx expo config --type introspect
 
 Look at the `infoPlist` object — mirror the permission keys in the App Clip's `Info.plist` so matching APIs can be used from the Clip.
 
-Set `deploymentTarget: "17.6"` in the Clip's target config — App Clips have a higher minimum size limit in iOS 17.6.
+If the Clip requires the larger 15 MB size limit available in iOS 17.6 or later, set `deploymentTarget: "17.6"` in the Clip's target config. Otherwise, keep the default deployment target.
 
 If the app uses push notifications or location services, add to the App Clip's `Info.plist` to request the necessary permissions:
 

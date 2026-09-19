@@ -95,6 +95,7 @@ const createUser = async (userData: UserData) => {
 
 ```tsx
 // app/_layout.tsx
+import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient({
@@ -213,11 +214,14 @@ const fetchWithRetry = async (
   options?: RequestInit,
   retries = 3
 ) => {
+  const method = (options?.method ?? "GET").toUpperCase();
+  const isIdempotent = ["GET", "HEAD", "OPTIONS"].includes(method);
+
   for (let i = 0; i < retries; i++) {
     try {
       return await fetchWithErrorHandling(url, options);
     } catch (error) {
-      if (i === retries - 1) throw error;
+      if (!isIdempotent || i === retries - 1) throw error;
       // Exponential backoff
       await new Promise((r) => setTimeout(r, Math.pow(2, i) * 1000));
     }
@@ -245,13 +249,15 @@ export const auth = {
 // Authenticated fetch wrapper
 const authFetch = async (url: string, options: RequestInit = {}) => {
   const token = await auth.getToken();
+  const headers = new Headers(options.headers);
+
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
 
   return fetch(url, {
     ...options,
-    headers: {
-      ...options.headers,
-      Authorization: token ? `Bearer ${token}` : "",
-    },
+    headers,
   });
 };
 ```

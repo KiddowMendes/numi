@@ -9,11 +9,10 @@ The module below is representative: a name, a sync function, two async functions
 ```swift
 import ExpoModulesCore
 
-@Record
-struct DownloadOptions {
-  var url: URL              // required
-  var retries: Int = 3      // omittable, default 3
-  var label: String?        // omittable and nullable
+struct DownloadOptions: Record {
+  @Field var url: URL              // required
+  @Field var retries: Int = 3      // omittable, default 3
+  @Field var label: String?        // omittable and nullable
 }
 
 public final class DownloaderModule: Module {

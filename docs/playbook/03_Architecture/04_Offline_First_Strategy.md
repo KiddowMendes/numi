@@ -187,4 +187,4 @@ Applies to push attempts only (pull is synchronous and simply fails/succeeds per
 
 This strategy is implemented by `packages/database`'s sync adapter when Phase 4 (Premium & Sync) begins — see `03_Monorepo_Structure.md`'s note that `packages/database` does not exist yet and is created at that point. Until then, this document exists so that `02_System_Design.md`, `05_Security.md`, and the sync-affecting Design System patterns have a single mechanic they can all cite without duplicating or drifting from each other.
 
-Next: with Architecture's two remaining Draft files (this one and the ones already complete) in place, `03_Architecture/_LOCK.md` criteria can be re-evaluated for a full-directory lock pass.
+Architecture's `03_Architecture/_LOCK.md` criteria are now satisfied for a full-directory lock pass.

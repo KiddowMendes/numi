@@ -199,16 +199,20 @@ export const loader: LoaderFunction<{ balance: any; isAuthenticated: boolean }> 
   request,
   params,
 ) => {
+  const sessionToken = request?.headers.get("cookie")?.match(/session=([^;]+)/)?.[1];
+
+  if (!sessionToken) {
+    return { balance: null, isAuthenticated: false };
+  }
+
   const data = await fetch("https://api.stripe.com/v1/balance", {
     headers: {
       Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
     },
   });
 
-  const sessionToken = request?.headers.get("cookie")?.match(/session=([^;]+)/)?.[1];
-
   const balance = await data.json();
-  return { balance, isAuthenticated: !!sessionToken };
+  return { balance, isAuthenticated: true };
 };
 ```
 

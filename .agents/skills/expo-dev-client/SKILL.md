@@ -170,7 +170,12 @@ eas build -p ios --profile development --clear-cache
 
 ```bash
 eas --version
-eas update
+```
+
+**Upgrade EAS CLI:**
+
+```bash
+npm install --global eas-cli
 ```
 
 ## Submitting Feedback

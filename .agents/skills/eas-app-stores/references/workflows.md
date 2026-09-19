@@ -96,12 +96,15 @@ on:
 
 jobs:
   check-changes:
-    type: run
-    params:
-      command: |
-        if git diff --name-only HEAD~1 | grep -q "^src/"; then
-          echo "has_changes=true" >> $GITHUB_OUTPUT
-        fi
+    type: custom
+    outputs:
+      has_changes: ${{ steps.check.outputs.has_changes }}
+    steps:
+      - id: check
+        run: |
+          if git diff --name-only HEAD~1 | grep -q "^src/"; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
   build:
     type: build

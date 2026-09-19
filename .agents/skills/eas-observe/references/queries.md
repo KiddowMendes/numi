@@ -22,6 +22,7 @@ All six commands share these flags:
 - `--start <ISO date>` and `--end <ISO date>` — explicit time range
 - `--days <N>` — show data from the last N days (mutually exclusive with `--start`/`--end`, minimum 1)
 - `--project-id <id>` — run against a specific project without needing a project directory. When passed, the command will not try to create a new EAS project where one is unneeded.
+- `--environment <name>` — filter by deployment environment (e.g. production, preview, development)
 - `--json` — machine-readable output (implies `--non-interactive`)
 - `--non-interactive` — fail instead of prompting
 

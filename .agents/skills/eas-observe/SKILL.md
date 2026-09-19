@@ -7,7 +7,7 @@ license: MIT
 
 # EAS Observe
 
-> **EAS service - costs apply.** EAS Observe is an Expo Application Services product. The free EAS plan allows up to 10,000 monthly active users, with a limited set of features; higher usage requires a paid subscription. For details, see https://expo.dev/pricing#plan-features.
+> **EAS service - costs apply.** EAS Observe is an Expo Application Services product. The free tier includes 100,000 events per month; higher usage requires a paid subscription. For details, see https://expo.dev/pricing#plan-features.
 
 EAS Observe tracks startup, navigation, and custom-event performance from production Expo apps. It needs a development or production build — the native library is not in Expo Go.
 

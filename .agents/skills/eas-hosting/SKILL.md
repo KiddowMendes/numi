@@ -229,6 +229,8 @@ eas login
 
 Deploying ships your web bundle and any Expo Router API routes together - `eas deploy` handles both. The export runs whether you have a full website, an API-routes-only backend, or both.
 
+API route handlers are included in the export only when the web output is configured for server-side rendering: set `web.output` to `"server"`, or set it to `"static"` with `apiRoutes` enabled where supported. Without one of these configurations, API route handlers are not bundled into the deploy.
+
 ```bash
 # Export the web bundle (includes any API routes)
 npx expo export -p web
@@ -245,11 +247,13 @@ Everything lands on EAS Hosting (Cloudflare Workers).
 ### Environment Variables for Production
 
 ```bash
-# Create a secret
-eas env:create --name OPENAI_API_KEY --value sk-xxx --environment production
+# Set a sensitive variable for Hosting (encrypted at rest, injected at runtime)
+eas env:set --name OPENAI_API_KEY --value sk-xxx --environment production
 
 # Or use the Expo dashboard
 ```
+
+The deployed API route receives `OPENAI_API_KEY` via `process.env.OPENAI_API_KEY` — no client-side exposure.
 
 ### Custom Domain
 
@@ -356,11 +360,18 @@ export async function GET() {
 
 ```ts
 // From React Native components
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? "https://your-app.expo.app";
+
+// With automatic origin (Expo Router adds the production origin from app.json)
 const response = await fetch("/api/hello");
 const data = await response.json();
 
+// Or with explicit origin for native production builds
+const response = await fetch(`${API_BASE}/api/hello`);
+const data = await response.json();
+
 // With body
-const response = await fetch("/api/users", {
+const response = await fetch(`${API_BASE}/api/users`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ name: "John" }),
