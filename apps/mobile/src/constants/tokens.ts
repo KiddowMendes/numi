@@ -1,235 +1,129 @@
 /**
- * NUMI Design System Tokens
- * Derived from docs/playbook/04_Design_System/01_Tokens.md
+ * The platform seam of the design system.
  *
- * All component code references these tokens — no hardcoded values.
+ * `@numi/design-system` holds the values; this module is the only place that
+ * knows how they map onto React Native. Two jobs:
+ *
+ * 1. Resolves a `family` weight token to a real Inter family name. Each weight
+ *    is registered as its own file in `app/_layout.tsx`, and Android will not
+ *    synthesise a weight from the generic family name, so every type token has
+ *    to point at the file matching its own weight.
+ * 2. Merges the raw type metrics into complete `TextStyle` objects.
  */
 
-import { Platform } from 'react-native';
+import { Platform, type TextStyle } from "react-native";
 
-// ─── Color ───────────────────────────────────────────────────────────
+import {
+  color,
+  fontFamilyName,
+  radius,
+  spacing,
+  typography as typeMetrics,
+  type ColorPalette,
+  type ColorScheme,
+  type FontFamilyToken,
+  type TypographyToken,
+} from "@numi/design-system";
 
-export const color = {
-  light: {
-    background: '#d9e5fd',
-    surface: '#e6f2ff',
-    surfaceRaised: '#f4ffff',
-    textPrimary: '#010728',
-    textSecondary: '#35476e',
-    textMuted: '#50638c',
-    textDisabled: '#6c80ab',
-    border: '#6c80ab',
-    borderSubtle: '#899ecb',
-    primary: '#2d457d',
-    primaryFg: '#f4ffff',
-    income: '#3d7055',
-    expense: '#3d5152',
-    transfer: '#5b4404',
-    stateSafe: '#3d7055',
-    stateCaution: '#5b4404',
-    stateAlert: '#87544b',
-  },
-  dark: {
-    background: '#01030e',
-    surface: '#050a1a',
-    surfaceRaised: '#0e1626',
-    textPrimary: '#dbf2ff',
-    textSecondary: '#9bb1de',
-    textMuted: '#6c80ab',
-    textDisabled: '#35476e',
-    border: '#35476e',
-    borderSubtle: '#1c2c51',
-    primary: '#92b0f1',
-    primaryFg: '#01030e',
-    income: '#78ac90',
-    expense: '#758b8c',
-    transfer: '#ceac64',
-    stateSafe: '#78ac90',
-    stateCaution: '#ceac64',
-    stateAlert: '#c68e85',
-  },
-} as const;
+export {
+  backgroundGradient,
+  categoryAccentKeys,
+  categoryAccentOrder,
+  categoryAccents,
+  color,
+  defaultThemePreference,
+  duration,
+  easing,
+  fontFamilyName,
+  hitSlopMin,
+  iconSize,
+  isThemePreference,
+  motion,
+  motionEasing,
+  radius,
+  resolveAccentForeground,
+  resolveBackgroundGradient,
+  resolveCategoryAccent,
+  resolveColorScheme,
+  shadow,
+  spacing,
+  themePreferences,
+  zIndex,
+} from "@numi/design-system";
 
-export type ColorToken = keyof typeof color.light;
+export type {
+  CategoryAccentKey,
+  ColorPalette,
+  ColorScheme,
+  ColorToken,
+  IconSizeToken,
+  RadiusToken,
+  ShadowToken,
+  SpacingToken,
+  StateToken,
+  TextTone,
+  ThemePreferenceValue,
+  TypographyToken,
+  ZIndexToken,
+} from "@numi/design-system";
 
-/** 8 category accent swatches — purple-violet family (~290°) */
-export const categoryColors = [
-  '#e8d5f2',
-  '#d4b3e6',
-  '#b08dd0',
-  '#8c67ba',
-  '#6841a4',
-  '#4a2d82',
-  '#2c1960',
-  '#0e053e',
-] as const;
+export const screenPadding = spacing.xl;
+export const sectionGap = spacing.xl;
+export const stackGap = spacing.lg;
+export const inlineGap = spacing.sm;
+export const hairlineGap = spacing.xs;
+export const groupRadius = radius.xl;
+export const controlRadius = radius.full;
 
-// ─── Typography ──────────────────────────────────────────────────────
-
-const fontFamily = Platform.select({
-  ios: 'Inter',
-  android: 'Inter',
-  web: 'Inter, ui-sans-serif, system-ui, sans-serif',
-  default: 'Inter',
+/** Height the tab bar claims at the bottom of the screen, per platform. */
+export const BottomTabInset = Platform.select({
+  ios: 58,
+  android: 72,
+  default: 64,
 });
 
-export const typography = {
-  amountHero: {
-    fontFamily,
-    fontSize: 32,
-    fontWeight: '700' as const,
-    lineHeight: 35,
-    fontVariant: ['tabular-nums'],
-  },
-  heading1: {
-    fontFamily,
-    fontSize: 24,
-    fontWeight: '700' as const,
-    lineHeight: 29,
-  },
-  heading2: {
-    fontFamily,
-    fontSize: 18,
-    fontWeight: '600' as const,
-    lineHeight: 23,
-  },
-  title: {
-    fontFamily,
-    fontSize: 16,
-    fontWeight: '600' as const,
-    lineHeight: 22,
-  },
-  body: {
-    fontFamily,
-    fontSize: 16,
-    fontWeight: '400' as const,
-    lineHeight: 24,
-  },
-  label: {
-    fontFamily,
-    fontSize: 14,
-    fontWeight: '500' as const,
-    lineHeight: 20,
-  },
-  caption: {
-    fontFamily,
-    fontSize: 12,
-    fontWeight: '500' as const,
-    lineHeight: 17,
-  },
-  amountLg: {
-    fontFamily,
-    fontSize: 22,
-    fontWeight: '700' as const,
-    lineHeight: 26,
-    fontVariant: ['tabular-nums'],
-  },
-  amountMd: {
-    fontFamily,
-    fontSize: 16,
-    fontWeight: '600' as const,
-    lineHeight: 19,
-    fontVariant: ['tabular-nums'],
-  },
-  amountSm: {
-    fontFamily,
-    fontSize: 14,
-    fontWeight: '600' as const,
-    lineHeight: 17,
-    fontVariant: ['tabular-nums'],
-  },
-} as const;
+function resolveFamily(family: FontFamilyToken): string {
+  const name = fontFamilyName[family];
+  return Platform.select({
+    ios: name,
+    android: name,
+    web: `${name}, ui-sans-serif, system-ui, -apple-system, sans-serif`,
+    default: name,
+  });
+}
 
-export type TypographyToken = keyof typeof typography;
+type ResolvedType = TextStyle & { tabular: boolean };
 
-// ─── Spacing ─────────────────────────────────────────────────────────
-// Base unit: 4px. All values are multiples of 4.
+function resolve(token: TypographyToken): ResolvedType {
+  const spec = typeMetrics[token];
+  return {
+    fontFamily: resolveFamily(spec.family),
+    fontSize: spec.fontSize,
+    fontWeight: `${spec.weight}`,
+    lineHeight: spec.lineHeight,
+    ...(spec.tracking !== undefined && { letterSpacing: spec.tracking }),
+    ...(spec.tabular && { fontVariant: ["tabular-nums" as const] }),
+    tabular: spec.tabular === true,
+  };
+}
 
-export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  '2xl': 32,
-  '3xl': 48,
-} as const;
+export const typography = Object.fromEntries(
+  (Object.keys(typeMetrics) as TypographyToken[]).map((token) => [
+    token,
+    resolve(token),
+  ]),
+) as Record<TypographyToken, ResolvedType>;
 
-export type SpacingToken = keyof typeof spacing;
+/** Money is always set in the currency's locale, never with a float intermediate. */
+export function formatCents(cents: number, locale = "en-ZA"): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "ZAR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+}
 
-// ─── Border Radius ───────────────────────────────────────────────────
-
-export const radius = {
-  none: 0,
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
-  full: 9999,
-} as const;
-
-export type RadiusToken = keyof typeof radius;
-
-// ─── Shadows / Elevation ─────────────────────────────────────────────
-
-export const shadow = {
-  none: undefined,
-  sm: {
-    shadowColor: '#01030e',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  md: {
-    shadowColor: '#01030e',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.10,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  lg: {
-    shadowColor: '#01030e',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.14,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-} as const;
-
-export type ShadowToken = keyof typeof shadow;
-
-// ─── Motion / Animation ──────────────────────────────────────────────
-
-export const motion = {
-  instant: 100,
-  fast: 200,
-  default: 300,
-  slow: 500,
-} as const;
-
-// ─── Icon Sizes ──────────────────────────────────────────────────────
-
-export const iconSize = {
-  xs: 16,
-  sm: 20,
-  md: 24,
-  lg: 32,
-} as const;
-
-// ─── Z-Index ─────────────────────────────────────────────────────────
-
-export const zIndex = {
-  base: 0,
-  sticky: 10,
-  overlay: 50,
-  sheet: 100,
-  modal: 200,
-  toast: 300,
-  fab: 400,
-} as const;
-
-// ─── Layout Helpers ──────────────────────────────────────────────────
-
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export function palette(scheme: ColorScheme): ColorPalette {
+  return color[scheme];
+}

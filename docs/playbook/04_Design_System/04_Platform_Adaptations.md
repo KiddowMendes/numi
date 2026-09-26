@@ -71,14 +71,14 @@ decision_record: none
 
 ### Mobile
 
-| Gesture | Action | Component |
-|---|---|---|
-| Tap | Select, activate | All interactive |
-| Long press | Multi-select (future), context menu | ListItem |
-| Swipe left | Reveal actions (Reverse, Delete) | ListItem |
-| Swipe down | Dismiss BottomSheet | BottomSheet |
-| Pull down | Refresh / Sync | Lists |
-| Pinch | None | — |
+| Gesture    | Action                              | Component       |
+| ---------- | ----------------------------------- | --------------- |
+| Tap        | Select, activate                    | All interactive |
+| Long press | Multi-select (future), context menu | ListItem        |
+| Swipe left | Reveal actions (Reverse, Delete)    | ListItem        |
+| Swipe down | Dismiss BottomSheet                 | BottomSheet     |
+| Pull down  | Refresh / Sync                      | Lists           |
+| Pinch      | None                                | —               |
 
 ### Web
 
@@ -138,13 +138,13 @@ decision_record: none
 
 ## Platform-Specific Exceptions
 
-| Feature | Mobile | Web | Reason |
-|---|---|---|---|
-| Biometric lock | Yes | No | Web cannot reliably access biometrics |
-| Push notifications | Yes | No | Web notifications deferred to v2 |
-| Share sheet | Yes | No | Web uses native download |
-| Haptic feedback | Yes (light) | No | Web vibration API is intrusive |
-| Widget | Yes (v2) | No | Platform-specific |
+| Feature            | Mobile      | Web | Reason                                |
+| ------------------ | ----------- | --- | ------------------------------------- |
+| Biometric lock     | Yes         | No  | Web cannot reliably access biometrics |
+| Push notifications | Yes         | No  | Web notifications deferred to v2      |
+| Share sheet        | Yes         | No  | Web uses native download              |
+| Haptic feedback    | Yes (light) | No  | Web vibration API is intrusive        |
+| Widget             | Yes (v2)    | No  | Platform-specific                     |
 
 ---
 

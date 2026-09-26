@@ -1,31 +1,60 @@
-import { forwardRef, type ReactNode } from "react";
+import { forwardRef } from "react";
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   StyleSheet,
+  View,
   type PressableProps,
   type ViewStyle,
 } from "react-native";
 
+import { AppIcon, type IconName } from "@/components/app-icon";
 import { ThemedText } from "@/components/themed-text";
-import { radius, spacing } from "@/constants/tokens";
+import { motion, radius, spacing } from "@/constants/tokens";
 import { useTheme } from "@/hooks/use-theme";
 
-type ButtonVariant = "primary" | "secondary" | "ghost";
-type ButtonSize = "sm" | "md" | "lg";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonSize = "sm" | "md" | "lg";
 
-type CallbackArg = { pressed: boolean; hovered?: boolean };
-
-export type ButtonProps = Omit<PressableProps, "children"> & {
+export type ButtonProps = Omit<PressableProps, "children" | "style"> & {
   children: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
   disabled?: boolean;
-  icon?: ReactNode;
+  icon?: IconName;
+  iconPosition?: "leading" | "trailing";
+  fullWidth?: boolean;
+  style?: ViewStyle;
+  accessibilityHint?: string;
 };
 
+const SIZES = {
+  sm: {
+    minHeight: 40,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.xs,
+  },
+  md: {
+    minHeight: 48,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+  },
+  lg: {
+    minHeight: 56,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+  },
+} as const;
+
+/**
+ * Press feedback is opacity only. The one primary action per screen gets
+ * `primary`; everything else is secondary or ghost, and a `danger` variant is
+ * for destructive confirmation inside a sheet.
+ */
 export const Button = forwardRef<
   React.ComponentRef<typeof Pressable>,
   ButtonProps
@@ -38,36 +67,27 @@ export const Button = forwardRef<
       loading = false,
       disabled = false,
       icon,
+      iconPosition = "leading",
+      fullWidth = true,
       style,
+      accessibilityHint,
       ...rest
     },
     ref,
   ) => {
     const theme = useTheme();
+    const isInert = disabled || loading;
+    const dim = SIZES[size];
 
-    const isDisabled = disabled || loading;
-
-    const getContainerStyle = (pressed: boolean): ViewStyle => ({
-      ...styles.base,
-      ...styles[`size_${size}`],
-      borderRadius: radius.md,
-      opacity: isDisabled ? 0.4 : pressed ? 0.85 : 1,
-      ...(variant === "primary" && {
-        backgroundColor: theme.primary,
-      }),
-      ...(variant === "secondary" && {
-        backgroundColor: "transparent",
-        borderWidth: 1,
-        borderColor: theme.primary,
-      }),
-      ...(variant === "ghost" && {
-        backgroundColor: "transparent",
-      }),
-      ...(pressed && { transform: [{ scale: 0.98 }] }),
-    });
-
-    const labelColor =
+    const background =
       variant === "primary"
+        ? theme.primary
+        : variant === "danger"
+          ? theme.stateAlert
+          : "transparent";
+
+    const foreground =
+      variant === "primary" || variant === "danger"
         ? theme.primaryFg
         : variant === "secondary"
           ? theme.primary
@@ -76,21 +96,47 @@ export const Button = forwardRef<
     return (
       <Pressable
         ref={ref}
-        disabled={isDisabled}
-        style={({ pressed }: CallbackArg) => getContainerStyle(pressed)}
+        disabled={isInert}
+        accessibilityRole="button"
+        accessibilityLabel={children}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled: !!disabled, busy: loading }}
+        style={({ pressed }: { pressed: boolean }) => [
+          styles.base,
+          dim,
+          {
+            backgroundColor: background,
+            borderColor:
+              variant === "secondary" ? theme.primary : "transparent",
+            borderWidth:
+              variant === "secondary" ? StyleSheet.hairlineWidth * 2 : 0,
+            alignSelf: fullWidth ? "stretch" : "flex-start",
+            opacity: disabled ? 0.4 : pressed ? motion.pressOpacity : 1,
+          },
+          style,
+        ]}
         {...rest}
       >
         {loading ? (
-          <ActivityIndicator size="small" color={labelColor} />
+          // Spinner replaces the label but the height holds, so nothing shifts.
+          <View style={styles.spinner}>
+            <ActivityIndicator size="small" color={foreground} />
+          </View>
         ) : (
           <>
-            {icon}
+            {icon && iconPosition === "leading" ? (
+              <AppIcon name={icon} size={18} color={foreground} weight="bold" />
+            ) : null}
             <ThemedText
-              type={variant === "ghost" ? "label" : "title"}
-              style={[styles.label, { color: labelColor }]}
+              type="button"
+              numberOfLines={1}
+              style={{ color: foreground }}
             >
               {children}
             </ThemedText>
+            {icon && iconPosition === "trailing" ? (
+              <AppIcon name={icon} size={18} color={foreground} weight="bold" />
+            ) : null}
           </>
         )}
       </Pressable>
@@ -105,24 +151,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: spacing.sm,
+    borderRadius: radius.full,
   },
-  size_sm: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    minHeight: 36,
-  },
-  size_md: {
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.lg,
-    minHeight: 44,
-  },
-  size_lg: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    minHeight: 52,
-  },
-  label: {
-    flexShrink: 1,
+  spinner: {
+    minHeight: 20,
+    justifyContent: "center",
   },
 });

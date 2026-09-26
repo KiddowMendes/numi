@@ -24,9 +24,9 @@ ADR required for breaking changes (new tokens, removed components). Additions th
 
 ## Directory Inventory
 
-| File | Status | Locked Date | Last ADR |
-|---|---|---|---|
-| 01_Tokens.md | Locked | 2026-08-22 | ADR-007 |
-| 02_Components.md | Locked | 2026-08-22 | — |
-| 03_Patterns.md | Locked | 2026-08-22 | — |
-| 04_Platform_Adaptations.md | Locked | 2026-08-22 | — |
+| File                       | Status | Locked Date | Last ADR |
+| -------------------------- | ------ | ----------- | -------- |
+| 01_Tokens.md               | Locked | 2026-08-22  | ADR-007  |
+| 02_Components.md           | Locked | 2026-08-22  | —        |
+| 03_Patterns.md             | Locked | 2026-08-22  | —        |
+| 04_Platform_Adaptations.md | Locked | 2026-08-22  | —        |

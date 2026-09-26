@@ -1,4 +1,4 @@
-declare module 'sql.js' {
+declare module "sql.js" {
   interface Database {
     run(sql: string, params?: unknown[]): void;
     exec(sql: string): QueryExecResult[];
@@ -24,5 +24,7 @@ declare module 'sql.js' {
   }
 
   export type { Database, Statement, QueryExecResult, SqlJsStatic };
-  export default function initSqlJs(config?: Record<string, unknown>): Promise<SqlJsStatic>;
+  export default function initSqlJs(
+    config?: Record<string, unknown>,
+  ): Promise<SqlJsStatic>;
 }

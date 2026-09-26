@@ -1,53 +1,75 @@
 import "@/lib/polyfill";
 
 import { useFonts } from "expo-font";
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { Component, type ReactNode, useEffect } from "react";
-import { Text, useColorScheme, View } from "react-native";
-import Toast from "react-native-toast-message";
+import { Component, type ReactNode, useCallback, useEffect } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { Toast, buildToastConfig } from "@/components/app-toast";
 import { EngineProvider, useStore } from "@/store";
+import { color, spacing, typography } from "@/constants/tokens";
+import { useThemeMode } from "@/hooks/use-theme";
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
-setTimeout(() => {
-  SplashScreen.hideAsync().catch(() => {});
-}, 5000);
+/**
+ * The splash is held only until Inter is measured, with a hard ceiling so a
+ * font that never loads cannot strand the user on a blank screen. The previous
+ * version had two independent five-second timers, which meant a five-second
+ * wait even when the fonts were ready in 200ms.
+ */
+const SPLASH_CEILING_MS = 1500;
+
+function AppToast() {
+  const mode = useThemeMode();
+  return <Toast config={buildToastConfig(color[mode])} topOffset={72} />;
+}
 
 function Routing() {
   const isOnboarded = useStore((s) => s.isOnboarded);
-  const colorScheme = useColorScheme();
+  const mode = useThemeMode();
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Inter: require("@expo-google-fonts/inter/400Regular"),
     "Inter-Medium": require("@expo-google-fonts/inter/500Medium"),
     "Inter-SemiBold": require("@expo-google-fonts/inter/600SemiBold"),
     "Inter-Bold": require("@expo-google-fonts/inter/700Bold"),
   });
 
+  const ready = fontsLoaded || !!fontError;
+
+  const hide = useCallback(() => {
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-    const timeout = setTimeout(() => {
-      SplashScreen.hideAsync();
-    }, 5000);
-    return () => clearTimeout(timeout);
-  }, [fontsLoaded]);
+    if (!ready) return;
+    hide();
+    const ceiling = setTimeout(hide, SPLASH_CEILING_MS);
+    return () => clearTimeout(ceiling);
+  }, [ready, hide]);
+
+  if (!ready) return null;
+
+  const theme = color[mode];
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={!isOnboarded}>
-          <Stack.Screen name="(onboarding)" />
-        </Stack.Protected>
-        <Stack.Protected guard={isOnboarded}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="review" />
-        </Stack.Protected>
-      </Stack>
-    </ThemeProvider>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: theme.background },
+      }}
+    >
+      <Stack.Protected guard={!isOnboarded}>
+        <Stack.Screen name="(onboarding)" />
+      </Stack.Protected>
+      <Stack.Protected guard={isOnboarded}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="review" />
+      </Stack.Protected>
+    </Stack>
   );
 }
 
@@ -68,34 +90,47 @@ class ErrorBoundary extends Component<
   }
 
   render() {
-    if (this.state.hasError) {
-      return (
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 24,
-          }}
-        >
-          <Text style={{ fontSize: 16, marginBottom: 8 }}>
-            Something went wrong
-          </Text>
-          <Text>{this.state.message}</Text>
-        </View>
-      );
-    }
-    return this.props.children;
+    if (!this.state.hasError) return this.props.children;
+    return (
+      <View style={styles.crash}>
+        <Text style={styles.crashTitle}>Something went wrong</Text>
+        <Text style={styles.crashBody} numberOfLines={4}>
+          {this.state.message}
+        </Text>
+      </View>
+    );
   }
 }
 
 export default function RootLayout() {
   return (
     <ErrorBoundary>
-      <EngineProvider>
-        <Routing />
-        <Toast />
-      </EngineProvider>
+      <SafeAreaProvider>
+        <EngineProvider>
+          <Routing />
+          <AppToast />
+        </EngineProvider>
+      </SafeAreaProvider>
     </ErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  crash: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.xl,
+    backgroundColor: color.light.background,
+  },
+  crashTitle: {
+    ...typography.title,
+    color: color.light.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  crashBody: {
+    ...typography.label,
+    color: color.light.textSecondary,
+    textAlign: "center",
+  },
+});

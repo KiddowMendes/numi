@@ -1,6 +1,6 @@
-const ZAR_FORMATTER = new Intl.NumberFormat('en-ZA', {
-  style: 'currency',
-  currency: 'ZAR',
+const ZAR_FORMATTER = new Intl.NumberFormat("en-ZA", {
+  style: "currency",
+  currency: "ZAR",
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
@@ -16,9 +16,9 @@ export function formatCurrency(amountInCents: number): string {
  * Format a date as a short human-readable string.
  */
 export function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-ZA', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+  return date.toLocaleDateString("en-ZA", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 }

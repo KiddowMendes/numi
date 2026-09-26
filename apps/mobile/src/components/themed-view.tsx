@@ -1,20 +1,29 @@
-import { View, type ViewProps } from 'react-native';
+import { View, type ViewProps, type ViewStyle } from "react-native";
 
-import { color, type ColorToken } from '@/constants/tokens';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { color, type ColorToken } from "@/constants/tokens";
+import { useThemeMode } from "@/hooks/use-theme";
 
-export type ThemedViewProps = ViewProps & {
-  lightColor?: string;
-  darkColor?: string;
-  type?: ColorToken;
+export type ThemedViewProps = Omit<ViewProps, "style"> & {
+  /** A colour role from the palette. */
+  surface?: ColorToken;
+  style?: ViewStyle | ViewStyle[];
+  children?: React.ReactNode;
 };
 
-export function ThemedView({ style, lightColor, darkColor, type = 'background', ...otherProps }: ThemedViewProps) {
-  const scheme = useColorScheme();
-  const mode = scheme === 'unspecified' ? 'light' : scheme;
-  const bgColor = mode === 'dark'
-    ? (darkColor ?? color.dark[type])
-    : (lightColor ?? color.light[type]);
-
-  return <View style={[{ backgroundColor: bgColor }, style]} {...otherProps} />;
+/**
+ * A View that picks its background from the active palette. Use sparingly —
+ * most layout should be transparent so the screen gradient shows through.
+ */
+export function ThemedView({
+  surface = "background",
+  style,
+  children,
+  ...rest
+}: ThemedViewProps) {
+  const mode = useThemeMode();
+  return (
+    <View style={[{ backgroundColor: color[mode][surface] }, style]} {...rest}>
+      {children}
+    </View>
+  );
 }

@@ -1,144 +1,77 @@
-import { type ReactNode } from 'react';
-import { Pressable, StyleSheet, type ViewStyle } from 'react-native';
+import type { ReactNode } from "react";
+import { Pressable, StyleSheet, type ViewStyle } from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { color, radius, spacing } from '@/constants/tokens';
-import { useTheme } from '@/hooks/use-theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { motion, radius, spacing } from "@/constants/tokens";
+import { useTheme } from "@/hooks/use-theme";
 
-type CardProps = {
-  children: ReactNode;
+export type CardTone = "plain" | "raised" | "outline" | "accent";
+export type CardPadding = "none" | "sm" | "md" | "lg";
+
+export type CardProps = {
+  children?: ReactNode;
   onPress?: () => void;
-  style?: ViewStyle;
+  tone?: CardTone;
+  padding?: CardPadding;
+  style?: ViewStyle | ViewStyle[];
+  /** Announced instead of the contents when the card is a single link. */
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 };
 
-export function Card({ children, onPress, style }: CardProps) {
-  const theme = useTheme();
-  const scheme = useColorScheme();
-  const mode = scheme === 'unspecified' ? 'light' : scheme;
+const PADDING: Record<CardPadding, ViewStyle> = {
+  none: {},
+  sm: { padding: spacing.md },
+  md: { padding: spacing.lg },
+  lg: { padding: spacing.xl },
+};
 
-  const cardBg = mode === 'dark' ? color.dark.surface : color.light.surface;
+/**
+ * The base container. The 1px border is load-bearing: a white card on the
+ * light page is only ~1.1:1, so the border at 3.2:1 is what makes the edge
+ * visible. Never remove it in favour of a fill change.
+ */
+export function Card({
+  children,
+  onPress,
+  tone = "outline",
+  padding = "md",
+  style,
+  accessibilityLabel,
+  accessibilityHint,
+}: CardProps) {
+  const theme = useTheme();
 
   return (
     <Pressable
-      disabled={!onPress}
       onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? "button" : undefined}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
       style={({ pressed }: { pressed: boolean }) => [
-        styles.card,
-        { backgroundColor: cardBg },
-        pressed && onPress && { opacity: 0.92, transform: [{ scale: 0.98 }] },
+        styles.base,
+        {
+          backgroundColor:
+            tone === "accent"
+              ? theme.primarySoft
+              : tone === "plain"
+                ? "transparent"
+                : theme.surface,
+          borderColor: tone === "outline" ? theme.border : theme.borderSubtle,
+          opacity: pressed ? motion.pressOpacity : 1,
+        },
+        PADDING[padding],
         style,
-      ]}>
+      ]}
+    >
       {children}
     </Pressable>
   );
 }
 
-// ─── WalletCard ───────────────────────────────────────────────────────
-
-type WalletCardProps = {
-  name: string;
-  balance: string;
-  accentColor?: string;
-  onPress?: () => void;
-};
-
-export function WalletCard({ name, balance, accentColor, onPress }: WalletCardProps) {
-  return (
-    <Card onPress={onPress}>
-      <ThemedView
-        style={[styles.walletCard, accentColor && { borderTopColor: accentColor }]}>
-        <ThemedText type="label" themeColor="textSecondary">{name}</ThemedText>
-        <ThemedText type="amountLg" themeColor="textPrimary">{balance}</ThemedText>
-      </ThemedView>
-    </Card>
-  );
-}
-
-// ─── CategoryCard ─────────────────────────────────────────────────────
-
-type CategoryCardProps = {
-  name: string;
-  spent: string;
-  remaining: string;
-  accentColor?: string;
-  onPress?: () => void;
-};
-
-export function CategoryCard({ name, spent, remaining, accentColor, onPress }: CategoryCardProps) {
-  return (
-    <Card onPress={onPress}>
-      <ThemedView style={styles.categoryCard}>
-        <ThemedView style={styles.categoryRow}>
-          <ThemedView style={[styles.categoryDot, accentColor && { backgroundColor: accentColor }]} />
-          <ThemedText type="body" themeColor="textPrimary">{name}</ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.categoryAmounts}>
-          <ThemedText type="amountMd" themeColor="textPrimary">{spent}</ThemedText>
-          <ThemedText type="amountSm" themeColor="textSecondary"> of {remaining}</ThemedText>
-        </ThemedView>
-      </ThemedView>
-    </Card>
-  );
-}
-
-// ─── StatCard ─────────────────────────────────────────────────────────
-
-type StatCardProps = {
-  label: string;
-  value: string;
-  accent?: boolean;
-  onPress?: () => void;
-};
-
-export function StatCard({ label, value, accent = false, onPress }: StatCardProps) {
-  return (
-    <Card onPress={onPress}>
-      <ThemedView style={styles.statCard}>
-        <ThemedText type="caption" themeColor="textSecondary">{label}</ThemedText>
-        <ThemedText
-          type="amountMd"
-          themeColor={accent ? 'primary' : 'textPrimary'}>
-          {value}
-        </ThemedText>
-      </ThemedView>
-    </Card>
-  );
-}
-
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: radius.md,
-    padding: spacing.lg,
-  },
-  // WalletCard
-  walletCard: {
-    borderTopWidth: 3,
-    gap: spacing.xs,
-  },
-  // CategoryCard
-  categoryCard: {
-    gap: spacing.sm,
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  categoryDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#999',
-  },
-  categoryAmounts: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: spacing.xs,
-  },
-  // StatCard
-  statCard: {
-    gap: spacing.xs,
+  base: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
   },
 });

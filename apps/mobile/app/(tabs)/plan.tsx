@@ -1,100 +1,209 @@
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useMemo } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useStore } from '@/store';
-import { Spacing } from '@/constants/theme';
-import { formatCurrency } from '@/lib/format';
+import {
+  calculateAssignmentRemaining,
+  calculateAssignmentSpent,
+} from "@numi/domain";
+
+import { ScreenBackground } from "@/components/screen-background";
+import { ThemedText } from "@/components/themed-text";
+import {
+  Card,
+  EmptyState,
+  GemBadge,
+  GroupList,
+  GroupRow,
+} from "@/components/ui";
+import {
+  formatCents,
+  resolveCategoryAccent,
+  screenPadding,
+  spacing,
+} from "@/constants/tokens";
+import { useThemeMode } from "@/hooks/use-theme";
+import { resolveAccentKeyForCategory } from "@/lib/category-accent";
+import { useStore } from "@/store";
 
 export default function PlanScreen() {
+  const insets = useSafeAreaInsets();
+  const mode = useThemeMode();
   const activePeriod = useStore((s) => s.appState.activePeriod);
-  const wallets = useStore((s) => s.appState.wallets);
   const assignments = useStore((s) => s.appState.assignments);
   const categories = useStore((s) => s.appState.categories);
+  const transactions = useStore((s) => s.appState.transactions);
+  const wallets = useStore((s) => s.appState.wallets);
 
-  const categoryMap = new Map(categories.map((c) => [c.id, c]));
-  const totalAssigned: number = assignments.reduce<number>((sum, a) => sum + a.amount, 0);
-  const totalBalance: number = wallets.reduce<number>((sum, w) => sum + w.balance, 0);
+  const categoryById = useMemo(
+    () =>
+      new Map(
+        categories.map((category) => [
+          category.id,
+          {
+            name: category.name,
+            color: resolveCategoryAccent(
+              resolveAccentKeyForCategory(category.id, category.name),
+              mode,
+            ),
+          },
+        ]),
+      ),
+    [categories, mode],
+  );
+
+  const totalAssigned = useMemo(
+    () =>
+      assignments.reduce<number>(
+        (sum, assignment) => sum + assignment.amount,
+        0,
+      ),
+    [assignments],
+  );
+
+  if (!activePeriod) {
+    return (
+      <ScreenBackground style={styles.root}>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
+          <ThemedText type="heading1">Plan</ThemedText>
+        </View>
+        <EmptyState variant="noPeriod" style={styles.empty} />
+      </ScreenBackground>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ThemedView style={styles.content}>
-        <ThemedText type="title">Plan</ThemedText>
+    <ScreenBackground style={styles.root}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          {
+            paddingTop: insets.top + spacing.lg,
+            paddingBottom: insets.bottom + 120,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <ThemedText type="overline" tone="textMuted">
+            Budgeting period
+          </ThemedText>
+          <ThemedText type="heading1">{activePeriod.name}</ThemedText>
+          <ThemedText type="body" tone="textSecondary">
+            {activePeriod.start_date.toLocaleDateString("en-ZA", {
+              day: "numeric",
+              month: "short",
+            })}{" "}
+            –{" "}
+            {activePeriod.end_date.toLocaleDateString("en-ZA", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}
+          </ThemedText>
+        </View>
 
-        {activePeriod ? (
-          <>
-            <ThemedView style={styles.card}>
-              <ThemedText type="smallBold" themeColor="textSecondary">
-                {activePeriod.name}
+        <Card tone="accent" padding="md">
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryCell}>
+              <ThemedText type="overline" tone="textMuted">
+                Assigned
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {new Date(activePeriod.start_date).toLocaleDateString()} –{' '}
-                {new Date(activePeriod.end_date).toLocaleDateString()}
+              <ThemedText type="amountLg">
+                {formatCents(totalAssigned)}
               </ThemedText>
-            </ThemedView>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryCell}>
+              <ThemedText type="overline" tone="textMuted">
+                Wallets
+              </ThemedText>
+              <ThemedText type="amountLg">
+                {formatCents(
+                  wallets.reduce<number>((sum, w) => sum + w.balance, 0),
+                )}
+              </ThemedText>
+            </View>
+          </View>
+        </Card>
 
-            <ThemedView style={styles.card}>
-              <ThemedText type="smallBold" themeColor="textSecondary">
-                Assignments
-              </ThemedText>
-              {assignments.length === 0 ? (
-                <ThemedText type="default" themeColor="textSecondary">
-                  No assignments yet.
-                </ThemedText>
-              ) : (
-                assignments.map((a) => {
-                  const cat = categoryMap.get(a.category_id);
-                  return (
-                    <ThemedView key={a.id} style={styles.row}>
-                      <ThemedText type="default">{cat?.name ?? a.category_id}</ThemedText>
-                      <ThemedText type="default">{formatCurrency(a.amount)}</ThemedText>
-                    </ThemedView>
-                  );
-                })
-              )}
-              <ThemedText type="small" themeColor="textSecondary">
-                {formatCurrency(totalAssigned)} assigned of {formatCurrency(totalBalance)}
-              </ThemedText>
-            </ThemedView>
-          </>
+        {assignments.length === 0 ? (
+          <EmptyState variant="noGoals" />
         ) : (
-          <ThemedView style={styles.empty}>
-            <ThemedText type="default" themeColor="textSecondary">
-              No active period. Create one from the Home screen.
-            </ThemedText>
-          </ThemedView>
+          <GroupList label="By category">
+            {assignments.map((assignment, index) => {
+              const category = categoryById.get(assignment.category_id);
+              const spent = calculateAssignmentSpent(
+                assignment,
+                transactions,
+                activePeriod,
+              );
+              const remaining = calculateAssignmentRemaining(
+                assignment,
+                transactions,
+                activePeriod,
+              );
+              const over = remaining < 0;
+              const used =
+                assignment.amount > 0 ? spent / assignment.amount : 0;
+
+              return (
+                <GroupRow
+                  key={assignment.id}
+                  label={category?.name ?? assignment.category_id}
+                  detail={`${formatCents(spent)} of ${formatCents(assignment.amount)}`}
+                  dotColor={category?.color}
+                  value={formatCents(remaining)}
+                  valueTone={over ? "expense" : "textPrimary"}
+                  trailingIcon={undefined}
+                  isLast={index === assignments.length - 1}
+                  accessory={
+                    <GemBadge
+                      label={over ? "Over" : `${Math.round(used * 100)}%`}
+                      tone={
+                        over
+                          ? "stateAlert"
+                          : used > 0.8
+                            ? "stateCaution"
+                            : "stateSafe"
+                      }
+                    />
+                  }
+                />
+              );
+            })}
+          </GroupList>
         )}
-      </ThemedView>
-    </SafeAreaView>
+      </ScrollView>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: {
+  root: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
-    gap: Spacing.three,
+  },
+  scroll: {
+    paddingHorizontal: screenPadding,
+    gap: spacing.xl,
+  },
+  header: {
+    gap: spacing.xs,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  summaryCell: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  summaryDivider: {
+    width: StyleSheet.hairlineWidth * 2,
+    alignSelf: "stretch",
+    marginHorizontal: spacing.md,
   },
   empty: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  card: {
-    backgroundColor: '#F0F0F3',
-    borderRadius: 12,
-    padding: Spacing.four,
-    gap: Spacing.one,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.two,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
   },
 });

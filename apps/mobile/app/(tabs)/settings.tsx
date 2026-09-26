@@ -1,37 +1,89 @@
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { ScreenBackground } from "@/components/screen-background";
+import { ThemedText } from "@/components/themed-text";
+import { GroupList, GroupRow, PillToggle } from "@/components/ui";
+import {
+  screenPadding,
+  spacing,
+  themePreferences,
+  type ThemePreferenceValue,
+} from "@/constants/tokens";
+import { useStore } from "@/store";
+
+const THEME_OPTIONS = themePreferences.map((preference) => ({
+  value: preference.value,
+  label: preference.label,
+  icon:
+    preference.value === "light"
+      ? ("sun" as const)
+      : preference.value === "dark"
+        ? ("moon" as const)
+        : ("device" as const),
+}));
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
+  const preference = useStore((s) => s.themePreference);
+  const setPreference = useStore((s) => s.setThemePreference);
+
+  const active = themePreferences.find((option) => option.value === preference);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ThemedView style={styles.content}>
-        <ThemedText type="title">Settings</ThemedText>
-        <ThemedView style={styles.card}>
-          <ThemedText type="default" themeColor="textSecondary">
-            Settings coming soon.
+    <ScreenBackground style={styles.root}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          {
+            paddingTop: insets.top + spacing.lg,
+            paddingBottom: insets.bottom + 120,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <ThemedText type="heading1">Settings</ThemedText>
+        </View>
+
+        <PillToggle
+          label="Appearance"
+          options={THEME_OPTIONS}
+          value={preference}
+          onChange={(value: ThemePreferenceValue) => setPreference(value)}
+        />
+        {active ? (
+          <ThemedText type="caption" tone="textMuted" style={styles.note}>
+            {active.description}
           </ThemedText>
-        </ThemedView>
-      </ThemedView>
-    </SafeAreaView>
+        ) : null}
+
+        <GroupList label="About">
+          <GroupRow
+            label="NUMI"
+            detail="Version 0.1.0"
+            trailingIcon={undefined}
+            isLast
+          />
+        </GroupList>
+      </ScrollView>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: {
+  root: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
-    gap: Spacing.three,
   },
-  card: {
-    backgroundColor: '#F0F0F3',
-    borderRadius: 12,
-    padding: Spacing.four,
-    gap: Spacing.one,
+  scroll: {
+    paddingHorizontal: screenPadding,
+    gap: spacing.xl,
+  },
+  header: {
+    gap: spacing.xs,
+  },
+  note: {
+    marginTop: -spacing.md,
+    marginLeft: spacing.xs,
   },
 });

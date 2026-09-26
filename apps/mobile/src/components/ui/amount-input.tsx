@@ -1,91 +1,156 @@
-import { forwardRef, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { forwardRef } from "react";
+import { Pressable, StyleSheet, View, type ViewStyle } from "react-native";
 
-import { radius, spacing } from "@/constants/tokens";
+import { AppIcon } from "@/components/app-icon";
+import { ThemedText } from "@/components/themed-text";
+import { radius, spacing, typography } from "@/constants/tokens";
 import { useTheme } from "@/hooks/use-theme";
 
 export type AmountInputProps = {
   value: string;
   onChangeText?: (text: string) => void;
-  currency?: string;
+  label?: string;
   error?: string;
+  /** Rand-only in v1: integers, with optional cents. No sign, no separators. */
+  currency?: string;
+  size?: "md" | "lg";
   style?: ViewStyle;
-  placeholder?: string;
 };
 
-export const AmountInput = forwardRef<TextInput, AmountInputProps>(
+export const AmountInput = forwardRef<
+  React.ComponentRef<typeof View>,
+  AmountInputProps
+>(
   (
-    { value, onChangeText, currency = "R", error, style, placeholder = "0.00" },
+    { value, onChangeText, label, error, currency = "R", size = "lg", style },
     ref,
   ) => {
     const theme = useTheme();
-    const [focused, setFocused] = useState(false);
 
-    const borderColor = error
-      ? theme.stateAlert
-      : focused
-        ? theme.primary
-        : theme.border;
+    const append = (key: string) => {
+      const next = key === "del" ? value.slice(0, -1) : value + key;
+      // Only digits and a single decimal point, at most two decimal places.
+      if (!/^\d*\.?\d{0,2}$/.test(next)) return;
+      onChangeText?.(next);
+    };
+
+    const borderColor = error ? theme.stateAlert : theme.border;
+    const type = size === "lg" ? typography.amountHero : typography.amountLg;
 
     return (
-      <View
-        style={[
-          styles.container,
-          { borderColor, backgroundColor: theme.surfaceRaised },
-          style,
-        ]}
-      >
-        <View style={[styles.badge, { borderRightColor: theme.borderSubtle }]}>
-          <Text style={[styles.currency, { color: theme.textMuted }]}>
-            {currency}
-          </Text>
+      <View ref={ref} style={style}>
+        {label ? (
+          <ThemedText type="label" tone="textSecondary" style={styles.label}>
+            {label}
+          </ThemedText>
+        ) : null}
+
+        <View
+          style={[
+            styles.shell,
+            { borderColor, backgroundColor: theme.surface },
+          ]}
+        >
+          <View
+            style={styles.readout}
+            accessible
+            accessibilityLabel={
+              value ? `${currency} ${value}` : "No amount entered"
+            }
+          >
+            <ThemedText type="amountMd" tone="textMuted">
+              {currency}
+            </ThemedText>
+            <ThemedText
+              type={size === "lg" ? "amountHero" : "amountLg"}
+              tone={value ? "textPrimary" : "textDisabled"}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={type}
+            >
+              {value || "0"}
+            </ThemedText>
+          </View>
         </View>
-        <TextInput
-          ref={ref}
-          value={value}
-          onChangeText={(t) => onChangeText?.(t.replace(/[^0-9.]/g, ""))}
-          keyboardType="decimal-pad"
-          placeholder={placeholder}
-          placeholderTextColor={theme.textDisabled}
-          style={[styles.input, { color: theme.textPrimary }]}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-        />
+
+        {error ? (
+          <ThemedText type="caption" tone="stateAlert" style={styles.message}>
+            {error}
+          </ThemedText>
+        ) : null}
+
+        <View style={styles.keypad}>
+          {["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "del"].map(
+            (key) => (
+              <Pressable
+                key={key}
+                onPress={() => append(key)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  key === "del" ? "Delete" : key === "." ? "Decimal point" : key
+                }
+                style={({ pressed }) => [
+                  styles.key,
+                  {
+                    backgroundColor: pressed
+                      ? theme.surfaceSunken
+                      : theme.surface,
+                  },
+                  { borderColor: theme.borderSubtle },
+                ]}
+              >
+                {key === "del" ? (
+                  <AppIcon
+                    name="remove"
+                    size={20}
+                    color={theme.textSecondary}
+                  />
+                ) : (
+                  <ThemedText type="heading2">{key}</ThemedText>
+                )}
+              </Pressable>
+            ),
+          )}
+        </View>
       </View>
     );
   },
 );
+
 AmountInput.displayName = "AmountInput";
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    height: 56,
-    borderWidth: 1,
+  label: {
+    marginBottom: spacing.sm,
+  },
+  shell: {
+    borderWidth: StyleSheet.hairlineWidth * 2,
     borderRadius: radius.md,
-    overflow: "hidden",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
-  badge: {
-    alignSelf: "stretch",
+  readout: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: spacing.sm,
+  },
+  message: {
+    marginTop: spacing.xs,
+    marginLeft: spacing.xs,
+  },
+  keypad: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  key: {
+    flexGrow: 1,
+    flexBasis: "30%",
+    minHeight: 52,
+    alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacing.lg,
-    borderRightWidth: 1,
-  },
-  currency: { fontFamily: "Inter", fontSize: 16, fontWeight: "600" },
-  input: {
-    flex: 1,
-    height: "100%",
-    paddingHorizontal: spacing.lg,
-    fontFamily: "Inter",
-    fontSize: 22,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth * 2,
   },
 });

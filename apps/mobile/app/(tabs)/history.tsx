@@ -1,81 +1,133 @@
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useMemo } from "react";
+import { SectionList, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useStore } from '@/store';
-import { Spacing } from '@/constants/theme';
-import { formatCurrency } from '@/lib/format';
+import type { Transaction } from "@numi/domain";
 
-export default function SpendingScreen() {
+import { ScreenBackground } from "@/components/screen-background";
+import { ThemedText } from "@/components/themed-text";
+import { EmptyState, TransactionRow } from "@/components/ui";
+import { useThemeMode } from "@/hooks/use-theme";
+import {
+  formatCents,
+  resolveCategoryAccent,
+  screenPadding,
+  spacing,
+} from "@/constants/tokens";
+import { resolveAccentKeyForCategory } from "@/lib/category-accent";
+import { useStore } from "@/store";
+
+type DaySection = { title: string; data: Transaction[] };
+
+export default function HistoryScreen() {
+  const insets = useSafeAreaInsets();
+  const mode = useThemeMode();
   const transactions = useStore((s) => s.appState.transactions);
   const categories = useStore((s) => s.appState.categories);
 
-  const categoryMap = new Map(categories.map((c) => [c.id, c]));
+  const categoryById = useMemo(
+    () =>
+      new Map(
+        categories.map((category) => [
+          category.id,
+          {
+            name: category.name,
+            color: resolveCategoryAccent(
+              resolveAccentKeyForCategory(category.id, category.name),
+              mode,
+            ),
+          },
+        ]),
+      ),
+    [categories, mode],
+  );
+
+  const sections = useMemo<DaySection[]>(() => {
+    const buckets = new Map<string, Transaction[]>();
+    for (const tx of [...transactions].sort(
+      (a, b) => b.date.getTime() - a.date.getTime(),
+    )) {
+      const key = tx.date.toLocaleDateString("en-ZA", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+      const bucket = buckets.get(key);
+      if (bucket) bucket.push(tx);
+      else buckets.set(key, [tx]);
+    }
+    return [...buckets.entries()].map(([title, data]) => ({ title, data }));
+  }, [transactions]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ThemedView style={styles.content}>
-        <ThemedText type="title">History</ThemedText>
-
-        {transactions.length === 0 ? (
-          <ThemedView style={styles.empty}>
-            <ThemedText type="default" themeColor="textSecondary">
-              No transactions yet. Start spending to see them here.
+    <ScreenBackground style={styles.root}>
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={[
+          styles.list,
+          {
+            paddingTop: insets.top + spacing.lg,
+            paddingBottom: insets.bottom + 120,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+        stickySectionHeadersEnabled={false}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <ThemedText type="heading1">History</ThemedText>
+            <ThemedText type="body" tone="textSecondary">
+              Every entry, newest first.
             </ThemedText>
-          </ThemedView>
-        ) : (
-          <ThemedView style={styles.list}>
-            {transactions.map((tx) => {
-              const cat = tx.category_id ? categoryMap.get(tx.category_id) : null;
-              return (
-                <ThemedView key={tx.id} style={styles.row}>
-                  <ThemedView style={styles.rowLeft}>
-                    <ThemedText type="default">{cat?.name ?? tx.type}</ThemedText>
-                    {tx.note && (
-                      <ThemedText type="small" themeColor="textSecondary">
-                        {tx.note}
-                      </ThemedText>
-                    )}
-                  </ThemedView>
-                  <ThemedText type="default">
-                    {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                  </ThemedText>
-                </ThemedView>
-              );
-            })}
-          </ThemedView>
+          </View>
+        }
+        renderSectionHeader={({ section }) => (
+          <View style={styles.sectionHeader}>
+            <ThemedText type="overline" tone="textMuted">
+              {section.title}
+            </ThemedText>
+          </View>
         )}
-      </ThemedView>
-    </SafeAreaView>
+        renderItem={({ item }) => {
+          const category = item.category_id
+            ? categoryById.get(item.category_id)
+            : undefined;
+          return (
+            <TransactionRow
+              title={
+                item.note?.trim() ||
+                category?.name ||
+                (item.type === "income" ? "Money in" : "Spend")
+              }
+              kind={item.type}
+              amount={formatCents(item.amount)}
+              date={item.date.toLocaleDateString("en-ZA", {
+                day: "numeric",
+                month: "short",
+              })}
+              category={category?.name}
+            />
+          );
+        }}
+        ListEmptyComponent={<EmptyState variant="noTransactions" />}
+      />
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: {
+  root: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
-    gap: Spacing.three,
-  },
-  empty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   list: {
-    gap: Spacing.two,
+    paddingHorizontal: screenPadding,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.two,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
+  header: {
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
   },
-  rowLeft: {
-    gap: 2,
+  sectionHeader: {
+    marginTop: spacing.lg,
+    marginBottom: spacing.xs,
   },
 });

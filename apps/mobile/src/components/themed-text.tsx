@@ -1,70 +1,59 @@
+import type { ReactNode } from "react";
 import { StyleSheet, Text, type TextProps, type TextStyle } from "react-native";
 
-import { typography, type TypographyToken } from "@/constants/tokens";
+import {
+  typography,
+  type TextTone,
+  type TypographyToken,
+} from "@/constants/tokens";
 import { useTheme } from "@/hooks/use-theme";
 
-/** Spec types + legacy aliases */
-type SpecType = TypographyToken;
-type LegacyType =
-  | "default"
-  | "title"
-  | "small"
-  | "smallBold"
-  | "subtitle"
-  | "link"
-  | "linkPrimary"
-  | "code";
+export type { TextTone };
 
-export type ThemedTextProps = TextProps & {
-  type?: SpecType | LegacyType;
-  themeColor?:
-    | "textPrimary"
-    | "textSecondary"
-    | "textMuted"
-    | "primary"
-    | "primaryFg"
-    | "income"
-    | "expense"
-    | "transfer"
-    | "textDisabled"
-    | "stateAlert";
+export type ThemedTextProps = Omit<TextProps, "style"> & {
+  /** A typography token. No aliases — if it is not in the scale, it is not used. */
+  type?: TypographyToken;
+  /** A colour role from the palette. */
+  tone?: TextTone;
+  align?: "left" | "center" | "right";
+  uppercase?: boolean;
+  /** One line, ellipsised. Use on labels that must never push a row wider. */
+  truncate?: boolean;
+  style?: TextStyle | TextStyle[];
+  children?: ReactNode;
 };
 
-/** Map legacy type names to spec tokens */
-function resolveType(type: SpecType | LegacyType): TypographyToken {
-  switch (type) {
-    case "default":
-      return "body";
-    case "title":
-      return "heading1";
-    case "small":
-      return "caption";
-    case "smallBold":
-      return "label";
-    case "subtitle":
-      return "heading2";
-    default:
-      return type as TypographyToken;
-  }
-}
-
 export function ThemedText({
-  style,
   type = "body",
-  themeColor,
+  tone = "textPrimary",
+  align,
+  uppercase,
+  truncate,
+  style,
+  children,
   ...rest
 }: ThemedTextProps) {
   const theme = useTheme();
-  const token = resolveType(type);
 
   return (
     <Text
+      numberOfLines={truncate ? 1 : rest.numberOfLines}
       style={[
-        typography[token] as TextStyle,
-        { color: theme[themeColor ?? "textPrimary"] },
+        typography[type] as TextStyle,
+        { color: theme[tone] },
+        align ? { textAlign: align } : null,
+        uppercase ? styles.uppercase : null,
         style,
       ]}
       {...rest}
-    />
+    >
+      {children}
+    </Text>
   );
 }
+
+const styles = StyleSheet.create({
+  uppercase: {
+    textTransform: "uppercase",
+  },
+});

@@ -1,18 +1,40 @@
-import { useState } from "react";
-import { FlatList, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useMemo, useState } from "react";
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ScreenBackground } from "@/components/screen-background";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { Button } from "@/components/ui/button";
-import { AmountInput } from "@/components/ui/amount-input";
+import { resolveAccentKeyForCategory } from "@/lib/category-accent";
+import {
+  formatCents,
+  iconSize,
+  radius,
+  resolveCategoryAccent,
+  screenPadding,
+  spacing,
+} from "@/constants/tokens";
+import { useTheme, useThemeMode } from "@/hooks/use-theme";
 import { useEngine, useStore } from "@/store";
-import { formatCurrency } from "@/lib/format";
-import { spacing, categoryColors } from "@/constants/tokens";
-import type { Category } from "@numi/domain";
 
+/**
+ * The budget step, and the last thing standing between a new user and the home
+ * screen. Every category is skippable, so the fastest path through is the
+ * shortest one: assign nothing, press the button, start logging.
+ */
 export default function CategorySetupScreen() {
+  const insets = useSafeAreaInsets();
+  const mode = useThemeMode();
+  const theme = useTheme();
   const { engine } = useEngine();
+
   const syncFromEngine = useStore((s) => s.syncFromEngine);
   const completeOnboarding = useStore((s) => s.completeOnboarding);
   const categories = useStore((s) => s.appState.categories);
@@ -24,18 +46,41 @@ export default function CategorySetupScreen() {
 
   const wallet = wallets[0];
 
-  function getAmount(categoryId: string): number {
-    return Math.round((parseFloat(amounts[categoryId]) || 0) * 100);
-  }
-
-  const totalAssigned = categories.reduce(
-    (sum, cat) => sum + getAmount(cat.id),
-    0,
+  const enriched = useMemo(
+    () =>
+      categories.map((category) => ({
+        ...category,
+        accentKey: resolveAccentKeyForCategory(category.id, category.name),
+        color: resolveCategoryAccent(
+          resolveAccentKeyForCategory(category.id, category.name),
+          mode,
+        ),
+      })),
+    [categories, mode],
   );
 
-  function handleComplete() {
-    console.log(activePeriod, wallet, totalAssigned);
+  const totalAssigned = useMemo(
+    () =>
+      enriched.reduce(
+        (sum, category) =>
+          sum +
+          Math.round(Number.parseFloat(amounts[category.id] || "0") * 100),
+        0,
+      ),
+    [enriched, amounts],
+  );
 
+  function step(id: string, delta: number) {
+    const current = Math.round(Number.parseFloat(amounts[id] || "0") * 100);
+    const next = Math.max(0, current + delta);
+    setAmounts((prev) => ({
+      ...prev,
+      [id]: next === 0 ? "" : (next / 100).toFixed(2),
+    }));
+    setError(null);
+  }
+
+  function handleComplete() {
     if (!activePeriod || !wallet) {
       setError(
         "Something is missing. Go back and check your wallet and period.",
@@ -43,25 +88,27 @@ export default function CategorySetupScreen() {
       return;
     }
     if (totalAssigned > wallet.balance) {
-      setError(
-        `You only have ${formatCurrency(wallet.balance)} in this wallet.`,
-      );
+      setError(`You only have ${formatCents(wallet.balance)} in this wallet.`);
       return;
     }
 
-    for (const cat of categories) {
-      const cents = getAmount(cat.id);
+    for (const category of enriched) {
+      const cents = Math.round(
+        Number.parseFloat(amounts[category.id] || "0") * 100,
+      );
       if (cents <= 0) continue;
+
       const result = engine.createAssignment({
-        id: `assignment-${cat.id}-${Date.now()}`,
+        id: `assignment-${category.id}-${Date.now()}`,
         period_id: activePeriod.id,
-        category_id: cat.id,
+        category_id: category.id,
         wallet_id: wallet.id,
         amount: cents,
         created_at: new Date(),
       });
+
       if (!result.ok) {
-        setError("Could not save that plan. Check your amounts.");
+        setError(result.errors[0]?.message ?? "Could not save that plan.");
         return;
       }
     }
@@ -70,117 +117,180 @@ export default function CategorySetupScreen() {
     completeOnboarding();
   }
 
-  function updateAmount(categoryId: string, value: string) {
-    setAmounts((prev) => ({ ...prev, [categoryId]: value }));
-  }
-
-  function renderCategory({ item }: { item: Category }) {
-    const idx = categories.indexOf(item) % categoryColors.length;
-    const catColor = categoryColors[idx];
-
-    return (
-      <ThemedView style={styles.categoryRow}>
-        <ThemedView style={styles.categoryLeft}>
-          <ThemedView
-            style={[styles.categoryDot, { backgroundColor: catColor }]}
-          />
-          <ThemedText type="body" themeColor="textPrimary">
-            {item.name}
-          </ThemedText>
-        </ThemedView>
-        <AmountInput
-          value={amounts[item.id] ?? ""}
-          onChangeText={(v) => updateAmount(item.id, v)}
-          style={{ flex: 1 }}
-        />
-      </ThemedView>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
-      <ThemedView style={styles.content}>
-        <ThemedView style={styles.header}>
-          <ThemedText type="heading1" themeColor="textPrimary">
-            Assign Your Budget
+    <ScreenBackground style={styles.root}>
+      <KeyboardAvoidingView
+        style={styles.fill}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={insets.top}
+      >
+        <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
+          <ThemedText type="heading1">Set aside for each thing</ThemedText>
+          <ThemedText type="body" tone="textSecondary">
+            Anything you assign here stops counting as free to spend. You can
+            skip all of it.
           </ThemedText>
-          <ThemedText type="body" themeColor="textSecondary">
-            Divide your money across categories. You can skip any for now.
-          </ThemedText>
-        </ThemedView>
+        </View>
 
         <FlatList
-          data={categories}
+          data={enriched}
           keyExtractor={(item) => item.id}
-          renderItem={renderCategory}
           contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          ListEmptyComponent={
+            <ThemedText
+              type="body"
+              tone="textMuted"
+              align="center"
+              style={styles.empty}
+            >
+              No categories yet — you are all set.
+            </ThemedText>
+          }
+          renderItem={({ item }) => {
+            const cents = Math.round(
+              Number.parseFloat(amounts[item.id] || "0") * 100,
+            );
+            return (
+              <View style={styles.row}>
+                <View
+                  style={[styles.swatch, { backgroundColor: item.color }]}
+                />
+                <ThemedText
+                  type="title"
+                  style={styles.rowLabel}
+                  numberOfLines={1}
+                >
+                  {item.name}
+                </ThemedText>
+
+                <Pressable
+                  onPress={() => step(item.id, -500)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Reduce ${item.name} by five rand`}
+                  hitSlop={8}
+                  style={styles.stepper}
+                >
+                  <ThemedText type="heading2" tone="textSecondary">
+                    −
+                  </ThemedText>
+                </Pressable>
+
+                <ThemedText
+                  type="amountMd"
+                  tone={cents > 0 ? "textPrimary" : "textDisabled"}
+                  align="right"
+                  style={styles.amount}
+                  accessibilityLabel={`${item.name} ${formatCents(cents)}`}
+                >
+                  {formatCents(cents)}
+                </ThemedText>
+
+                <Pressable
+                  onPress={() => step(item.id, 500)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Add five rand to ${item.name}`}
+                  hitSlop={8}
+                  style={styles.stepper}
+                >
+                  <ThemedText type="heading2" tone="primary">
+                    +
+                  </ThemedText>
+                </Pressable>
+              </View>
+            );
+          }}
         />
 
-        <ThemedView style={styles.footer}>
-          <ThemedView style={styles.totalRow}>
-            <ThemedText type="label" themeColor="textSecondary">
-              Total assigned
+        <View
+          style={[
+            styles.footer,
+            {
+              paddingBottom: insets.bottom + spacing.lg,
+              borderTopColor: theme.borderSubtle,
+              backgroundColor: theme.background,
+            },
+          ]}
+        >
+          <View style={styles.totalRow}>
+            <ThemedText type="label" tone="textSecondary">
+              Total set aside
             </ThemedText>
-            <ThemedText type="amountMd" themeColor="textPrimary">
-              {formatCurrency(totalAssigned)}
+            <ThemedText type="amountMd">
+              {formatCents(totalAssigned)}
             </ThemedText>
-          </ThemedView>
+          </View>
 
-          {error && (
-            <ThemedText type="label" themeColor="stateAlert">
+          {error ? (
+            <ThemedText type="caption" tone="stateAlert">
               {error}
             </ThemedText>
-          )}
+          ) : null}
 
-          <Button variant="primary" size="lg" onPress={handleComplete}>
-            Start Budgeting
+          <Button size="lg" onPress={handleComplete} icon="check">
+            Start budgeting
           </Button>
-        </ThemedView>
-      </ThemedView>
-    </SafeAreaView>
+        </View>
+      </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 }
 
+/** Tap target for the plus and minus on a category row. */
+const STEPPER = 36;
+
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
   },
-  content: {
+  fill: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing["3xl"],
-    gap: spacing.xl,
   },
   header: {
-    gap: spacing.sm,
+    paddingHorizontal: screenPadding,
+    gap: spacing.xs,
+    paddingBottom: spacing.lg,
   },
   list: {
+    paddingHorizontal: screenPadding,
+    paddingBottom: spacing.lg,
     gap: spacing.md,
   },
-  categoryRow: {
+  row: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: spacing.md,
   },
-  categoryLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    minWidth: 100,
+  swatch: {
+    width: iconSize.dot,
+    height: iconSize.dot,
+    borderRadius: radius.full,
   },
-  categoryDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+  rowLabel: {
+    flex: 1,
+  },
+  stepper: {
+    width: STEPPER,
+    height: STEPPER,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  amount: {
+    minWidth: 76,
   },
   footer: {
-    gap: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingHorizontal: screenPadding,
+    paddingTop: spacing.lg,
+    gap: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth * 2,
   },
   totalRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
+  },
+  empty: {
+    paddingVertical: spacing.xl,
   },
 });

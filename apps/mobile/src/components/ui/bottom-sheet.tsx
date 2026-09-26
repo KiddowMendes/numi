@@ -1,143 +1,174 @@
-import { type ReactNode, useCallback, useEffect, useRef } from 'react';
+import type { ReactNode } from "react";
+import { useCallback, useEffect } from "react";
 import {
-  Animated,
-  Dimensions,
   Modal,
   Pressable,
   StyleSheet,
+  useWindowDimensions,
+  View,
   type ViewStyle,
-} from 'react-native';
+} from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
-import { ThemedView } from '@/components/themed-view';
-import { color, radius, spacing, zIndex } from '@/constants/tokens';
-import { useTheme } from '@/hooks/use-theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ThemedText } from "@/components/themed-text";
+import { duration, radius, spacing, zIndex } from "@/constants/tokens";
+import { useTheme } from "@/hooks/use-theme";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-type BottomSheetProps = {
+export type BottomSheetProps = {
   visible: boolean;
   onClose: () => void;
-  children: ReactNode;
+  children?: ReactNode;
   title?: string;
   style?: ViewStyle;
 };
 
-export function BottomSheet({ visible, onClose, children, title, style }: BottomSheetProps) {
+const HANDLE = { width: 36, height: 4 } as const;
+
+/**
+ * A sheet, not a spring. The previous version drove it with `Animated.spring`,
+ * which the motion spec forbids outright: overshoot on a sheet holding money
+ * reads as playful, and this is a tool. It also read `Dimensions.get` at module
+ * scope, which never re-measured on rotate.
+ */
+export function BottomSheet({
+  visible,
+  onClose,
+  children,
+  title,
+  style,
+}: BottomSheetProps) {
   const theme = useTheme();
-  const scheme = useColorScheme();
-  const mode = scheme === 'unspecified' ? 'light' : scheme;
-  const overlayAnim = useRef(new Animated.Value(0)).current;
-  const sheetAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const reduceMotion = useReducedMotion();
+  const { height: windowHeight } = useWindowDimensions();
 
-  const animateIn = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(overlayAnim, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.spring(sheetAnim, {
-        toValue: 0,
-        damping: 30,
-        stiffness: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [overlayAnim, sheetAnim]);
-
-  const animateOut = useCallback(
-    (callback?: () => void) => {
-      Animated.parallel([
-        Animated.timing(overlayAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(sheetAnim, {
-          toValue: SCREEN_HEIGHT,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start(callback);
-    },
-    [overlayAnim, sheetAnim],
-  );
+  const progress = useSharedValue(0);
 
   useEffect(() => {
     if (visible) {
-      animateIn();
+      progress.value = 0;
+      progress.value = withTiming(1, {
+        duration: reduceMotion ? 0 : duration.base,
+        easing: Easing.out(Easing.cubic),
+      });
     }
-  }, [visible, animateIn]);
+  }, [visible, progress, reduceMotion]);
 
-  const handleClose = useCallback(() => {
-    animateOut(onClose);
-  }, [animateOut, onClose]);
+  const dismiss = useCallback(() => {
+    // `progress.value = withTiming(...)` is Reanimated's documented API for
+    // starting an animation from a JS event handler; the animation itself runs
+    // on the UI thread. The immutability rule reads it as a render-scope
+    // mutation, so it is suppressed here rather than worked around.
+    // eslint-disable-next-line react-hooks/immutability
+    progress.value = withTiming(
+      0,
+      {
+        duration: reduceMotion ? 0 : duration.fast,
+        easing: Easing.in(Easing.cubic),
+      },
+      (finished) => {
+        if (finished) onClose();
+      },
+    );
+  }, [progress, onClose, reduceMotion]);
 
-  const overlayBg = mode === 'dark' ? 'rgba(1,3,14,0.7)' : 'rgba(0,0,0,0.4)';
-  const sheetBg = mode === 'dark' ? color.dark.surface : color.light.surface;
-  const handleColor = mode === 'dark' ? color.dark.borderSubtle : color.light.borderSubtle;
+  const scrimStyle = useAnimatedStyle(() => ({ opacity: progress.value }));
+
+  const sheetStyle = useAnimatedStyle(
+    () => ({
+      opacity: progress.value,
+      transform: [{ translateY: (1 - progress.value) * windowHeight * 0.4 }],
+    }),
+    [windowHeight],
+  );
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
-      <Animated.View
-        style={[styles.overlay, { backgroundColor: overlayBg, opacity: overlayAnim }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-      </Animated.View>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={dismiss}
+      statusBarTranslucent
+    >
+      <View style={styles.root}>
+        <Animated.View
+          style={[styles.scrim, { backgroundColor: theme.overlay }, scrimStyle]}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={dismiss}
+            accessibilityLabel="Close"
+            accessibilityRole="button"
+          />
+        </Animated.View>
 
-      <Animated.View
-        style={[
-          styles.sheet,
-          { backgroundColor: sheetBg, transform: [{ translateY: sheetAnim }] },
-          style,
-        ]}>
-        <ThemedView style={[styles.handle, { backgroundColor: handleColor }]} />
+        <Animated.View
+          accessibilityViewIsModal
+          accessibilityLabel={title}
+          style={[
+            styles.sheet,
+            {
+              backgroundColor: theme.surface,
+              maxHeight: windowHeight * 0.7,
+              borderColor: theme.borderSubtle,
+            },
+            sheetStyle,
+            style,
+          ]}
+        >
+          <View style={styles.grabArea}>
+            <View style={[styles.handle, { backgroundColor: theme.border }]} />
+          </View>
 
-        {title && (
-          <ThemedView style={styles.titleRow}>
-            <ThemedText type="heading2" themeColor="textPrimary">
-              {title}
-            </ThemedText>
-          </ThemedView>
-        )}
+          {title ? (
+            <View style={styles.titleRow}>
+              <ThemedText type="heading2">{title}</ThemedText>
+            </View>
+          ) : null}
 
-        <ThemedView style={styles.content}>{children}</ThemedView>
-      </Animated.View>
+          <View style={styles.body}>{children}</View>
+        </Animated.View>
+      </View>
     </Modal>
   );
 }
 
-import { ThemedText } from '@/components/themed-text';
-
 const styles = StyleSheet.create({
-  overlay: {
+  root: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  scrim: {
     ...StyleSheet.absoluteFill,
     zIndex: zIndex.overlay,
   },
   sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    borderTopLeftRadius: radius["2xl"],
+    borderTopRightRadius: radius["2xl"],
+    borderTopWidth: StyleSheet.hairlineWidth * 2,
+    paddingBottom: spacing.xl,
     zIndex: zIndex.sheet,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    maxHeight: SCREEN_HEIGHT * 0.85,
+  },
+  grabArea: {
+    alignItems: "center",
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
   handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
+    ...HANDLE,
+    borderRadius: radius.full,
   },
   titleRow: {
     paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.lg,
   },
-  content: {
+  body: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing['3xl'],
   },
 });
