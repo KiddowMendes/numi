@@ -1,7 +1,7 @@
-import type { Assignment } from '../entities/Assignment';
-import type { Goal } from '../entities/Goal';
-import type { Wallet } from '../entities/Wallet';
-import { calculateAvailableBalance } from './available-balance';
+import type { Assignment } from "../entities/Assignment";
+import type { Goal } from "../entities/Goal";
+import type { Wallet } from "../entities/Wallet";
+import { calculateAvailableBalance } from "./available-balance";
 
 /**
  * C15. Conservation of Money (System Check).

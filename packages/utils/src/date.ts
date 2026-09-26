@@ -22,7 +22,10 @@ export function isSameDay(a: Date, b: Date): boolean {
  * Calculate whole days remaining from today to target date.
  * Returns NULL if no target. Returns 0 if target is in the past or today.
  */
-export function daysRemaining(endDate: Date | null, today: Date): number | null {
+export function daysRemaining(
+  endDate: Date | null,
+  today: Date,
+): number | null {
   if (endDate === null) return null;
 
   const todayStart = startOfDay(today);

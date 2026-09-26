@@ -1,4 +1,4 @@
-import type { User, UserTier } from '../entities/User';
+import type { User, UserTier } from "../entities/User";
 
 const WALLET_LIMITS: Record<UserTier, number> = {
   free: 1,

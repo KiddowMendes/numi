@@ -1,4 +1,4 @@
-import type { Database } from 'sql.js';
+import type { Database } from "sql.js";
 import type {
   User,
   Period,
@@ -7,11 +7,11 @@ import type {
   Goal,
   Assignment,
   Transaction,
-} from '@numi/domain';
-import type { AppState } from '@numi/domain';
+} from "@numi/domain";
+import type { AppState } from "@numi/domain";
 
-import { runMigrations } from './migrations/index.js';
-import { queryAll, queryOne, execute } from './schema.js';
+import { runMigrations } from "./migrations/index.js";
+import { queryAll, queryOne, execute } from "./schema.js";
 import {
   toUser,
   toPeriod,
@@ -20,22 +20,22 @@ import {
   toGoal,
   toAssignment,
   toTransaction,
-} from './mappers/index.js';
+} from "./mappers/index.js";
 
 export class Repository {
   private db: Database;
 
   constructor(db: Database) {
     this.db = db;
-    this.db.run('PRAGMA journal_mode = WAL');
-    this.db.run('PRAGMA foreign_keys = ON');
+    this.db.run("PRAGMA journal_mode = WAL");
+    this.db.run("PRAGMA foreign_keys = ON");
     runMigrations(this.db);
   }
 
   loadState(): AppState {
     const user = this.getUser();
     if (!user) {
-      throw new Error('No user found — database not initialized');
+      throw new Error("No user found — database not initialized");
     }
 
     const activePeriod = this.getActivePeriod();
@@ -59,7 +59,7 @@ export class Repository {
   }
 
   saveState(state: AppState): void {
-    this.db.run('BEGIN TRANSACTION');
+    this.db.run("BEGIN TRANSACTION");
     try {
       this.upsertUser(state.user);
 
@@ -87,9 +87,9 @@ export class Repository {
         this.upsertTransaction(transaction);
       }
 
-      this.db.run('COMMIT');
+      this.db.run("COMMIT");
     } catch (err) {
-      this.db.run('ROLLBACK');
+      this.db.run("ROLLBACK");
       throw err;
     }
   }
@@ -97,23 +97,29 @@ export class Repository {
   // --- User ---
 
   getUser(): User | null {
-    const row = queryOne(this.db, 'SELECT * FROM users LIMIT 1');
+    const row = queryOne(this.db, "SELECT * FROM users LIMIT 1");
     return row ? toUser(row as { id: string; tier: string }) : null;
   }
 
   upsertUser(user: User): void {
-    execute(this.db, 'INSERT OR REPLACE INTO users (id, tier) VALUES (?, ?)', [user.id, user.tier]);
+    execute(this.db, "INSERT OR REPLACE INTO users (id, tier) VALUES (?, ?)", [
+      user.id,
+      user.tier,
+    ]);
   }
 
   // --- Period ---
 
   getActivePeriod(): Period | null {
-    const row = queryOne(this.db, 'SELECT * FROM periods WHERE is_active = 1 LIMIT 1');
+    const row = queryOne(
+      this.db,
+      "SELECT * FROM periods WHERE is_active = 1 LIMIT 1",
+    );
     return row ? toPeriod(row as never) : null;
   }
 
   getAllPeriods(): Period[] {
-    const rows = queryAll(this.db, 'SELECT * FROM periods');
+    const rows = queryAll(this.db, "SELECT * FROM periods");
     return rows.map((r) => toPeriod(r as never));
   }
 
@@ -136,7 +142,7 @@ export class Repository {
   // --- Wallet ---
 
   getAllWallets(): Wallet[] {
-    const rows = queryAll(this.db, 'SELECT * FROM wallets');
+    const rows = queryAll(this.db, "SELECT * FROM wallets");
     return rows.map((r) => toWallet(r as never));
   }
 
@@ -145,14 +151,21 @@ export class Repository {
       this.db,
       `INSERT OR REPLACE INTO wallets (id, name, type, balance, currency, created_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [wallet.id, wallet.name, wallet.type, wallet.balance, wallet.currency, wallet.created_at.toISOString()],
+      [
+        wallet.id,
+        wallet.name,
+        wallet.type,
+        wallet.balance,
+        wallet.currency,
+        wallet.created_at.toISOString(),
+      ],
     );
   }
 
   // --- Category ---
 
   getAllCategories(): Category[] {
-    const rows = queryAll(this.db, 'SELECT * FROM categories');
+    const rows = queryAll(this.db, "SELECT * FROM categories");
     return rows.map((r) => toCategory(r as never));
   }
 
@@ -175,7 +188,7 @@ export class Repository {
   // --- Goal ---
 
   getAllGoals(): Goal[] {
-    const rows = queryAll(this.db, 'SELECT * FROM goals');
+    const rows = queryAll(this.db, "SELECT * FROM goals");
     return rows.map((r) => toGoal(r as never));
   }
 
@@ -199,7 +212,7 @@ export class Repository {
   // --- Assignment ---
 
   getAllAssignments(): Assignment[] {
-    const rows = queryAll(this.db, 'SELECT * FROM assignments');
+    const rows = queryAll(this.db, "SELECT * FROM assignments");
     return rows.map((r) => toAssignment(r as never));
   }
 
@@ -222,7 +235,7 @@ export class Repository {
   // --- Transaction ---
 
   getAllTransactions(): Transaction[] {
-    const rows = queryAll(this.db, 'SELECT * FROM transactions');
+    const rows = queryAll(this.db, "SELECT * FROM transactions");
     return rows.map((r) => toTransaction(r as never));
   }
 

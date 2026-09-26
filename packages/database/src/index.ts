@@ -1,6 +1,6 @@
-export { Repository } from './repository.js';
-export { runMigrations, resetDatabase } from './migrations/index.js';
-export { SCHEMA_VERSION, CREATE_TABLES, DROP_TABLES } from './schema.js';
+export { Repository } from "./repository.js";
+export { runMigrations, resetDatabase } from "./migrations/index.js";
+export { SCHEMA_VERSION, CREATE_TABLES, DROP_TABLES } from "./schema.js";
 export {
   toUser,
   toUserRow,
@@ -16,4 +16,4 @@ export {
   toAssignmentRow,
   toTransaction,
   toTransactionRow,
-} from './mappers/index.js';
+} from "./mappers/index.js";

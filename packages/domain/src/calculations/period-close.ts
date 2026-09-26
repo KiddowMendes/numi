@@ -1,8 +1,8 @@
-import type { Assignment } from '../entities/Assignment';
-import type { Period } from '../entities/Period';
-import type { Transaction } from '../entities/Transaction';
-import type { Wallet } from '../entities/Wallet';
-import { calculateAssignmentSpent } from './assignment-spent';
+import type { Assignment } from "../entities/Assignment";
+import type { Period } from "../entities/Period";
+import type { Transaction } from "../entities/Transaction";
+import type { Wallet } from "../entities/Wallet";
+import { calculateAssignmentSpent } from "./assignment-spent";
 
 /**
  * C14. Period Close Calculation.
@@ -19,7 +19,9 @@ export function calculatePeriodClose(
   const perWallet: Record<string, number> = {};
   let totalRemaining = 0;
 
-  for (const assignment of assignments.filter((a) => a.period_id === period.id)) {
+  for (const assignment of assignments.filter(
+    (a) => a.period_id === period.id,
+  )) {
     const spent = calculateAssignmentSpent(assignment, transactions, period);
     const remaining = assignment.amount - spent;
     totalRemaining += remaining;
@@ -31,25 +33,27 @@ export function calculatePeriodClose(
   return { perWallet, totalRemaining };
 }
 
-export function closePeriodState(
-  state: {
-    activePeriod: Period | null;
-    periods: Period[];
-    wallets: Wallet[];
-    assignments: Assignment[];
-    transactions: Transaction[];
-  },
-): {
+export function closePeriodState(state: {
+  activePeriod: Period | null;
+  periods: Period[];
+  wallets: Wallet[];
+  assignments: Assignment[];
+  transactions: Transaction[];
+}): {
   periods: Period[];
   wallets: Wallet[];
   activePeriod: null;
 } {
   if (!state.activePeriod) {
-    throw new Error('No active period to close');
+    throw new Error("No active period to close");
   }
 
   const period = state.activePeriod;
-  const { perWallet, totalRemaining } = calculatePeriodClose(period, state.assignments, state.transactions);
+  const { perWallet, totalRemaining } = calculatePeriodClose(
+    period,
+    state.assignments,
+    state.transactions,
+  );
 
   let wallets = state.wallets;
   if (totalRemaining > 0) {
@@ -59,7 +63,9 @@ export function closePeriodState(
     });
   }
 
-  const periods = state.periods.map((p) => (p.id === period.id ? { ...p, is_active: false } : p));
+  const periods = state.periods.map((p) =>
+    p.id === period.id ? { ...p, is_active: false } : p,
+  );
 
   return { periods, wallets, activePeriod: null };
 }

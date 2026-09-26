@@ -1,5 +1,5 @@
-import type { Transaction } from '../entities/Transaction';
-import type { Wallet } from '../entities/Wallet';
+import type { Transaction } from "../entities/Transaction";
+import type { Wallet } from "../entities/Wallet";
 
 /**
  * C1. Wallet Balance Verification.
@@ -13,12 +13,13 @@ export function calculateWalletBalance(
     .filter(
       (t) =>
         t.wallet_id === wallet.id ||
-        (t.type === 'transfer' && t.to_wallet_id === wallet.id),
+        (t.type === "transfer" && t.to_wallet_id === wallet.id),
     )
     .reduce((sum, t) => {
-      if (t.type === 'income') return sum + t.amount;
-      if (t.type === 'expense') return sum - t.amount;
-      if (t.type === 'transfer' && t.to_wallet_id === wallet.id) return sum + t.amount;
+      if (t.type === "income") return sum + t.amount;
+      if (t.type === "expense") return sum - t.amount;
+      if (t.type === "transfer" && t.to_wallet_id === wallet.id)
+        return sum + t.amount;
       // transfer out (wallet_id matches)
       return sum - t.amount;
     }, 0);

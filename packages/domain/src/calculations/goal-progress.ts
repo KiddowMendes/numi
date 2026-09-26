@@ -1,10 +1,13 @@
-import type { Goal } from '../entities/Goal';
+import type { Goal } from "../entities/Goal";
 
 /**
  * C8. Goal Progress.
  * Returns percentage (0-100) and remaining amount in cents.
  */
-export function calculateGoalProgress(goal: Goal): { percentage: number; remaining: number } {
+export function calculateGoalProgress(goal: Goal): {
+  percentage: number;
+  remaining: number;
+} {
   const remaining = Math.max(0, goal.target_amount - goal.current_amount);
 
   if (goal.target_amount <= 0) {

@@ -1,4 +1,4 @@
-import type { Wallet } from '@numi/domain';
+import type { Wallet } from "@numi/domain";
 
 export interface WalletRow {
   id: string;
@@ -13,9 +13,9 @@ export function toWallet(row: WalletRow): Wallet {
   return {
     id: row.id,
     name: row.name,
-    type: row.type as Wallet['type'],
+    type: row.type as Wallet["type"],
     balance: row.balance,
-    currency: row.currency as Wallet['currency'],
+    currency: row.currency as Wallet["currency"],
     created_at: new Date(row.created_at),
   };
 }

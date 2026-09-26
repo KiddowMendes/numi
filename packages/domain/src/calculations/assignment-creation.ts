@@ -1,6 +1,6 @@
-import type { Assignment } from '../entities/Assignment';
-import type { Goal } from '../entities/Goal';
-import type { Wallet } from '../entities/Wallet';
+import type { Assignment } from "../entities/Assignment";
+import type { Goal } from "../entities/Goal";
+import type { Wallet } from "../entities/Wallet";
 
 /**
  * C10. Assignment Creation Check.

@@ -1,4 +1,4 @@
-import type { Period } from '@numi/domain';
+import type { Period } from "@numi/domain";
 
 export interface PeriodRow {
   id: string;

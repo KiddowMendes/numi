@@ -1,7 +1,7 @@
-import type { Assignment } from '../entities/Assignment';
-import type { Goal } from '../entities/Goal';
-import type { Wallet } from '../entities/Wallet';
-import { calculateAvailableBalance } from './available-balance';
+import type { Assignment } from "../entities/Assignment";
+import type { Goal } from "../entities/Goal";
+import type { Wallet } from "../entities/Wallet";
+import { calculateAvailableBalance } from "./available-balance";
 
 /**
  * C11. Transfer Validation.
@@ -15,12 +15,12 @@ export function canTransfer(
   amount: number,
 ): { valid: true } | { valid: false; error: string } {
   if (fromWallet.id === toWallet.id) {
-    return { valid: false, error: 'Cannot transfer to same wallet' };
+    return { valid: false, error: "Cannot transfer to same wallet" };
   }
 
   const available = calculateAvailableBalance(fromWallet, assignments, goals);
   if (available < amount) {
-    return { valid: false, error: 'Insufficient balance' };
+    return { valid: false, error: "Insufficient balance" };
   }
 
   return { valid: true };

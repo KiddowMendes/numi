@@ -1,4 +1,4 @@
-import type { Assignment } from '@numi/domain';
+import type { Assignment } from "@numi/domain";
 
 export interface AssignmentRow {
   id: string;

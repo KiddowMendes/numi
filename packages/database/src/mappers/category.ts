@@ -1,4 +1,4 @@
-import type { Category } from '@numi/domain';
+import type { Category } from "@numi/domain";
 
 export interface CategoryRow {
   id: string;

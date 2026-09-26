@@ -1,7 +1,7 @@
-import type { Assignment } from '../entities/Assignment';
-import type { Goal } from '../entities/Goal';
-import type { Period } from '../entities/Period';
-import type { Wallet } from '../entities/Wallet';
+import type { Assignment } from "../entities/Assignment";
+import type { Goal } from "../entities/Goal";
+import type { Period } from "../entities/Period";
+import type { Wallet } from "../entities/Wallet";
 
 /**
  * C2. Wallet Available Balance.

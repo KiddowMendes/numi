@@ -1,15 +1,13 @@
-export type UserTier = 'free' | 'freemium' | 'premium';
+export type UserTier = "free" | "freemium" | "premium";
 
-export type Result<T, E> =
-  | { ok: true; value: T }
-  | { ok: false; errors: E[] };
+export type Result<T, E> = { ok: true; value: T } | { ok: false; errors: E[] };
 
 export type EngineError =
-  | { code: 'INSUFFICIENT_BALANCE'; message: string }
-  | { code: 'TIER_LIMIT_EXCEEDED'; message: string }
-  | { code: 'INVALID_STATE'; message: string }
-  | { code: 'DATA_CORRUPTION'; message: string }
-  | { code: 'NOT_FOUND'; message: string };
+  | { code: "INSUFFICIENT_BALANCE"; message: string }
+  | { code: "TIER_LIMIT_EXCEEDED"; message: string }
+  | { code: "INVALID_STATE"; message: string }
+  | { code: "DATA_CORRUPTION"; message: string }
+  | { code: "NOT_FOUND"; message: string };
 
 export type UserContext = {
   userId: string;

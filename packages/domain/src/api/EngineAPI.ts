@@ -1,14 +1,14 @@
-import type { Result, EngineError } from '@numi/types';
-import { ok, err } from '@numi/types';
-import { generateUUID } from '@numi/utils';
-import type { AppState } from '../state';
-import type { User } from '../entities/User';
-import type { Wallet } from '../entities/Wallet';
-import type { Category } from '../entities/Category';
-import type { Goal } from '../entities/Goal';
-import type { Assignment } from '../entities/Assignment';
-import type { Transaction } from '../entities/Transaction';
-import type { Period } from '../entities/Period';
+import type { Result, EngineError } from "@numi/types";
+import { ok, err } from "@numi/types";
+import { generateUUID } from "@numi/utils";
+import type { AppState } from "../state";
+import type { User } from "../entities/User";
+import type { Wallet } from "../entities/Wallet";
+import type { Category } from "../entities/Category";
+import type { Goal } from "../entities/Goal";
+import type { Assignment } from "../entities/Assignment";
+import type { Transaction } from "../entities/Transaction";
+import type { Period } from "../entities/Period";
 import {
   calculateWalletBalance,
   calculateAvailableBalance,
@@ -27,7 +27,7 @@ import {
   calculatePeriodClose,
   closePeriodState,
   checkConservation,
-} from '../calculations/index';
+} from "../calculations/index";
 
 export type EngineAPI = {
   getState(): AppState;
@@ -45,11 +45,19 @@ export type EngineAPI = {
 
   // Goals
   createGoal(goal: Goal): Result<Goal, EngineError>;
-  updateGoal(id: string, patch: Partial<Pick<Goal, 'current_amount'>>): Result<Goal, EngineError>;
+  updateGoal(
+    id: string,
+    patch: Partial<Pick<Goal, "current_amount">>,
+  ): Result<Goal, EngineError>;
   deleteGoal(id: string): Result<void, EngineError>;
 
   // Periods
-  createPeriod(input: { id?: string; name: string; startDate: Date; endDate: Date }): Result<Period, EngineError>;
+  createPeriod(input: {
+    id?: string;
+    name: string;
+    startDate: Date;
+    endDate: Date;
+  }): Result<Period, EngineError>;
   closePeriod(): Result<Period, EngineError>;
   getActivePeriod(): Period | null;
 
@@ -59,8 +67,13 @@ export type EngineAPI = {
   getDailySafeToSpend(): Result<number | null, EngineError>;
   getAssignmentSpent(assignmentId: string): Result<number, EngineError>;
   getAssignmentRemaining(assignmentId: string): Result<number, EngineError>;
-  getGoalProgress(goalId: string): Result<{ percentage: number; remaining: number }, EngineError>;
-  checkConservation(): Result<{ valid: boolean; discrepancy: number }, EngineError>;
+  getGoalProgress(
+    goalId: string,
+  ): Result<{ percentage: number; remaining: number }, EngineError>;
+  checkConservation(): Result<
+    { valid: boolean; discrepancy: number },
+    EngineError
+  >;
 };
 
 export function createEngine(initialState: AppState): EngineAPI {
@@ -92,33 +105,65 @@ export function createEngine(initialState: AppState): EngineAPI {
     recordTransaction(tx: Transaction): Result<Transaction, EngineError> {
       const wallet = findWallet(tx.wallet_id);
       if (!wallet) {
-        return err([{ code: 'NOT_FOUND', message: `Wallet ${tx.wallet_id} not found` }]);
+        return err([
+          { code: "NOT_FOUND", message: `Wallet ${tx.wallet_id} not found` },
+        ]);
       }
 
-      if (tx.type === 'expense') {
-        const category = tx.category_id ? findCategory(tx.category_id) : undefined;
+      if (tx.type === "expense") {
+        const category = tx.category_id
+          ? findCategory(tx.category_id)
+          : undefined;
         if (!category) {
-          return err([{ code: 'NOT_FOUND', message: `Category ${tx.category_id} not found` }]);
+          return err([
+            {
+              code: "NOT_FOUND",
+              message: `Category ${tx.category_id} not found`,
+            },
+          ]);
         }
 
         if (!canExpense(wallet, state.assignments, state.goals, tx.amount)) {
-          return err([{ code: 'INSUFFICIENT_BALANCE', message: 'Insufficient available balance' }]);
+          return err([
+            {
+              code: "INSUFFICIENT_BALANCE",
+              message: "Insufficient available balance",
+            },
+          ]);
         }
       }
 
-      if (tx.type === 'transfer') {
+      if (tx.type === "transfer") {
         if (!tx.to_wallet_id) {
-          return err([{ code: 'INVALID_STATE', message: 'Transfer requires to_wallet_id' }]);
+          return err([
+            {
+              code: "INVALID_STATE",
+              message: "Transfer requires to_wallet_id",
+            },
+          ]);
         }
 
         const toWallet = findWallet(tx.to_wallet_id);
         if (!toWallet) {
-          return err([{ code: 'NOT_FOUND', message: `Destination wallet ${tx.to_wallet_id} not found` }]);
+          return err([
+            {
+              code: "NOT_FOUND",
+              message: `Destination wallet ${tx.to_wallet_id} not found`,
+            },
+          ]);
         }
 
-        const transferCheck = canTransfer(wallet, toWallet, state.assignments, state.goals, tx.amount);
+        const transferCheck = canTransfer(
+          wallet,
+          toWallet,
+          state.assignments,
+          state.goals,
+          tx.amount,
+        );
         if (!transferCheck.valid) {
-          return err([{ code: 'INSUFFICIENT_BALANCE', message: transferCheck.error }]);
+          return err([
+            { code: "INSUFFICIENT_BALANCE", message: transferCheck.error },
+          ]);
         }
       }
 
@@ -133,12 +178,12 @@ export function createEngine(initialState: AppState): EngineAPI {
         wallets: state.wallets.map((w) => {
           if (w.id === tx.wallet_id) {
             let newBalance = w.balance;
-            if (tx.type === 'income') newBalance += tx.amount;
-            if (tx.type === 'expense') newBalance -= tx.amount;
-            if (tx.type === 'transfer') newBalance -= tx.amount;
+            if (tx.type === "income") newBalance += tx.amount;
+            if (tx.type === "expense") newBalance -= tx.amount;
+            if (tx.type === "transfer") newBalance -= tx.amount;
             return { ...w, balance: newBalance };
           }
-          if (tx.type === 'transfer' && tx.to_wallet_id === w.id) {
+          if (tx.type === "transfer" && tx.to_wallet_id === w.id) {
             return { ...w, balance: w.balance + tx.amount };
           }
           return w;
@@ -151,7 +196,9 @@ export function createEngine(initialState: AppState): EngineAPI {
     deleteTransaction(id: string): Result<void, EngineError> {
       const tx = findTransaction(id);
       if (!tx) {
-        return err([{ code: 'NOT_FOUND', message: `Transaction ${id} not found` }]);
+        return err([
+          { code: "NOT_FOUND", message: `Transaction ${id} not found` },
+        ]);
       }
 
       state = {
@@ -160,12 +207,12 @@ export function createEngine(initialState: AppState): EngineAPI {
         wallets: state.wallets.map((w) => {
           if (w.id === tx.wallet_id) {
             let newBalance = w.balance;
-            if (tx.type === 'income') newBalance -= tx.amount;
-            if (tx.type === 'expense') newBalance += tx.amount;
-            if (tx.type === 'transfer') newBalance += tx.amount;
+            if (tx.type === "income") newBalance -= tx.amount;
+            if (tx.type === "expense") newBalance += tx.amount;
+            if (tx.type === "transfer") newBalance += tx.amount;
             return { ...w, balance: newBalance };
           }
-          if (tx.type === 'transfer' && tx.to_wallet_id === w.id) {
+          if (tx.type === "transfer" && tx.to_wallet_id === w.id) {
             return { ...w, balance: w.balance - tx.amount };
           }
           return w;
@@ -178,11 +225,28 @@ export function createEngine(initialState: AppState): EngineAPI {
     createAssignment(assignment: Assignment): Result<Assignment, EngineError> {
       const wallet = findWallet(assignment.wallet_id);
       if (!wallet) {
-        return err([{ code: 'NOT_FOUND', message: `Wallet ${assignment.wallet_id} not found` }]);
+        return err([
+          {
+            code: "NOT_FOUND",
+            message: `Wallet ${assignment.wallet_id} not found`,
+          },
+        ]);
       }
 
-      if (!canCreateAssignment(wallet, state.assignments, state.goals, assignment.amount)) {
-        return err([{ code: 'INSUFFICIENT_BALANCE', message: 'Cannot create assignment: exceeds available balance' }]);
+      if (
+        !canCreateAssignment(
+          wallet,
+          state.assignments,
+          state.goals,
+          assignment.amount,
+        )
+      ) {
+        return err([
+          {
+            code: "INSUFFICIENT_BALANCE",
+            message: "Cannot create assignment: exceeds available balance",
+          },
+        ]);
       }
 
       state = {
@@ -196,7 +260,9 @@ export function createEngine(initialState: AppState): EngineAPI {
     deleteAssignment(id: string): Result<void, EngineError> {
       const assignment = findAssignment(id);
       if (!assignment) {
-        return err([{ code: 'NOT_FOUND', message: `Assignment ${id} not found` }]);
+        return err([
+          { code: "NOT_FOUND", message: `Assignment ${id} not found` },
+        ]);
       }
 
       state = {
@@ -209,7 +275,12 @@ export function createEngine(initialState: AppState): EngineAPI {
 
     createWallet(wallet: Wallet): Result<Wallet, EngineError> {
       if (!canCreateWallet(state.user, state.wallets.length)) {
-        return err([{ code: 'TIER_LIMIT_EXCEEDED', message: 'Wallet limit reached for your tier' }]);
+        return err([
+          {
+            code: "TIER_LIMIT_EXCEEDED",
+            message: "Wallet limit reached for your tier",
+          },
+        ]);
       }
 
       state = {
@@ -222,12 +293,19 @@ export function createEngine(initialState: AppState): EngineAPI {
 
     createGoal(goal: Goal): Result<Goal, EngineError> {
       if (!canCreateGoal(state.user, state.goals.length)) {
-        return err([{ code: 'TIER_LIMIT_EXCEEDED', message: 'Goal limit reached for your tier' }]);
+        return err([
+          {
+            code: "TIER_LIMIT_EXCEEDED",
+            message: "Goal limit reached for your tier",
+          },
+        ]);
       }
 
       const wallet = findGoal(goal.wallet_id) ?? findWallet(goal.wallet_id);
       if (!wallet) {
-        return err([{ code: 'NOT_FOUND', message: `Wallet ${goal.wallet_id} not found` }]);
+        return err([
+          { code: "NOT_FOUND", message: `Wallet ${goal.wallet_id} not found` },
+        ]);
       }
 
       state = {
@@ -240,11 +318,11 @@ export function createEngine(initialState: AppState): EngineAPI {
 
     updateGoal(
       id: string,
-      patch: Partial<Pick<Goal, 'current_amount'>>,
+      patch: Partial<Pick<Goal, "current_amount">>,
     ): Result<Goal, EngineError> {
       const goal = findGoal(id);
       if (!goal) {
-        return err([{ code: 'NOT_FOUND', message: `Goal ${id} not found` }]);
+        return err([{ code: "NOT_FOUND", message: `Goal ${id} not found` }]);
       }
 
       const updated = { ...goal, ...patch };
@@ -260,7 +338,7 @@ export function createEngine(initialState: AppState): EngineAPI {
     deleteGoal(id: string): Result<void, EngineError> {
       const goal = findGoal(id);
       if (!goal) {
-        return err([{ code: 'NOT_FOUND', message: `Goal ${id} not found` }]);
+        return err([{ code: "NOT_FOUND", message: `Goal ${id} not found` }]);
       }
 
       state = {
@@ -274,7 +352,9 @@ export function createEngine(initialState: AppState): EngineAPI {
     getWalletBalance(walletId: string): Result<number, EngineError> {
       const wallet = findWallet(walletId);
       if (!wallet) {
-        return err([{ code: 'NOT_FOUND', message: `Wallet ${walletId} not found` }]);
+        return err([
+          { code: "NOT_FOUND", message: `Wallet ${walletId} not found` },
+        ]);
       }
 
       return ok(wallet.balance);
@@ -283,10 +363,16 @@ export function createEngine(initialState: AppState): EngineAPI {
     getAvailableBalance(walletId: string): Result<number, EngineError> {
       const wallet = findWallet(walletId);
       if (!wallet) {
-        return err([{ code: 'NOT_FOUND', message: `Wallet ${walletId} not found` }]);
+        return err([
+          { code: "NOT_FOUND", message: `Wallet ${walletId} not found` },
+        ]);
       }
 
-      const available = calculateAvailableBalance(wallet, state.assignments, state.goals);
+      const available = calculateAvailableBalance(
+        wallet,
+        state.assignments,
+        state.goals,
+      );
       return ok(available);
     },
 
@@ -304,25 +390,39 @@ export function createEngine(initialState: AppState): EngineAPI {
     getAssignmentSpent(assignmentId: string): Result<number, EngineError> {
       const assignment = findAssignment(assignmentId);
       if (!assignment) {
-        return err([{ code: 'NOT_FOUND', message: `Assignment ${assignmentId} not found` }]);
+        return err([
+          {
+            code: "NOT_FOUND",
+            message: `Assignment ${assignmentId} not found`,
+          },
+        ]);
       }
 
       if (!state.activePeriod) {
-        return err([{ code: 'INVALID_STATE', message: 'No active period' }]);
+        return err([{ code: "INVALID_STATE", message: "No active period" }]);
       }
 
-      const spent = calculateAssignmentSpent(assignment, state.transactions, state.activePeriod);
+      const spent = calculateAssignmentSpent(
+        assignment,
+        state.transactions,
+        state.activePeriod,
+      );
       return ok(spent);
     },
 
     getAssignmentRemaining(assignmentId: string): Result<number, EngineError> {
       const assignment = findAssignment(assignmentId);
       if (!assignment) {
-        return err([{ code: 'NOT_FOUND', message: `Assignment ${assignmentId} not found` }]);
+        return err([
+          {
+            code: "NOT_FOUND",
+            message: `Assignment ${assignmentId} not found`,
+          },
+        ]);
       }
 
       if (!state.activePeriod) {
-        return err([{ code: 'INVALID_STATE', message: 'No active period' }]);
+        return err([{ code: "INVALID_STATE", message: "No active period" }]);
       }
 
       const remaining = calculateAssignmentRemaining(
@@ -338,21 +438,40 @@ export function createEngine(initialState: AppState): EngineAPI {
     ): Result<{ percentage: number; remaining: number }, EngineError> {
       const goal = findGoal(goalId);
       if (!goal) {
-        return err([{ code: 'NOT_FOUND', message: `Goal ${goalId} not found` }]);
+        return err([
+          { code: "NOT_FOUND", message: `Goal ${goalId} not found` },
+        ]);
       }
 
       const progress = calculateGoalProgress(goal);
       return ok(progress);
     },
 
-    checkConservation(): Result<{ valid: boolean; discrepancy: number }, EngineError> {
-      const result = checkConservation(state.wallets, state.assignments, state.goals);
+    checkConservation(): Result<
+      { valid: boolean; discrepancy: number },
+      EngineError
+    > {
+      const result = checkConservation(
+        state.wallets,
+        state.assignments,
+        state.goals,
+      );
       return ok(result);
     },
 
-    createPeriod(input: { id?: string; name: string; startDate: Date; endDate: Date }): Result<Period, EngineError> {
+    createPeriod(input: {
+      id?: string;
+      name: string;
+      startDate: Date;
+      endDate: Date;
+    }): Result<Period, EngineError> {
       if (input.endDate <= input.startDate) {
-        return err([{ code: 'INVALID_STATE', message: 'Period end date must be after start date' }]);
+        return err([
+          {
+            code: "INVALID_STATE",
+            message: "Period end date must be after start date",
+          },
+        ]);
       }
 
       if (state.activePeriod) {
@@ -386,7 +505,9 @@ export function createEngine(initialState: AppState): EngineAPI {
 
     closePeriod(): Result<Period, EngineError> {
       if (!state.activePeriod) {
-        return err([{ code: 'INVALID_STATE', message: 'No active period to close' }]);
+        return err([
+          { code: "INVALID_STATE", message: "No active period to close" },
+        ]);
       }
 
       const closedPeriod = state.activePeriod;

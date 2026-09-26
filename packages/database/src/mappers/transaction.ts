@@ -1,4 +1,4 @@
-import type { Transaction } from '@numi/domain';
+import type { Transaction } from "@numi/domain";
 
 export interface TransactionRow {
   id: string;
@@ -16,7 +16,7 @@ export function toTransaction(row: TransactionRow): Transaction {
   return {
     id: row.id,
     amount: row.amount,
-    type: row.type as Transaction['type'],
+    type: row.type as Transaction["type"],
     date: new Date(row.date),
     category_id: row.category_id,
     wallet_id: row.wallet_id,

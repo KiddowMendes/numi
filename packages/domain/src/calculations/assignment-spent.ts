@@ -1,6 +1,6 @@
-import type { Assignment } from '../entities/Assignment';
-import type { Period } from '../entities/Period';
-import type { Transaction } from '../entities/Transaction';
+import type { Assignment } from "../entities/Assignment";
+import type { Period } from "../entities/Period";
+import type { Transaction } from "../entities/Transaction";
 
 /**
  * C6. Assignment Spent.
@@ -14,7 +14,7 @@ export function calculateAssignmentSpent(
   return transactions
     .filter(
       (t) =>
-        t.type === 'expense' &&
+        t.type === "expense" &&
         t.category_id === assignment.category_id &&
         t.wallet_id === assignment.wallet_id &&
         t.date >= period.start_date &&

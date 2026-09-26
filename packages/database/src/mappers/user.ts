@@ -1,4 +1,4 @@
-import type { User } from '@numi/domain';
+import type { User } from "@numi/domain";
 
 export interface UserRow {
   id: string;
@@ -8,7 +8,7 @@ export interface UserRow {
 export function toUser(row: UserRow): User {
   return {
     id: row.id,
-    tier: row.tier as User['tier'],
+    tier: row.tier as User["tier"],
   };
 }
 

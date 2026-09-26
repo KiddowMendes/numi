@@ -1,4 +1,4 @@
-import type { Goal } from '@numi/domain';
+import type { Goal } from "@numi/domain";
 
 export interface GoalRow {
   id: string;

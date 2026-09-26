@@ -1,9 +1,9 @@
-import type { Assignment } from '../entities/Assignment';
-import type { Goal } from '../entities/Goal';
-import type { Period } from '../entities/Period';
-import type { Wallet } from '../entities/Wallet';
-import { calculateGlobalSafeToSpend } from './global-safe-to-spend';
-import { calculateDaysRemaining } from './days-remaining';
+import type { Assignment } from "../entities/Assignment";
+import type { Goal } from "../entities/Goal";
+import type { Period } from "../entities/Period";
+import type { Wallet } from "../entities/Wallet";
+import { calculateGlobalSafeToSpend } from "./global-safe-to-spend";
+import { calculateDaysRemaining } from "./days-remaining";
 
 /**
  * C5. Daily Safe-to-Spend.

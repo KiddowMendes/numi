@@ -1,4 +1,4 @@
-import type { Database } from 'sql.js';
+import type { Database } from "sql.js";
 
 export const SCHEMA_VERSION = 1;
 
@@ -90,7 +90,11 @@ export const DROP_TABLES = `
 `;
 
 // sql.js helper: run a query and return all rows as objects
-export function queryAll(db: Database, sql: string, params: unknown[] = []): Record<string, unknown>[] {
+export function queryAll(
+  db: Database,
+  sql: string,
+  params: unknown[] = [],
+): Record<string, unknown>[] {
   const stmt = db.prepare(sql);
   if (params.length > 0) {
     stmt.bind(params);
@@ -105,11 +109,19 @@ export function queryAll(db: Database, sql: string, params: unknown[] = []): Rec
 }
 
 // sql.js helper: run a query and return first row or undefined
-export function queryOne(db: Database, sql: string, params: unknown[] = []): Record<string, unknown> | undefined {
+export function queryOne(
+  db: Database,
+  sql: string,
+  params: unknown[] = [],
+): Record<string, unknown> | undefined {
   return queryAll(db, sql, params)[0];
 }
 
 // sql.js helper: execute a statement (INSERT, UPDATE, DELETE, DDL)
-export function execute(db: Database, sql: string, params: unknown[] = []): void {
+export function execute(
+  db: Database,
+  sql: string,
+  params: unknown[] = [],
+): void {
   db.run(sql, params);
 }
