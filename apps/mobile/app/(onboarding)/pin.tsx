@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Platform, Pressable, StyleSheet, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -55,6 +55,18 @@ export default function PinScreen() {
   const slideX = useSharedValue(0);
   const shakeX = useSharedValue(0);
 
+  // The keypad buffer is authoritative in a ref. `handleDigitPress` is a
+  // `useCallback` over `digits`, so two taps landing before React re-renders
+  // both read the same value and the second overwrites the first — a dropped
+  // digit, which reads to the user as a keypad that has stopped working.
+  const digitsRef = useRef("");
+
+  // Set the moment the first code is captured, cleared when the slide lands.
+  // Without it, a tap arriving during the slide window is appended to the
+  // create buffer and then shown on the confirm screen, so confirmation starts
+  // on a digit the user never entered and cannot match.
+  const settlingRef = useRef(false);
+
   const slideStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: slideX.value }],
   }));
@@ -69,7 +81,14 @@ export default function PinScreen() {
   // suppressed here rather than worked around. Same pattern as
   // `bottom-sheet.tsx`.
 
+  const clearDigits = useCallback(() => {
+    digitsRef.current = "";
+    setDigits("");
+  }, []);
+
   const goToConfirm = useCallback(() => {
+    settlingRef.current = false;
+    clearDigits();
     if (containerWidth === 0) return;
     setPhase("confirm");
     // eslint-disable-next-line react-hooks/immutability
@@ -79,12 +98,13 @@ export default function PinScreen() {
           duration: SLIDE_DURATION,
           easing: Easing.out(Easing.cubic),
         });
-  }, [containerWidth, reduceMotion, slideX]);
+  }, [clearDigits, containerWidth, reduceMotion, slideX]);
 
   const goToCreate = useCallback(() => {
+    settlingRef.current = false;
     setPhase("create");
     setFirstPin("");
-    setDigits("");
+    clearDigits();
     setError("");
     // eslint-disable-next-line react-hooks/immutability
     slideX.value = reduceMotion
@@ -93,7 +113,7 @@ export default function PinScreen() {
           duration: SLIDE_DURATION,
           easing: Easing.out(Easing.cubic),
         });
-  }, [reduceMotion, slideX]);
+  }, [clearDigits, reduceMotion, slideX]);
 
   const triggerShake = useCallback(() => {
     errorFeedback();
@@ -110,17 +130,21 @@ export default function PinScreen() {
   const handleDigitPress = useCallback(
     (digit: string) => {
       if (saving) return;
-      if (digits.length >= PIN_LENGTH) return;
+      // Taps during the create-to-confirm slide are dropped, not buffered.
+      if (settlingRef.current) return;
+      if (digitsRef.current.length >= PIN_LENGTH) return;
 
       setError("");
-      const next = digits + digit;
+      const next = digitsRef.current + digit;
+      digitsRef.current = next;
       setDigits(next);
 
       if (!isCompletePin(next)) return;
 
       if (phase === "create") {
+        settlingRef.current = true;
         setFirstPin(next);
-        setDigits("");
+        clearDigits();
         setTimeout(goToConfirm, PRE_SLIDE_DELAY_MS);
         return;
       }
@@ -138,7 +162,7 @@ export default function PinScreen() {
             console.error("[Pin] Save failed:", error);
             setSaving(false);
             setError("Could not save PIN. Try again.");
-            setDigits("");
+            clearDigits();
           });
         return;
       }
@@ -147,14 +171,24 @@ export default function PinScreen() {
         triggerShake();
         // The first code is kept. The user re-enters only the confirmation —
         // asking for both again is a papercut for a typo.
-        setDigits("");
+        clearDigits();
       }, PRE_SHAKE_DELAY_MS);
     },
-    [digits, firstPin, goToConfirm, markPinSet, phase, saving, triggerShake],
+    [
+      clearDigits,
+      firstPin,
+      goToConfirm,
+      markPinSet,
+      phase,
+      saving,
+      triggerShake,
+    ],
   );
 
   const handleBackspace = useCallback(() => {
-    setDigits((current) => current.slice(0, -1));
+    const next = digitsRef.current.slice(0, -1);
+    digitsRef.current = next;
+    setDigits(next);
   }, []);
 
   const handleBack = useCallback(() => {

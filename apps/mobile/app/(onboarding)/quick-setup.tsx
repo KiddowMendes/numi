@@ -80,6 +80,7 @@ export default function QuickSetupScreen() {
   const { engine } = useEngine();
   const categories = useStore((s) => s.appState.categories);
   const setOnboardingSummary = useStore((s) => s.setOnboardingSummary);
+  const syncFromEngine = useStore((s) => s.syncFromEngine);
 
   // Wallet
   const [walletName, setWalletName] = useState("Cash wallet");
@@ -105,6 +106,11 @@ export default function QuickSetupScreen() {
     (sum, cents) => sum + cents,
     0,
   );
+
+  // An assignment may never exceed the wallet balance (C10), so a wallet with
+  // no balance has no budget the engine would accept. The increase steppers are
+  // disabled in that case rather than left to swallow taps.
+  const canAssignBudget = balanceCents > 0;
 
   const isNameValid = walletName.trim().length > 0;
   const isPeriodValid = end.getTime() > start.getTime();
@@ -232,6 +238,11 @@ export default function QuickSetupScreen() {
     }
 
     writeSummary(1, budgetCount);
+    // The engine holds the new wallet and period; the store's `appState` is a
+    // separate snapshot and does not see them until it is synced. Without this
+    // the store stays empty, `all-set` has to fall back to the summary, and
+    // Home renders its "No wallet yet" empty state over a wallet that exists.
+    syncFromEngine();
     router.replace("/(onboarding)/all-set");
   }, [
     amounts,
@@ -243,6 +254,7 @@ export default function QuickSetupScreen() {
     finalWalletName,
     periodName,
     start,
+    syncFromEngine,
     walletType,
     writeSummary,
   ]);
@@ -272,8 +284,9 @@ export default function QuickSetupScreen() {
     }
 
     writeSummary(1, 0);
+    syncFromEngine();
     router.replace("/(onboarding)/all-set");
-  }, [engine, saving, writeSummary]);
+  }, [engine, saving, syncFromEngine, writeSummary]);
 
   return (
     <ScreenBackground>
@@ -365,6 +378,7 @@ export default function QuickSetupScreen() {
                   category.name,
                 )}
                 cents={amounts[category.id] ?? 0}
+                canIncrease={canAssignBudget}
                 onStep={(delta) => step(category.id, delta)}
               />
             ))}
@@ -378,6 +392,11 @@ export default function QuickSetupScreen() {
                 </ThemedText>
               </View>
             </Card>
+            {!canAssignBudget ? (
+              <ThemedText type="caption" tone="textMuted">
+                Add a starting balance above to set a budget.
+              </ThemedText>
+            ) : null}
             {!isWithinBalance ? (
               <ThemedText type="caption" tone="stateAlert">
                 You only have {formatCents(balanceCents)} in this wallet.
@@ -450,10 +469,17 @@ type BudgetRowProps = {
   name: string;
   accentKey: CategoryAccentKey;
   cents: number;
+  canIncrease: boolean;
   onStep: (delta: number) => void;
 };
 
-function BudgetRow({ name, accentKey, cents, onStep }: BudgetRowProps) {
+function BudgetRow({
+  name,
+  accentKey,
+  cents,
+  canIncrease,
+  onStep,
+}: BudgetRowProps) {
   const mode = useThemeMode();
   const accent = resolveCategoryAccent(accentKey, mode);
 
@@ -475,6 +501,7 @@ function BudgetRow({ name, accentKey, cents, onStep }: BudgetRowProps) {
       <StepperButton
         icon="add"
         label={`Increase ${name}`}
+        disabled={!canIncrease}
         onPress={() => onStep(STEPPER_STEP)}
       />
     </View>

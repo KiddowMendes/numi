@@ -1,5 +1,6 @@
 import * as Crypto from "expo-crypto";
-import * as SecureStore from "expo-secure-store";
+
+import { secretStore } from "./secret-store";
 
 /** Digits in a PIN. Four is the shortest code that is not trivially guessable. */
 export const PIN_LENGTH = 4;
@@ -26,24 +27,27 @@ const PIN_KEY = "pin_hash";
 
 /** SHA-256 of the code, hex encoded. Never the code itself. */
 export function hashPin(pin: string): Promise<string> {
-  // The encoding argument is omitted deliberately: `digestStringAsync` defaults
-  // to HEX, and expo-crypto's exported `EncodingType` is not part of the
-  // package's public type surface in SDK 57.
-  return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, pin);
+  // The encoding is passed explicitly rather than left to the default. Native
+  // `digestStringAsync` defaults to HEX, but the web implementation dereferences
+  // `options.encoding` unguarded and throws a TypeError when it is omitted — so
+  // relying on the default silently broke every hash in a browser.
+  return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, pin, {
+    encoding: Crypto.CryptoEncoding.HEX,
+  });
 }
 
 export async function savePin(pin: string): Promise<void> {
-  await SecureStore.setItemAsync(PIN_KEY, await hashPin(pin));
+  await secretStore.setItem(PIN_KEY, await hashPin(pin));
 }
 
 export async function verifyPin(pin: string): Promise<boolean> {
-  const stored = await SecureStore.getItemAsync(PIN_KEY);
+  const stored = await secretStore.getItem(PIN_KEY);
   if (stored === null) return false;
   return (await hashPin(pin)) === stored;
 }
 
 export async function hasPin(): Promise<boolean> {
-  return (await SecureStore.getItemAsync(PIN_KEY)) !== null;
+  return (await secretStore.getItem(PIN_KEY)) !== null;
 }
 
 /**
@@ -51,7 +55,7 @@ export async function hasPin(): Promise<boolean> {
  * because there is no account.
  */
 export async function clearPin(): Promise<void> {
-  await SecureStore.deleteItemAsync(PIN_KEY);
+  await secretStore.deleteItem(PIN_KEY);
 }
 
 export function isCompletePin(digits: string): boolean {

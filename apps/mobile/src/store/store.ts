@@ -8,6 +8,8 @@ import {
   type ThemePreferenceValue,
 } from "@numi/design-system";
 
+import { hasPin } from "@/lib/pin";
+
 type TransactionDraft = {
   type: "income" | "expense";
   amount: string;
@@ -62,6 +64,18 @@ type StoreState = {
    * hash was never written. See `Edge_Cases.md` EC19.
    */
   pinSet: boolean;
+  /**
+   * The durable half of the lock: has the keychain entry been read yet, and is
+   * a PIN stored?
+   *
+   * `null` means "not read yet" and gates the bootstrap render, because a
+   * routing decision taken before the read is the decision to show onboarding
+   * to someone who has a PIN. Lives in the store rather than in `_layout`
+   * local state so `resetForNewUser` can invalidate it — a mount-only read
+   * kept claiming a PIN was set after "Forgot PIN?" had deleted it, which
+   * stranded the user on an unlock screen with no way past it.
+   */
+  keychainPinSet: boolean | null;
   /** Cleared on a cold launch, and re-earned by passing `unlock`. */
   isUnlocked: boolean;
   /** Written by `quick-setup`, read by `all-set`. */
@@ -82,6 +96,8 @@ type StoreActions = {
   setUserName: (name: string) => void;
   /** Call only after the keychain write resolves. */
   markPinSet: () => void;
+  /** Re-read the keychain and update `keychainPinSet`. */
+  refreshKeychainPin: () => Promise<void>;
   markUnlocked: () => void;
   setOnboardingSummary: (summary: OnboardingSummary) => void;
   /**
@@ -136,6 +152,7 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
   isOnboarded: false,
   userName: "",
   pinSet: false,
+  keychainPinSet: null,
   isUnlocked: false,
   onboardingSummary: null,
   draft: { ...INITIAL_DRAFT },
@@ -166,6 +183,18 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
     set({ pinSet: true });
   },
 
+  refreshKeychainPin: async () => {
+    try {
+      set({ keychainPinSet: await hasPin() });
+    } catch (error: unknown) {
+      console.error("[Store] Keychain read failed:", error);
+      // Fail open, as the bootstrap did before this moved into the store. An
+      // unreadable keychain is no reason to strand someone on a splash, and
+      // refusing entry when no PIN is set locks out every first launch.
+      set({ keychainPinSet: false });
+    }
+  },
+
   markUnlocked: () => {
     set({ isUnlocked: true });
   },
@@ -180,6 +209,11 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
       isOnboarded: false,
       userName: "",
       isUnlocked: false,
+      // The caller has just deleted the stored hash, so a stale `true` here
+      // would keep demanding a PIN that no longer exists. `null` forces the
+      // next bootstrap to read the keychain again.
+      pinSet: false,
+      keychainPinSet: null,
       onboardingSummary: null,
       draft: { ...INITIAL_DRAFT, date: new Date() },
     });

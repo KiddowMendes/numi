@@ -3,13 +3,7 @@ import "@/lib/polyfill";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import {
-  Component,
-  useCallback,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { Component, useCallback, useEffect, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import {
   SafeAreaProvider,
@@ -20,7 +14,6 @@ import {
 import { Toast, buildToastConfig } from "@/components/app-toast";
 import { color, spacing, typography } from "@/constants/tokens";
 import { useThemeMode } from "@/hooks/use-theme";
-import { hasPin } from "@/lib/pin";
 import { EngineProvider, useStore } from "@/store";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -48,6 +41,8 @@ function Routing() {
   const isOnboarded = useStore((s) => s.isOnboarded);
   const pinSet = useStore((s) => s.pinSet);
   const isUnlocked = useStore((s) => s.isUnlocked);
+  const keychainPinSet = useStore((s) => s.keychainPinSet);
+  const refreshKeychainPin = useStore((s) => s.refreshKeychainPin);
   const mode = useThemeMode();
 
   const [fontsLoaded, fontError] = useFonts({
@@ -71,40 +66,32 @@ function Routing() {
   }, [ready, hide]);
 
   // The keychain is the only state that outlives a cold launch, so it decides
-  // whether there is a lock to pass. Read once, on mount.
-  const [keychainPinSet, setKeychainPinSet] = useState<boolean | null>(null);
-
+  // whether there is a lock to pass. Re-read whenever the store marks it stale
+  // (first mount, and after "Forgot PIN?" wipes the entry).
   useEffect(() => {
-    let cancelled = false;
-    void hasPin()
-      .then((present) => {
-        if (!cancelled) setKeychainPinSet(present);
-      })
-      .catch((error: unknown) => {
-        console.error("[Bootstrap] Keychain read failed:", error);
-        // Fail open. A keychain we cannot read is not a reason to strand
-        // someone on a splash screen, and the alternative — refusing entry
-        // when no PIN is actually set — locks out every first launch.
-        if (!cancelled) setKeychainPinSet(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (keychainPinSet !== null) return;
+    void refreshKeychainPin();
+  }, [keychainPinSet, refreshKeychainPin]);
 
   if (!ready || keychainPinSet === null) return null;
 
   const theme = color[mode];
 
   // `pinSet` is the in-memory mirror the onboarding flow writes; `keychainPinSet`
-  // is the durable one. Either means there is a lock.
+  // is the durable one. Either means a lock exists.
   const locked = keychainPinSet || pinSet;
 
   // The lock is asked for on the strength of the hash alone. It must NOT also
   // require `isOnboarded`: after a cold launch the hash survives while
   // `isOnboarded` resets to false, so gating on both would quietly skip the PIN
   // on exactly the return visit it exists for.
-  const showUnlock = locked && !isUnlocked;
+  //
+  // It is skipped while onboarding is still running, though. `pin` is
+  // deliberately mid-journey at that point, and demanding the code the user is
+  // still setting — before `quick-setup` and `all-set` have run — guards
+  // `(onboarding)` out from under the very navigation that is in flight.
+  const onboarding = !isOnboarded;
+  const showUnlock = locked && !isUnlocked && !onboarding;
   const showApp = isOnboarded && (!locked || isUnlocked);
 
   return (

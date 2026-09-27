@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -40,6 +40,10 @@ export default function UnlockScreen() {
   const resetForNewUser = useStore((s) => s.resetForNewUser);
 
   const [digits, setDigits] = useState("");
+  // Authoritative keypad buffer. The handler is a `useCallback` over `digits`,
+  // so two taps arriving before React re-renders would both read the same value
+  // and the second would overwrite the first.
+  const digitsRef = useRef("");
   const [attempts, setAttempts] = useState(0);
   const [lockedFor, setLockedFor] = useState(0);
   const [confirmingReset, setConfirmingReset] = useState(false);
@@ -64,6 +68,7 @@ export default function UnlockScreen() {
   const fail = useCallback(
     (message: string) => {
       setError(message);
+      digitsRef.current = "";
       setDigits("");
       errorFeedback();
       if (reduceMotion) return;
@@ -87,7 +92,8 @@ export default function UnlockScreen() {
     (digit: string) => {
       if (locked) return;
       setError("");
-      const next = digits + digit;
+      const next = digitsRef.current + digit;
+      digitsRef.current = next;
       setDigits(next);
       if (!isCompletePin(next)) return;
 
@@ -111,11 +117,13 @@ export default function UnlockScreen() {
         setTimeout(() => fail("That PIN is not right."), PRE_SHAKE_DELAY_MS);
       });
     },
-    [attempts, digits, fail, isOnboarded, locked, markUnlocked],
+    [attempts, fail, isOnboarded, locked, markUnlocked],
   );
 
   const handleBackspace = useCallback(() => {
-    setDigits((current) => current.slice(0, -1));
+    const next = digitsRef.current.slice(0, -1);
+    digitsRef.current = next;
+    setDigits(next);
   }, []);
 
   const handleReset = useCallback(() => {
