@@ -1,11 +1,12 @@
 ---
-version: 1.0.0
+version: 1.1.0
 status: Locked
 owner: Elton Pascoal
 related_documents:
   - "docs/playbook/03_Architecture/02_System_Design.md"
   - "docs/playbook/03_Architecture/04_Offline_First_Strategy.md"
-decision_record: none
+  - "docs/adr/0002-onboarding-wizard-flow.md"
+decision_record: "docs/adr/0002-onboarding-wizard-flow.md"
 ---
 
 # 03 — Monorepo Structure
@@ -42,16 +43,21 @@ apps/
 │   ├── app.json
 │   ├── metro.config.js
 │   ├── babel.config.js
-│   ├── App.tsx
-│   ├── index.js
 │   ├── app/                 # expo-router file-based routes
-│   │   ├── _layout.tsx
-│   │   ├── index.tsx
-│   │   └── explore.tsx
+│   │   ├── _layout.tsx      # bootstrap gate + Stack.Protected
+│   │   ├── (onboarding)/    # welcome, pin, quick-setup, all-set
+│   │   ├── (auth)/          # unlock
+│   │   ├── (tabs)/          # index, plan, history, settings
+│   │   └── review.tsx
 │   └── src/
 │       ├── components/
-│       ├── constants/
-│       └── hooks/
+│       │   ├── ui/          # primitives + feature components, barrel at index.ts
+│       │   └── *.tsx        # AppIcon, ThemedText, ThemedView, ScreenBackground, Toast
+│       ├── constants/       # tokens.ts — the only seam onto @numi/design-system
+│       ├── hooks/
+│       ├── lib/             # category-accent, format, polyfill, pin
+│       ├── store/           # store.ts, provider.tsx, index.ts
+│       └── types/
 │
 └── web/                     # Next.js (static export)
     ├── package.json
@@ -68,6 +74,22 @@ apps/
 **Rule:** `apps/mobile` and `apps/web` do not import each other. They both import from `packages/*`.
 
 **Repo note:** `apps/web` still contains a scaffold `app/` directory at its root, duplicated with `src/app/`. The duplicate must be removed; `src/app/` is canonical.
+
+**Added by ADR-0002.** The `app/(auth)/` group and `src/lib/pin.ts` are new.
+`App.tsx` and `index.js` are both zero bytes and have been removed from this
+tree — `main` is `expo-router/entry`, so expo-router is the only entry point and
+those files are dead weight from the starter template.
+
+**Three native dependencies were added for the PIN lock:** `expo-haptics`,
+`expo-secure-store`, `expo-crypto`. `expo-secure-store` also needs an entry in
+`app.json` `plugins`. None of the three is exercised by `lint`, `check-types`,
+or the unit tests — they are proven only on a device.
+
+**`apps/mobile` has no `build` script.** Metro bundles on demand, so there is
+nothing for `turbo run build` to do. It also had no `check-types` script until
+ADR-0002 added one, which meant `turbo run check-types` silently skipped the
+entire app. A package with no script for a task is invisible to that task, not
+passing it.
 
 ---
 
@@ -126,6 +148,7 @@ packages/
 **Rule:** `packages/domain` must not import `packages/database`. The dependency arrow points inward: `database` depends on `domain`, not reverse.
 
 **Repo note:**
+
 - The three `@repo/*` packages are create-turborepo leftovers. Remove them once `tooling/` configs are in use.
 - `packages/database` does not exist yet. It is created when the sync layer (v2) begins.
 
@@ -197,6 +220,7 @@ packages/database   packages/domain      packages/utils
 ```
 
 **Forbidden arrows:**
+
 - `packages/domain` → `packages/database`
 - `packages/domain` → `apps/*`
 - `packages/types` → any package (leaf node)
@@ -207,19 +231,20 @@ packages/database   packages/domain      packages/utils
 
 ## Package Naming
 
-| Package | Import Name | Scope | State |
-|---|---|---|---|
-| Domain | `@numi/domain` | Business engine | Exists |
-| Database | `@numi/database` | SQLite repository | Not created yet |
-| Design System | `@numi/design-system` | Tokens | Exists |
-| Types | `@numi/types` | Shared interfaces | Exists |
-| Utils | `@numi/utils` | Currency, date helpers | Exists |
+| Package       | Import Name           | Scope                  | State           |
+| ------------- | --------------------- | ---------------------- | --------------- |
+| Domain        | `@numi/domain`        | Business engine        | Exists          |
+| Database      | `@numi/database`      | SQLite repository      | Not created yet |
+| Design System | `@numi/design-system` | Tokens                 | Exists          |
+| Types         | `@numi/types`         | Shared interfaces      | Exists          |
+| Utils         | `@numi/utils`         | Currency, date helpers | Exists          |
 
 ---
 
 ## Workspace References
 
 In `apps/mobile/package.json`:
+
 ```json
 {
   "dependencies": {
@@ -233,6 +258,7 @@ In `apps/mobile/package.json`:
 ```
 
 In `apps/web/package.json` (no database — forbidden arrow):
+
 ```json
 {
   "dependencies": {

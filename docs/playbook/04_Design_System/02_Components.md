@@ -1,11 +1,12 @@
 ---
-version: 1.0.0
+version: 1.1.0
 status: Locked
 owner: Elton Pascoal
 related_documents:
   - "docs/playbook/04_Design_System/01_Tokens.md"
   - "docs/playbook/05_Features/03_Daily_Budgeting/Screens.md"
-decision_record: none
+  - "docs/playbook/05_Features/01_Onboarding/Screens.md"
+decision_record: "docs/adr/0002-onboarding-wizard-flow.md"
 ---
 
 # 02 — Components
@@ -396,6 +397,130 @@ Screens that need secondary actions use `CircleActionButton` instead.
 
 ---
 
+## ScreenShell
+
+**Purpose:** Apply the one inset and padding policy every full screen shares, so
+no screen re-derives it.
+
+**Layout:**
+
+- `SafeAreaView` semantics via `useSafeAreaInsets` from
+  `react-native-safe-area-context`, not the core component, so the values match
+  the tab bar's.
+- `paddingTop: insets.top + spacing.lg` by default.
+- `paddingBottom: insets.bottom + spacing.xl` by default.
+- `paddingHorizontal: screenPadding`.
+- Overridable per prop, because `pin` and `unlock` need
+  `paddingBottom: 0` — the pad owns the bottom third.
+
+**Rule:** A screen sets its own padding only when it is genuinely different, and
+says why in a comment. `quick-setup` clears the bottom because a fixed button
+block sits over the scroll content.
+
+---
+
+## PinDots
+
+**Purpose:** Show how many digits have been entered without revealing them.
+
+**Layout:**
+
+- Row of `PIN_LENGTH` (4) dots.
+- Empty: 12px, `radius.full`, `color.surfaceSunken`, 1px `color.border`.
+- Filled: 12px, `radius.full`, `color.primary`.
+- Gap: `spacing.xs`. Centred.
+
+**Behavior:**
+
+- Fills left to right. No "last digit" highlight — a moving marker on a 4-digit
+  code adds nothing.
+- On mismatch the whole row is cleared, so there is no intermediate state to
+  animate.
+
+**Accessibility:** One node for the whole row, not four.
+`accessibilityLabel="4 digits entered"`. Four announced nodes for one code is
+noise, and a screen reader user cannot tell a filled dot from an empty one.
+
+**Not a `ProgressDots`.** `ProgressDots` says where you are in a flow. This says
+how much of a secret you have typed. Conflating them would leak the code length
+into the progress indicator's semantics.
+
+---
+
+## PinPad
+
+**Purpose:** The 12-key entry surface. Always visible, never the OS keyboard.
+
+**Layout:**
+
+- 3 columns × 4 rows. Keys 1-9, then blank, 0, backspace.
+- Key: 72px tall, `radius.full` on the digit, `radius.md` on backspace.
+- `color.surfaceRaised` fill, `color.border` 1px.
+- Digit: `typography.amountLg`, `color.textPrimary`.
+- Row gap `spacing.sm`, column gap `spacing.md`.
+- Bottom padding is the screen's to own, not the pad's.
+
+**Behavior:**
+
+- Digit press: `ImpactFeedbackStyle.Light` haptic, call `onDigitPress`.
+- Backspace: calls `onBackspace`, no haptic. Backspace is frequent and
+  correctable; buzzing on it is noise.
+- Press feedback: `motion.pressOpacity` only. No scale, no spring.
+- `disabled` during lockout. Disabled keys render at `color.textDisabled` and
+  announce as dimmed.
+- No OS keyboard is ever summoned. A 4-digit code is 4 taps; the keyboard is a
+  second layout to dismiss afterwards.
+
+**Rule:** Every key is at least 48×48. On a cracked screen in sunlight, a 44px
+key is a miss.
+
+---
+
+## RadialGlow
+
+**Purpose:** Atmosphere. A soft light source at one edge of a screen.
+
+**Layout:**
+
+- `expo-linear-gradient`, absolutely positioned, `pointerEvents="none"`.
+- Three stops, mirroring `resolveBackgroundGradient` so the glow and the page
+  background are the same family of colour.
+- Opacity ≤ 0.15 in light mode. Higher and it stops being atmosphere and starts
+  being a surface, which fails the contrast rule in `01_Tokens.md`.
+
+**Behavior:**
+
+- Static. No animation. A breathing glow is a battery cost and a distraction.
+- `onLayout` for height, so it scales rather than being a fixed pixel band.
+
+**Rule:** Never carries text over it without a measured contrast check. The
+light-mode base is already near `#eef2f8`; pushing a gradient under a heading can
+put it back under 4.5:1.
+
+---
+
+## RingWatermark
+
+**Purpose:** A single oversized ring, bled off the edge, at very low opacity.
+
+**Layout:**
+
+- `react-native-svg`. `Circle` only — no `Path`, no gradients, no filter.
+- Size 300, `strokeWidth` 24, `opacity` 0.07.
+- Absolutely positioned, negative right offset so roughly a third is off-screen.
+- `stroke: color.primary`, `fill: none`.
+
+**Behavior:**
+
+- Static. Sits behind content and is never interactive.
+- `pointerEvents="none"`.
+
+**Rule:** One per screen, onboarding screens only. A second ring is decoration
+competing with the first, and the welcome and all-set screens are the only places
+a brand mark is allowed to be oversized.
+
+---
+
 ## Component Inventory
 
 | Component          | v1  | Implementation             | Notes                                     |
@@ -416,9 +541,20 @@ Screens that need secondary actions use `CircleActionButton` instead.
 | CenterDockButton   | Yes | `center-dock-button.tsx`   | The one primary action. Replaces FAB      |
 | CategoryPicker     | Yes | `category-picker.tsx`      | Pill toggle, one fixed icon per accent    |
 | ProgressDots       | Yes | `progress-dots.tsx`        | Onboarding position                       |
+| ScreenShell        | Yes | `screen-shell.tsx`         | The one inset and padding policy          |
+| PinDots            | Yes | `pin-dots.tsx`             | One a11y node, not four                   |
+| PinPad             | Yes | `pin-pad.tsx`              | 12 keys, always visible                   |
+| RadialGlow         | Yes | `radial-glow.tsx`          | Atmosphere only, opacity ≤ 0.15           |
+| RingWatermark      | Yes | `ring-watermark.tsx`       | One per onboarding screen                 |
 | Checkbox           | No  | —                          | Not needed in v1                          |
 | Radio              | No  | —                          | PillToggle covers single choice           |
 | Switch             | No  | —                          | Not needed in v1                          |
+
+**Added by ADR-0002.** The five onboarding components above are ported in shape
+from the `numi_wallet` implementation and rebuilt on these tokens. They are not
+NativeWind, not Roboto, and not inline hex. `numi_wallet`'s `CategorySheet` is
+deliberately **not** ported — `BottomSheet` plus `CategoryPicker` already cover
+it, and two sheets for one job is a maintenance tax.
 
 ---
 

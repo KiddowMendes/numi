@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import type { AppState, EngineAPI, Transaction } from "@numi/domain";
+import { randToCents } from "@numi/utils";
 
 import {
   defaultThemePreference,
@@ -20,6 +21,13 @@ type TransactionResult =
   | { ok: true; value: Transaction }
   | { ok: false; errors: { code: string; message: string }[] };
 
+/** What `all-set` shows, and what it would show if the user backed out of it. */
+export type OnboardingSummary = {
+  walletCount: number;
+  budgetCount: number;
+  lines: string[];
+};
+
 function generateId(): string {
   if (
     typeof globalThis.crypto !== "undefined" &&
@@ -30,21 +38,37 @@ function generateId(): string {
   return `tx-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function parseAmountToCents(input: string): number {
-  const cleaned = input.replace(/[^0-9.\-]/g, "");
-  return Math.round(parseFloat(cleaned) * 100);
-}
-
 type StoreState = {
   /** Current app state snapshot — synced from Engine on every mutation */
   appState: AppState;
   /** Reference to the Engine instance — set once on mount */
   engine: EngineAPI | null;
-  /** Whether user has finished the onboarding flow */
+  /**
+   * Whether the user finished `all-set`. Explicit, never derived.
+   *
+   * It used to be computed in `setEngine` as
+   * `!!activePeriod && (assignments || transactions)`, which cannot express the
+   * ADR-0002 flow: `quick-setup` is skippable, so onboarding completes with no
+   * period and no assignments at all.
+   */
   isOnboarded: boolean;
+  /** Display name captured on `welcome`. Trimmed before it is stored. */
+  userName: string;
+  /**
+   * Mirrors the keychain, not the source of truth for it.
+   *
+   * Only ever set after `SecureStore.setItemAsync` resolves. An optimistic flip
+   * would strand a user on an `unlock` screen they cannot pass, because the
+   * hash was never written. See `Edge_Cases.md` EC19.
+   */
+  pinSet: boolean;
+  /** Cleared on a cold launch, and re-earned by passing `unlock`. */
+  isUnlocked: boolean;
+  /** Written by `quick-setup`, read by `all-set`. */
+  onboardingSummary: OnboardingSummary | null;
   /** Transient draft for the transaction entry form */
   draft: TransactionDraft;
-  /** Light/dark choice made during onboarding. Never defaults to `system`. */
+  /** Light/dark choice. Never defaults to `system`. */
   themePreference: ThemePreferenceValue;
 };
 
@@ -55,6 +79,24 @@ type StoreActions = {
   syncFromEngine: () => void;
   /** Complete the onboarding flow and show main tabs */
   completeOnboarding: () => void;
+  setUserName: (name: string) => void;
+  /** Call only after the keychain write resolves. */
+  markPinSet: () => void;
+  markUnlocked: () => void;
+  setOnboardingSummary: (summary: OnboardingSummary) => void;
+  /**
+   * Wipe the store back to its first-launch shape.
+   *
+   * Backs "Forgot PIN? Reset app". The caller is also responsible for
+   * `resetEngine()` from `useEngine()` — the engine and the store are separate
+   * owners, and stale wallets left in the engine would make the next
+   * `createWallet` return TIER_LIMIT_EXCEEDED against a wallet the user can no
+   * longer see.
+   *
+   * `isOnboarded` is cleared too, so the bootstrap gate returns the user to
+   * `welcome` rather than onto the empty Home they just reset.
+   */
+  resetForNewUser: () => void;
   /** Update a single field on the transaction draft */
   setDraftField: <K extends keyof TransactionDraft>(
     key: K,
@@ -64,7 +106,7 @@ type StoreActions = {
   clearDraft: () => void;
   /** Log a transaction from the current draft, sync engine, return result */
   logTransaction: () => TransactionResult;
-  /** Set the light/dark choice. Called from onboarding, then from Settings. */
+  /** Set the light/dark choice. Called from Settings. */
   setThemePreference: (preference: ThemePreferenceValue) => void;
 };
 
@@ -77,31 +119,32 @@ const INITIAL_DRAFT: TransactionDraft = {
   date: new Date(),
 };
 
+const INITIAL_APP_STATE: AppState = {
+  user: { id: "", tier: "free" },
+  activePeriod: null,
+  periods: [],
+  wallets: [],
+  categories: [],
+  goals: [],
+  assignments: [],
+  transactions: [],
+};
+
 export const useStore = create<StoreState & StoreActions>((set, get) => ({
-  appState: {
-    user: { id: "", tier: "free" },
-    activePeriod: null,
-    periods: [],
-    wallets: [],
-    categories: [],
-    goals: [],
-    assignments: [],
-    transactions: [],
-  },
+  appState: INITIAL_APP_STATE,
   engine: null,
   isOnboarded: false,
+  userName: "",
+  pinSet: false,
+  isUnlocked: false,
+  onboardingSummary: null,
   draft: { ...INITIAL_DRAFT },
   themePreference: defaultThemePreference,
 
   setEngine: (engine) => {
-    const appState = engine.getState();
-    set({
-      engine,
-      appState,
-      isOnboarded:
-        !!appState.activePeriod &&
-        (appState.assignments.length > 0 || appState.transactions.length > 0),
-    });
+    // `isOnboarded` is deliberately not touched here. It is set by
+    // `completeOnboarding` and cleared by `resetForNewUser`, and nothing else.
+    set({ engine, appState: engine.getState() });
   },
 
   syncFromEngine: () => {
@@ -113,6 +156,33 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
 
   completeOnboarding: () => {
     set({ isOnboarded: true });
+  },
+
+  setUserName: (name) => {
+    set({ userName: name.trim() });
+  },
+
+  markPinSet: () => {
+    set({ pinSet: true });
+  },
+
+  markUnlocked: () => {
+    set({ isUnlocked: true });
+  },
+
+  setOnboardingSummary: (summary) => {
+    set({ onboardingSummary: summary });
+  },
+
+  resetForNewUser: () => {
+    set({
+      appState: INITIAL_APP_STATE,
+      isOnboarded: false,
+      userName: "",
+      isUnlocked: false,
+      onboardingSummary: null,
+      draft: { ...INITIAL_DRAFT, date: new Date() },
+    });
   },
 
   setThemePreference: (preference) => {
@@ -146,7 +216,7 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
       };
     }
 
-    const amountCents = parseAmountToCents(draft.amount);
+    const amountCents = randToCents(draft.amount);
     if (amountCents <= 0) {
       return {
         ok: false,
