@@ -32,11 +32,11 @@ decision_record: none
 
 ## Lens Mapping
 
-| Lens | Served? | How |
-|---|---|---|
-| **Current** | Partial | New Period resets Safe-to-Spend calculation. |
-| **Planned** | Yes | Assignments are the budget. This is where they are created. |
-| **Actual** | No | Historical Actual informs suggestions, but this screen is forward-looking. |
+| Lens        | Served? | How                                                                        |
+| ----------- | ------- | -------------------------------------------------------------------------- |
+| **Current** | Partial | New Period resets Safe-to-Spend calculation.                               |
+| **Planned** | Yes     | Assignments are the budget. This is where they are created.                |
+| **Actual**  | No      | Historical Actual informs suggestions, but this screen is forward-looking. |
 
 ---
 
@@ -51,11 +51,11 @@ decision_record: none
 
 ## Tier Behavior
 
-| Tier | Budget Setup Difference |
-|---|---|
-| **Free** | Unlimited Periods. 1 Wallet. |
-| **Freemium** | Same. Web view of archived Periods. |
-| **Premium** | Same. Period templates (save a plan as reusable). |
+| Tier         | Budget Setup Difference                           |
+| ------------ | ------------------------------------------------- |
+| **Free**     | Unlimited Periods. 1 Wallet.                      |
+| **Freemium** | Same. Web view of archived Periods.               |
+| **Premium**  | Same. Period templates (save a plan as reusable). |
 
 ---
 

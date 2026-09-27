@@ -24,9 +24,9 @@ ADR required. Same process as `00_Foundation`.
 
 ## Directory Inventory
 
-| File | Status | Locked Date | Last ADR |
-|---|---|---|---|
-| 01_Invariants.md | Locked | 2026-08-22 | — |
-| 02_User_States.md | Locked | 2026-08-22 | — |
-| 03_Behavioral_Loops.md | Locked | 2026-08-22 | — |
-| 04_Data_Flow.md | Locked | 2026-08-22 | — |
+| File                   | Status | Locked Date | Last ADR |
+| ---------------------- | ------ | ----------- | -------- |
+| 01_Invariants.md       | Locked | 2026-08-22  | —        |
+| 02_User_States.md      | Locked | 2026-08-22  | —        |
+| 03_Behavioral_Loops.md | Locked | 2026-08-22  | —        |
+| 04_Data_Flow.md        | Locked | 2026-08-22  | —        |

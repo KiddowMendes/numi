@@ -2,7 +2,12 @@
 version: 1.0.0
 status: Locked
 owner: Product
-related_documents: [01_Domain/03_Calculations.md, 01_Domain/02_Business_Rules.md, 06_Implementation/01_Coding_Standards.md]
+related_documents:
+  [
+    01_Domain/03_Calculations.md,
+    01_Domain/02_Business_Rules.md,
+    06_Implementation/01_Coding_Standards.md,
+  ]
 decision_record: null
 ---
 
@@ -21,7 +26,7 @@ decision_record: null
 
 ## Unit Tests (Non-negotiable)
 
-- **Scope:** Every calculation C1–C15 in `01_Domain/03_Calculations.md`, every business rule BR-* in `01_Domain/02_Business_Rules.md`, and every Edge Case recorded in `05_Features/*/Edge_Cases.md`.
+- **Scope:** Every calculation C1–C15 in `01_Domain/03_Calculations.md`, every business rule BR-_ in `01_Domain/02_Business_Rules.md`, and every Edge Case recorded in `05_Features/_/Edge_Cases.md`.
 - **Coverage:** 100% of `packages/domain` line coverage. `coverage` check is part of CI.
 - **Tool:** Vitest.
 - **Data:** Factory helpers per entity (`packages/domain/tests/factories/`). No hand-rolled inline objects.
@@ -46,11 +51,11 @@ decision_record: null
 
 ## Coverage Gates
 
-| Layer | Gate |
-|---|---|
-| `packages/domain` | 100% (blocking) |
+| Layer               | Gate                                 |
+| ------------------- | ------------------------------------ |
+| `packages/domain`   | 100% (blocking)                      |
 | `packages/database` | ≥ 80% (blocking when package exists) |
-| UI components | no gate |
+| UI components       | no gate                              |
 
 ## CI
 

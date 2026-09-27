@@ -27,6 +27,7 @@ wallet_balance == SUM(income_transactions.amount)
 ```
 
 Where:
+
 - `income_transactions`: Transactions where `wallet_id == this_wallet` AND `type == 'income'`
 - `expense_transactions`: Transactions where `wallet_id == this_wallet` AND `type == 'expense'`
 - `transfer_in_transactions`: Transactions where `to_wallet_id == this_wallet` AND `type == 'transfer'`
@@ -47,6 +48,7 @@ available_balance = wallet.balance
 ```
 
 Where:
+
 - `active_assignments`: Assignments linked to the active Period
 - `active_goals`: Goals where `wallet_id == this_wallet` (Goals are always active until deleted or completed)
 
@@ -142,6 +144,7 @@ goal_progress_percentage = FLOOR(
 Cap: 100%. If current_amount somehow exceeds target_amount (should be prevented by BR-G2), clamp display at 100%.
 
 Goal remaining:
+
 ```
 goal_remaining = goal.target_amount - goal.current_amount
 ```

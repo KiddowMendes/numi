@@ -17,16 +17,16 @@ decision_record: none
 
 ## Overview
 
-| Layer | Technology | Justification |
-|---|---|---|
-| Mobile App | Expo (React Native) | Single codebase, offline-capable, OTA updates without store review |
-| Web App | Next.js | Static export possible, file-system routing, React ecosystem shared with mobile |
-| Monorepo | Turborepo + pnpm | Caches builds, shares code, handles Metro symlink issues via `node-linker=hoisted` |
-| Language | TypeScript | Type safety across shared packages, single source of truth for domain |
-| Local DB | SQLite (via expo-sqlite / react-native-quick-sqlite) | Embedded, zero-config, works offline, queryable, survives app updates |
-| State Management | Zustand | Lightweight, no boilerplate, works outside React (engine can use it) |
-| Sync (v2) | Supabase or self-hosted PostgreSQL | Open source, row-level security, real-time subscriptions for Premium sync |
-| Styling | NativeWind (mobile) + Tailwind (web) | Shared design tokens, single token file in `packages/design-system` |
+| Layer            | Technology                                           | Justification                                                                      |
+| ---------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Mobile App       | Expo (React Native)                                  | Single codebase, offline-capable, OTA updates without store review                 |
+| Web App          | Next.js                                              | Static export possible, file-system routing, React ecosystem shared with mobile    |
+| Monorepo         | Turborepo + pnpm                                     | Caches builds, shares code, handles Metro symlink issues via `node-linker=hoisted` |
+| Language         | TypeScript                                           | Type safety across shared packages, single source of truth for domain              |
+| Local DB         | SQLite (via expo-sqlite / react-native-quick-sqlite) | Embedded, zero-config, works offline, queryable, survives app updates              |
+| State Management | Zustand                                              | Lightweight, no boilerplate, works outside React (engine can use it)               |
+| Sync (v2)        | Supabase or self-hosted PostgreSQL                   | Open source, row-level security, real-time subscriptions for Premium sync          |
+| Styling          | NativeWind (mobile) + Tailwind (web)                 | Shared design tokens, single token file in `packages/design-system`                |
 
 ---
 
@@ -137,12 +137,12 @@ Component libraries impose their own design language. NUMI's design system is cu
 
 ## Testing
 
-| Layer | Tool | Purpose |
-|---|---|---|
-| Domain Engine | Vitest | Unit tests for all calculations and business rules |
-| Mobile | Jest + React Native Testing Library | Component and integration tests |
-| Web | Vitest + React Testing Library | Component and page tests |
-| E2E | Maestro (mobile) + Playwright (web) | Critical path: log transaction, see safe-to-spend |
+| Layer         | Tool                                | Purpose                                            |
+| ------------- | ----------------------------------- | -------------------------------------------------- |
+| Domain Engine | Vitest                              | Unit tests for all calculations and business rules |
+| Mobile        | Jest + React Native Testing Library | Component and integration tests                    |
+| Web           | Vitest + React Testing Library      | Component and page tests                           |
+| E2E           | Maestro (mobile) + Playwright (web) | Critical path: log transaction, see safe-to-spend  |
 
 **Why Vitest over Jest for domain?**  
 Vitest is faster, has native TypeScript support, and shares config with the web app's Vite tooling.
@@ -154,23 +154,23 @@ Maestro tests are written in YAML and do not require native build steps. A solo 
 
 ## Deployment
 
-| Target | Method | Trigger |
-|---|---|---|
-| Mobile (iOS/Android) | EAS Build (Expo) | Manual release via `eas build` |
-| Web | Static export to Vercel | Git push to `main` |
-| Domain Package | Published to npm (private) | Git tag `domain@v*` |
+| Target               | Method                     | Trigger                        |
+| -------------------- | -------------------------- | ------------------------------ |
+| Mobile (iOS/Android) | EAS Build (Expo)           | Manual release via `eas build` |
+| Web                  | Static export to Vercel    | Git push to `main`             |
+| Domain Package       | Published to npm (private) | Git tag `domain@v*`            |
 
 ---
 
 ## Forbidden Technologies
 
-| Technology | Why Excluded |
-|---|---|
-| Firebase Analytics / Google Analytics | Violates Principle 4 (No Surveillance) |
-| Redux | Unnecessary complexity |
-| GraphQL | Overkill for CRUD sync. REST or Supabase client is sufficient. |
-| MongoDB | Not embedded. Requires server. SQLite is sufficient. |
-| Flutter | Different ecosystem, no web sharing with mobile |
+| Technology                            | Why Excluded                                                   |
+| ------------------------------------- | -------------------------------------------------------------- |
+| Firebase Analytics / Google Analytics | Violates Principle 4 (No Surveillance)                         |
+| Redux                                 | Unnecessary complexity                                         |
+| GraphQL                               | Overkill for CRUD sync. REST or Supabase client is sufficient. |
+| MongoDB                               | Not embedded. Requires server. SQLite is sufficient.           |
+| Flutter                               | Different ecosystem, no web sharing with mobile                |
 
 ---
 

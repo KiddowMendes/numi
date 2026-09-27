@@ -34,11 +34,11 @@ decision_record: none
 
 ## Lens Mapping
 
-| Lens | Served? | How |
-|---|---|---|
-| **Current** | Yes | This is Current's home. SafeToSpendHero is the default view when the app opens. |
+| Lens        | Served? | How                                                                                               |
+| ----------- | ------- | ------------------------------------------------------------------------------------------------- |
+| **Current** | Yes     | This is Current's home. SafeToSpendHero is the default view when the app opens.                   |
 | **Planned** | Partial | Assignment remaining is visible per Category, but creating/editing plans belongs to Budget Setup. |
-| **Actual** | Partial | Logging a Transaction creates the Actual record, but reviewing history belongs to Spending. |
+| **Actual**  | Partial | Logging a Transaction creates the Actual record, but reviewing history belongs to Spending.       |
 
 ---
 
@@ -54,11 +54,11 @@ decision_record: none
 
 ## Tier Behavior
 
-| Tier | Daily Budgeting Difference |
-|---|---|
-| **Free** | Full logging and Safe-to-Spend, unlimited transactions and categories, 1 Wallet. |
-| **Freemium** | Same. Web view is lagged and read-only when stale (see `03_Architecture/02_System_Design.md`). |
-| **Premium** | Real-time sync means the number is current across devices without a manual refresh. Optional daily reminder notification (see Behavioral Loops, Loop 4). |
+| Tier         | Daily Budgeting Difference                                                                                                                               |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Free**     | Full logging and Safe-to-Spend, unlimited transactions and categories, 1 Wallet.                                                                         |
+| **Freemium** | Same. Web view is lagged and read-only when stale (see `03_Architecture/02_System_Design.md`).                                                           |
+| **Premium**  | Real-time sync means the number is current across devices without a manual refresh. Optional daily reminder notification (see Behavioral Loops, Loop 4). |
 
 ---
 

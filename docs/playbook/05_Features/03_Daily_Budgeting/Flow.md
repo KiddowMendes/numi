@@ -20,6 +20,7 @@ decision_record: none
 **Trigger:** App opened (cold start, resume from background, or relaunch).
 
 **Steps:**
+
 1. App shell renders immediately (header + SafeToSpendHero skeleton). No blocking spinner.
 2. In-memory `AppState` is read from local DB (already loaded on prior launch, or loaded now on cold start).
 3. `Engine.getDailySafeToSpend()` runs against current state.
@@ -32,6 +33,7 @@ decision_record: none
 5. Context line renders: "R[global_safe] total · [days] days left."
 
 **Rules:**
+
 - This must complete within two taps of app open (R2.1). In practice: zero taps — it's the first thing rendered.
 - No network call sits between app open and this number (I1, R2.1).
 
@@ -42,6 +44,7 @@ decision_record: none
 **Trigger:** User taps FAB "Log expense" from HomeScreen, or "Log similar" from a past transaction.
 
 **Steps:**
+
 1. TransactionLogSheet opens (BottomSheet, mobile / Modal, web).
 2. AmountInput is auto-focused. Numeric keypad appears immediately.
 3. Category defaults to the last-used Category. Wallet defaults to the last-used Wallet (or the only Wallet, on Free tier).
@@ -56,6 +59,7 @@ decision_record: none
 8. Local DB write happens async in the background (I6). The user never waits for it.
 
 **Rules:**
+
 - One screen. No confirmation dialog (R1.3, R2.2).
 - If the expense would push Safe-to-Spend negative, the engine still allows it (I2). The UI shows the new negative number plainly — no warning modal, no block.
 - The 5-second rule: amount → category (default, tap to change) → save. Nothing else is required.
@@ -67,6 +71,7 @@ decision_record: none
 **Trigger:** User taps FAB, switches segmented control (or type toggle) to "Income" within TransactionLogSheet.
 
 **Steps:**
+
 1. Same sheet as Flow 2, but no Category field (BR-C2 — income has zero Categories).
 2. Wallet selector shows destination Wallet.
 3. User enters amount, taps "Save."
@@ -81,13 +86,15 @@ decision_record: none
 **Trigger:** User switches TransactionLogSheet type toggle to "Transfer."
 
 **Steps:**
+
 1. Two Wallet selectors appear: source and destination. No Category field.
 2. User enters amount, taps "Save."
-3. `Engine.transfer()` validates: source ≠ destination (BR-T5), source has sufficient *available* balance, not just raw balance (C11).
+3. `Engine.transfer()` validates: source ≠ destination (BR-T5), source has sufficient _available_ balance, not just raw balance (C11).
 4. On success: both Wallet balances update atomically. Both Wallet histories show the transaction (I12).
 5. SafeToSpendHero is unaffected in total (money moved, didn't leave the system) but per-Wallet breakdowns update.
 
 **Rules:**
+
 - If source and destination are the same Wallet, the Save button stays disabled with inline error "Choose two different wallets" (BR-T5, C11).
 
 ---
@@ -97,11 +104,13 @@ decision_record: none
 **Trigger:** User taps the SafeToSpendHero.
 
 **Steps:**
+
 1. Navigates to Current-lens breakdown view (SegmentedControl defaults to "Current").
 2. Shows: global Safe-to-Spend, per-Wallet available balance, days remaining, per-Category remaining (from active Assignments).
 3. User can switch SegmentedControl to "Planned" or "Actual" to see the same money through a different lens (R7.1–R7.5).
 
 **Rules:**
+
 - This is a read-only view. Editing Assignments happens in Budget Setup, not here (Daily Budgeting's scope per Overview.md).
 
 ---
@@ -111,26 +120,28 @@ decision_record: none
 **Trigger:** User taps a CategoryCard remaining-amount on HomeScreen or in the breakdown view.
 
 **Steps:**
+
 1. Small inline sheet: current Assignment amount, AmountInput to adjust.
 2. This calls the same Assignment-editing engine path used by Budget Setup, but surfaced here for speed — it does not require a full re-plan.
 3. Save updates the Assignment. SafeToSpendHero recalculates.
 
 **Rules:**
+
 - This is the one exception where Daily Budgeting touches Assignments directly (per Overview.md's "Partial" Planned-lens support). Creating new Assignments or editing more than one at a time still belongs to Budget Setup.
 
 ---
 
 ## Recovery Paths
 
-| If User... | Then... |
-|---|---|
-| Cancels TransactionLogSheet | No Transaction created. HomeScreen unchanged. |
-| Saves with amount = 0 | Save button stays disabled. AmountInput requires > 0 (BR-T1, BR-A1 pattern). |
-| Saves an expense with insufficient available balance | Engine rejects (`INSUFFICIENT_BALANCE`, C12 for v1: hard reject, no overdraft). Inline error, input shake, Save stays disabled until corrected. |
-| Loses connectivity mid-log | No effect — logging never touches the network (R4.4, I7). |
-| Kills the app mid-sheet | Transaction was never saved (only committed on "Save" tap). On relaunch, HomeScreen shows the state from the last completed save. |
-| Taps "Log similar" from History | TransactionLogSheet opens pre-filled (same amount, Category, Wallet, type; date reset to today; note cleared). User edits and saves as a new Transaction. |
-| Has no active Period | FAB still works — Transactions can be logged with no Period (BR-A4 only governs Assignments). SafeToSpendHero still reads "--" until a Period exists (C4, C5). |
+| If User...                                           | Then...                                                                                                                                                        |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cancels TransactionLogSheet                          | No Transaction created. HomeScreen unchanged.                                                                                                                  |
+| Saves with amount = 0                                | Save button stays disabled. AmountInput requires > 0 (BR-T1, BR-A1 pattern).                                                                                   |
+| Saves an expense with insufficient available balance | Engine rejects (`INSUFFICIENT_BALANCE`, C12 for v1: hard reject, no overdraft). Inline error, input shake, Save stays disabled until corrected.                |
+| Loses connectivity mid-log                           | No effect — logging never touches the network (R4.4, I7).                                                                                                      |
+| Kills the app mid-sheet                              | Transaction was never saved (only committed on "Save" tap). On relaunch, HomeScreen shows the state from the last completed save.                              |
+| Taps "Log similar" from History                      | TransactionLogSheet opens pre-filled (same amount, Category, Wallet, type; date reset to today; note cleared). User edits and saves as a new Transaction.      |
+| Has no active Period                                 | FAB still works — Transactions can be logged with no Period (BR-A4 only governs Assignments). SafeToSpendHero still reads "--" until a Period exists (C4, C5). |
 
 ---
 

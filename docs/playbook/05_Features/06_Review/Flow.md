@@ -19,6 +19,7 @@ decision_record: none
 **Trigger:** `today > active_period.end_date`, user opens app.
 
 **Steps:**
+
 1. HomeScreen shows PeriodEndedBanner.
 2. Banner: "Your [Period name] has ended. Review or start fresh?"
 3. User taps "Review" → ReviewScreen.
@@ -31,6 +32,7 @@ decision_record: none
 **Trigger:** User taps "Review" from banner, or navigates to History → selects a closed Period.
 
 **Steps:**
+
 1. ReviewScreen opens.
 2. Top: Period summary card.
    - Name, dates, duration.
@@ -55,6 +57,7 @@ decision_record: none
 **Trigger:** User in HistoryScreen, taps a closed Period header.
 
 **Steps:**
+
 1. ReviewScreen opens for that specific Period.
 2. Same content as Flow 2.
 3. "Start new period" button hidden (Period is old, not just ended).
@@ -67,6 +70,7 @@ decision_record: none
 **Trigger:** User dismisses PeriodEndedBanner without reviewing.
 
 **Behavior:**
+
 - Banner does not reappear for that Period.
 - Review remains accessible via History → Period header.
 - No nagging. User agency.
@@ -78,6 +82,7 @@ decision_record: none
 **Trigger:** Period ended before income arrived. User is not ready to start a new Period.
 
 **Steps:**
+
 1. ReviewScreen → "Extend this period" (secondary action on the summary card).
 2. Sheet: new end date picker. Must be after the original end_date.
 3. Confirm. Period reopens with its Assignments re-committed at their remaining amounts.
@@ -87,21 +92,21 @@ decision_record: none
 
 ## Tone Rules
 
-| Do | Don't |
-|---|---|
-| "You planned R2,000 for Food. You spent R2,300." | "You overspent Food by R300." |
-| "R500 left over." | "You failed to spend R500." |
-| "Next time, consider R2,500 for Food." | "You need to cut Food spending." |
-| "Start a new period when you're ready." | "Fix your budget now." |
+| Do                                               | Don't                            |
+| ------------------------------------------------ | -------------------------------- |
+| "You planned R2,000 for Food. You spent R2,300." | "You overspent Food by R300."    |
+| "R500 left over."                                | "You failed to spend R500."      |
+| "Next time, consider R2,500 for Food."           | "You need to cut Food spending." |
+| "Start a new period when you're ready."          | "Fix your budget now."           |
 
 ---
 
 ## Recovery Paths
 
-| If User... | Then... |
-|---|---|
-| Reviews, then kills app | ReviewScreen state not saved. Re-open via History. |
-| Starts new Period mid-review | ReviewScreen dismissed. New Period created. |
+| If User...                   | Then...                                                                      |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| Reviews, then kills app      | ReviewScreen state not saved. Re-open via History.                           |
+| Starts new Period mid-review | ReviewScreen dismissed. New Period created.                                  |
 | Has 0 transactions in Period | Review shows: "No transactions logged this period." Suggestion: start fresh. |
 
 ---

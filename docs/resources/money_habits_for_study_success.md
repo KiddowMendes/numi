@@ -19,7 +19,7 @@ This is a government-aligned, mass-distributed financial literacy guide given to
 - Lump-sum income (bursaries, allowances, part-time work) that must be stretched across time
 - The need to divide money into categories before spending
 - The emotional difficulty of sticking to a plan when peers and stress exert pressure
-- The gap between *planning* money and *tracking* what actually happens
+- The gap between _planning_ money and _tracking_ what actually happens
 
 ## Key Concepts Relevant to NUMI
 
@@ -27,15 +27,15 @@ This is a government-aligned, mass-distributed financial literacy guide given to
 
 The source material explicitly uses a budget planner structured around three columns:
 
-| Category | Current | Planned | Actual |
-|---|---|---|---|
-| Income | R | R | R |
-| Basic needs | R | R | R |
-| Financial protection | R | R | R |
-| Debt repayment | R | R | R |
-| Savings | R | R | R |
-| Lifestyle spending | R | R | R |
-| **Surplus or shortfall** | R | R | R |
+| Category                 | Current | Planned | Actual |
+| ------------------------ | ------- | ------- | ------ |
+| Income                   | R       | R       | R      |
+| Basic needs              | R       | R       | R      |
+| Financial protection     | R       | R       | R      |
+| Debt repayment           | R       | R       | R      |
+| Savings                  | R       | R       | R      |
+| Lifestyle spending       | R       | R       | R      |
+| **Surplus or shortfall** | R       | R       | R      |
 
 **What this means for NUMI:** The "Current / Planned / Actual" model is not a NUMI invention. It is the established pedagogical standard for South African financial literacy. NUMI digitizes and automates this exact worksheet.
 
@@ -53,7 +53,7 @@ The source presents a honeycomb model for dividing income:
 - **Build:** Short-term goals, medium-term goals, long-term goals, retirement savings
 - **Behaviour:** Start good money habits now
 
-**What this means for NUMI:** The app must allow users to allocate money into these mental buckets. The "Spend" vs "Build" tension is central — money set aside for goals must feel *gone* from daily spending.
+**What this means for NUMI:** The app must allow users to allocate money into these mental buckets. The "Spend" vs "Build" tension is central — money set aside for goals must feel _gone_ from daily spending.
 
 ### 3. The Specific User Pattern
 
@@ -99,9 +99,10 @@ The source heavily emphasizes starting early, even with small amounts. The Qondi
 
 ## NUMI's Relationship to This Source
 
-NUMI does not replace this education. It operationalizes it. The booklet teaches the *principles* with pen and paper. NUMI removes the friction of paper budgeting so the principles actually survive contact with real life.
+NUMI does not replace this education. It operationalizes it. The booklet teaches the _principles_ with pen and paper. NUMI removes the friction of paper budgeting so the principles actually survive contact with real life.
 
 The source proves that the problem NUMI solves is:
+
 1. **Real** — taught in national financial literacy programs
 2. **Recurring** — affects every student and young worker
 3. **Structural** — not a personal failing, but a lack of tools built for the reality of irregular, small-amount cash flows

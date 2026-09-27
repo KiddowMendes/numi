@@ -19,6 +19,7 @@ decision_record: none
 **Trigger:** Playbook drafted, monorepo scaffolded.
 
 **Deliverables:**
+
 - All upstream docs (Foundation, Domain, Mechanics, Architecture, Design System) drafted.
 - Turborepo monorepo running locally.
 - Mobile and web apps build without errors.
@@ -34,12 +35,14 @@ decision_record: none
 **Duration:** 4–6 weeks.
 
 **Deliverables:**
+
 - `packages/domain` fully implemented with 100% test coverage.
 - `packages/database` schema and migrations.
 - Mobile app: Onboarding, Daily Budgeting, Budget Setup, Spending, Review.
 - SQLite persistence. Offline-only.
 
 **Boundary:**
+
 - No cloud. No accounts. No web app.
 - Free tier only.
 
@@ -54,12 +57,14 @@ decision_record: none
 **Duration:** 2–3 weeks.
 
 **Deliverables:**
+
 - Manual JSON export (Free tier escape hatch).
 - Bug fixes from real usage.
 - Performance: app launch <1s, list scroll 60fps on budget devices.
 - Basic analytics: aggregate event counts only (no user IDs).
 
 **Boundary:**
+
 - Still no cloud. Still no accounts.
 - No new features, just refinement.
 
@@ -72,6 +77,7 @@ decision_record: none
 **Duration:** 3–4 weeks.
 
 **Deliverables:**
+
 - NUMI Account (free registration).
 - Web app: read-only mirror, lagged.
 - Manual cloud backup (JSON to Supabase storage).
@@ -79,6 +85,7 @@ decision_record: none
 - Tier enforcement in engine.
 
 **Boundary:**
+
 - No auto-sync. No real-time.
 - Web is view-only when stale.
 
@@ -91,6 +98,7 @@ decision_record: none
 **Duration:** 6–8 weeks.
 
 **Deliverables:**
+
 - Premium subscription (affordable: ~R29/month or R199 once).
 - Real-time sync across devices.
 - Unlimited Wallets and Goals.
@@ -100,6 +108,7 @@ decision_record: none
 - Advanced insights (trends, "you usually overspend Food by 15%").
 
 **Boundary:**
+
 - No bank linking. No social features. No ads.
 
 ---
@@ -111,6 +120,7 @@ decision_record: none
 **Duration:** Ongoing.
 
 **Deliverables:**
+
 - Self-hosted sync option (for privacy-maximal users).
 - Family sharing (one Premium, multiple viewers).
 - Debt tracking (mashonisa support).
@@ -118,20 +128,21 @@ decision_record: none
 - Localization (isiZulu, isiXhosa, Afrikaans).
 
 **Boundary:**
+
 - Core remains free. Premium funds the mission.
 
 ---
 
 ## Phase Table
 
-| Phase | Version | Trigger | Duration | Cloud? | Account? |
-|---|---|---|---|---|---|
-| 0 | — | Playbook done | Done | No | No |
-| 1 | v1.0.0 | Foundation locked | 4–6 weeks | No | No |
-| 2 | v1.1.0 | 10+ daily users | 2–3 weeks | No | No |
-| 3 | v1.2.0 | Users want backup | 3–4 weeks | Yes (manual) | Optional |
-| 4 | v2.0.0 | Freemium stable | 6–8 weeks | Yes (auto) | Required for Premium |
-| 5 | v2.x | 1,000+ users | Ongoing | Yes | Optional free, required Premium |
+| Phase | Version | Trigger           | Duration  | Cloud?       | Account?                        |
+| ----- | ------- | ----------------- | --------- | ------------ | ------------------------------- |
+| 0     | —       | Playbook done     | Done      | No           | No                              |
+| 1     | v1.0.0  | Foundation locked | 4–6 weeks | No           | No                              |
+| 2     | v1.1.0  | 10+ daily users   | 2–3 weeks | No           | No                              |
+| 3     | v1.2.0  | Users want backup | 3–4 weeks | Yes (manual) | Optional                        |
+| 4     | v2.0.0  | Freemium stable   | 6–8 weeks | Yes (auto)   | Required for Premium            |
+| 5     | v2.x    | 1,000+ users      | Ongoing   | Yes          | Optional free, required Premium |
 
 ---
 

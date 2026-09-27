@@ -34,8 +34,8 @@ Once Locked, a file may only be changed via this process:
 
 ## Directory Inventory
 
-| File | Status | Locked Date | Last ADR |
-|---|---|---|---|
-| 01_Manifesto.md | Locked | 2026-08-22 | — |
-| 02_Principles.md | Locked | 2026-08-22 | — |
-| 03_Glossary.md | Locked | 2026-08-22 | — |
+| File             | Status | Locked Date | Last ADR |
+| ---------------- | ------ | ----------- | -------- |
+| 01_Manifesto.md  | Locked | 2026-08-22  | —        |
+| 02_Principles.md | Locked | 2026-08-22  | —        |
+| 03_Glossary.md   | Locked | 2026-08-22  | —        |

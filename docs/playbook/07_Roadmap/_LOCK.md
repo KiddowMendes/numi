@@ -23,8 +23,8 @@ ADR required for MVP scope changes. Phase additions/reordering may be updated wi
 
 ## Directory Inventory
 
-| File | Status | Locked Date | Last ADR |
-|---|---|---|---|
-| 01_MVP_Scope.md | Locked | 2026-08-22 | — |
-| 02_Phases.md | Locked | 2026-08-22 | — |
-| 03_Known_Unknowns.md | Planned | — | — |
+| File                 | Status  | Locked Date | Last ADR |
+| -------------------- | ------- | ----------- | -------- |
+| 01_MVP_Scope.md      | Locked  | 2026-08-22  | —        |
+| 02_Phases.md         | Locked  | 2026-08-22  | —        |
+| 03_Known_Unknowns.md | Planned | —           | —        |

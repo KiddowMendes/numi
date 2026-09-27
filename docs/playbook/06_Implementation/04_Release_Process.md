@@ -2,7 +2,8 @@
 version: 1.0.0
 status: Locked
 owner: Product
-related_documents: [03_Architecture/02_System_Design.md, 07_Roadmap/01_MVP_Scope.md]
+related_documents:
+  [03_Architecture/02_System_Design.md, 07_Roadmap/01_MVP_Scope.md]
 decision_record: null
 ---
 
@@ -12,11 +13,11 @@ decision_record: null
 
 ## Packages
 
-| Package | Channel | Tooling |
-|---|---|---|
-| Mobile app | App Store / Play Store | EAS Build + EAS Submit |
-| Web app | Vercel (static export) | `pnpm build` → deploy |
-| Domain | npm | `pnpm publish` (`packages/domain`) |
+| Package    | Channel                | Tooling                            |
+| ---------- | ---------------------- | ---------------------------------- |
+| Mobile app | App Store / Play Store | EAS Build + EAS Submit             |
+| Web app    | Vercel (static export) | `pnpm build` → deploy              |
+| Domain     | npm                    | `pnpm publish` (`packages/domain`) |
 
 ## Mobile (EAS)
 
@@ -39,11 +40,11 @@ decision_record: null
 
 ## Rollback
 
-| Package | How |
-|---|---|
-| Mobile | Submit previous build via EAS (approval applies). No OTA downgrade; deprecated builds route users to update. |
-| Web | Vercel instant rollback to previous deployment. |
-| Domain | `npm unpublish` only within 72h per registry policy; prefers publishing a fixed version. |
+| Package | How                                                                                                          |
+| ------- | ------------------------------------------------------------------------------------------------------------ |
+| Mobile  | Submit previous build via EAS (approval applies). No OTA downgrade; deprecated builds route users to update. |
+| Web     | Vercel instant rollback to previous deployment.                                                              |
+| Domain  | `npm unpublish` only within 72h per registry policy; prefers publishing a fixed version.                     |
 
 ## Post-Release
 

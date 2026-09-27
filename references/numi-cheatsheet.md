@@ -5,18 +5,19 @@ Regenerate via the `sync-cheatsheet` skill whenever the playbook changes.
 
 ## Monorepo
 
-| Area | Path | Notes |
-| --- | --- | --- |
-| Mobile app | `apps/mobile` | Expo; native-first, offline core. |
-| Web app | `apps/web` | Vercel static export; lagged read-only mirror. |
-| Domain logic | `packages/domain` | Pure engine; 100% line coverage required (blocking). |
-| Design system | `packages/design-system` | Shared components + tokens. |
-| Types | `packages/types` | Leaf package; must not import anything. |
-| Utils | `packages/utils` | e.g. `currency.ts` — the ONLY place Rands⇄cents convert. |
-| Database | `packages/database` | SQLite; not yet created; declare in `03_Monorepo_Structure.md` before creating. |
-| Tooling | `tooling/` | Add `- "tooling/*"` to `pnpm-workspace.yaml` when referenced. |
+| Area          | Path                     | Notes                                                                           |
+| ------------- | ------------------------ | ------------------------------------------------------------------------------- |
+| Mobile app    | `apps/mobile`            | Expo; native-first, offline core.                                               |
+| Web app       | `apps/web`               | Vercel static export; lagged read-only mirror.                                  |
+| Domain logic  | `packages/domain`        | Pure engine; 100% line coverage required (blocking).                            |
+| Design system | `packages/design-system` | Shared components + tokens.                                                     |
+| Types         | `packages/types`         | Leaf package; must not import anything.                                         |
+| Utils         | `packages/utils`         | e.g. `currency.ts` — the ONLY place Rands⇄cents convert.                        |
+| Database      | `packages/database`      | SQLite; not yet created; declare in `03_Monorepo_Structure.md` before creating. |
+| Tooling       | `tooling/`               | Add `- "tooling/*"` to `pnpm-workspace.yaml` when referenced.                   |
 
 Forbidden arrows:
+
 - `packages/domain` → `packages/database` or `apps/*`
 - `packages/types` → anything (leaf)
 - `apps/mobile` → `apps/web`
@@ -30,7 +31,7 @@ Forbidden arrows:
 - Import order: external → `@numi/*` → relative.
 - Prettier width 100.
 - kebab-case files, verb-first camelCase functions, PascalCase types/components, `UPPER_SNAKE_CASE` constants, co-located `*.styles.ts`.
-- All domain logic (BR-*, C1–C15) must be unit tested; factories in `packages/domain/tests/factories/`.
+- All domain logic (BR-\*, C1–C15) must be unit tested; factories in `packages/domain/tests/factories/`.
 
 ## Git / CI / Release
 
@@ -45,6 +46,7 @@ Forbidden arrows:
 ## Playbook Layout
 
 `docs/playbook/`:
+
 - `00_Foundation/`
 - `01_Domain/` → `01_Entities`, `02_Business_Rules`, `03_Calculations`, `04_Engine_API`
 - `02_Product_Mechanics/` → `01_Invariants`, `02_User_States`, `03_Behavioral_Loops`, `04_Data_Flow`
@@ -87,7 +89,7 @@ Features: `01_Onboarding`, `02_Budget_Setup`, `03_Daily_Budgeting`, `04_Spending
 - **C5** Breakdown results **cached, invalidated on every write**.
 - **C6/C7** Planned assigned/spent/remaining; sorted **soonest-to-run-out first**.
 - **C10** Sum of Assignments ≤ Wallet balance.
-- **C11** Transfer requires sufficient *available* balance.
+- **C11** Transfer requires sufficient _available_ balance.
 - **C12** v1 **hard rejects** `INSUFFICIENT_BALANCE` — no overdraft.
 - **C15** Corruption → read-only mode; restore validates signature.
 - Full set: C1–C15 + Pseudocode Conventions live in `01_Domain/03_Calculations.md`.
@@ -116,12 +118,15 @@ Features: `01_Onboarding`, `02_Budget_Setup`, `03_Daily_Budgeting`, `04_Spending
 ## Product Mechanics
 
 ### User States (S1–S8)
+
 E.g. **S4** "You planned R2,000…" — presents actions; S6/S7 copy in `02_Product_Mechanics/02_User_States.md`.
 
 ### Behavioral Loops
+
 - Core loop; notifications **OFF by default**; ~5-sec logging; **no gamification**; goal = zero notifications.
 
 ### Data Flow
+
 - Source of truth: device. **Device wins conflicts** (R6.5 / OF13).
 - Rands⇄cents only at the UI layer.
 - Persistent outbox queue, cap 5,000.
@@ -130,11 +135,12 @@ E.g. **S4** "You planned R2,000…" — presents actions; S6/S7 copy in `02_Prod
 ## Patterns
 
 ### Inline errors
-| Error | UI copy |
-| --- | --- |
+
+| Error                  | UI copy                                           |
+| ---------------------- | ------------------------------------------------- |
 | `INSUFFICIENT_BALANCE` | "You don't have enough available in this wallet." |
-| `TIER_LIMIT_EXCEEDED` | "Upgrade to create more wallets." |
-| `INVALID_STATE` | "Cannot do this right now." |
+| `TIER_LIMIT_EXCEEDED`  | "Upgrade to create more wallets."                 |
+| `INVALID_STATE`        | "Cannot do this right now."                       |
 
 Rejection messages are defined **once** in `01_Domain/04_Engine_API.md`; UI consumes, never rewords.
 
@@ -149,12 +155,14 @@ Rejection messages are defined **once** in `01_Domain/04_Engine_API.md`; UI cons
 ## Features
 
 ### Onboarding (Specified)
+
 - Min viable state: **1 Wallet + 1 Period**. Never asks for personal data, internet, or payment.
 - Free default: 1 Wallet, no Goals.
 - Flows 1–5: Splash (1.5s) → Wallet Setup Sheet → Period Setup Sheet (**"My Budget"**, today → +30) → optional Category Assignment (defaults Food/Transport/Airtime).
 - Edge Cases EC1–EC15 (**EC15**: airplane mode → fully local).
 
 ### Budget Setup (Specified)
+
 - Success = new Period in <30s; previous Assignments appear as **suggestions, never defaults**.
 - Free: Unlimited Periods / 1 Wallet. Freemium: + Web archived. Premium: + templates.
 - Out of scope: recurring, AI, shared, forecasting.
@@ -163,13 +171,15 @@ Rejection messages are defined **once** in `01_Domain/04_Engine_API.md`; UI cons
 - Edge Cases EC1–EC10: min 1 day (**"A period must be at least 1 day."**), past end rejected, negative unspent → **"R[abs(amount)] over budget."**; deleting all Assignments is valid.
 
 ### Daily Budgeting (Specified)
+
 Lens: **Current=Yes, Planned=Partial, Actual=Partial** (history lives in Spending).
+
 - Success = STS in 2 taps (R2.1); one-screen log <5s, no confirmation (R2.2/R1.3); real-time STS (R2.3); fully offline.
 - Negative STS: same confidence, no shame (R4.3 / I2).
 - Hero copy: **"R[global_safe] total · [days] days left."** or "--" if no Period.
 - Expense log: TransactionLogSheet, defaults = last used; toast **"R[amount] logged."**; hero animates (`motion.default`) before sheet closes.
 - Income: no Category (BR-C2); wallet = destination; soft dismissible nudge **"Start a new period?"** (Behavioral Loop 2, never blocking).
-- Transfer: type toggle **"Transfer"**, two Wallet selectors, `Engine.transfer()` → validates BR-T5 + enough *available* balance (C11), atomic (BR-W5), both histories show it (I12), total STS unaffected.
+- Transfer: type toggle **"Transfer"**, two Wallet selectors, `Engine.transfer()` → validates BR-T5 + enough _available_ balance (C11), atomic (BR-W5), both histories show it (I12), total STS unaffected.
 - Quick adjust: tap CategoryCard remaining → QuickCategoryAdjustSheet; same Assignment-editing engine path as Budget Setup; **sole** place Daily Budgeting touches Assignments.
 - Breakdown: SegmentedControl **Current/Planned/Actual**, read-only.
 - Out of scope: full history, filter/search, reversing, charts, voice.
@@ -178,8 +188,10 @@ Lens: **Current=Yes, Planned=Partial, Actual=Partial** (history lives in Spendin
 - **Tail**: Daily Budgeting is the default landing of mobile + web.
 
 ### Spending (Specified)
-Tagline: *"See what happened. Learn without shame. The Actual lens made visible."*
+
+Tagline: _"See what happened. Learn without shame. The Actual lens made visible."_
 Lens: **Actual=Yes** (only deep Actual feature in v1), Planned=Partial, Current=No.
+
 - Success = find any tx from last 30 days <10s; reverse in 2 taps; all amounts neutral; fully offline.
 - Free: full history, filters = time + type only. Freemium: + lagged web view. Premium: Category multi-select, amount range, note search, CSV.
 - Out of scope: charts/trends (v2/Premium), merchant recognition, receipts, split tx, Budget-vs-Actual (→ Review).
@@ -190,8 +202,10 @@ Lens: **Actual=Yes** (only deep Actual feature in v1), Planned=Partial, Current=
 - Screens: **HistoryScreen** `/history` — header + Funnel (Premium: MagnifyingGlass); chips + X + "Clear all"; date groups; empty states; tabs Home/Plan/History(active)/Settings. **FilterSheet** — Wallet radio + "All Wallets", Category single (Free)/multi (Premium) + "All Categories", Type SegmentedControl, Date radio, Apply/Cancel. **TransactionDetailSheet** — auto-height; `amountHero` `color.income|color.expense|color.transfer`; Category `textPrimary`, Wallet `textSecondary`, Date `textMuted`, Note `textSecondary`/`"No note."`; Metadata collapsible (v2), truncated ID + "Reverses [original_id]"; Ghost `stateAlert` + Ghost `color.primary`. **SearchOverlay** Premium — overlay on `/history`, autofocus + clear, debounced, grouped, highlighted.
 
 ### Review (Specified)
-Tagline: *"The honest post-mortem. No grades, just facts."*
+
+Tagline: _"The honest post-mortem. No grades, just facts."_
 Lens: **Current=No, Planned=Yes, Actual=Yes**.
+
 - Route `/review?periodId=[id]`; trigger `today > active_period.end_date`; closed Periods archived, never deleted (P5); read-only; banner below SafeToSpendHero.
 - Metrics: % starting new Period within 24h; category with most Planned > Actual; avg unspent. Never shaming.
 - Flow 1 (auto prompt): banner **"Your [Period name] has ended. Review or start fresh?"** → ReviewScreen or Budget Setup.
@@ -203,7 +217,9 @@ Lens: **Current=No, Planned=Yes, Actual=Yes**.
 - Screens: **ReviewScreen** — header "[Period name]" + "[start] – [end] · [duration] days"; Block A Period Summary Card (Income, Spent, "Left over"/"Over by" absolute, no judgment text); Block B "By category" rows with difference bar (width ∝ max(Planned, Actual), Planned `color.border`, Actual Category color, no red; tap to expand tx list); Block C Wallet Breakdown (optional, collapsible); Block D Suggestion Card (just-ended only, `surfaceRaised`, 3px `color.primary` left border, "Start your next period", top 3 Categories from Actuals, Primary "Use this plan" / Ghost "Start fresh"); Block E Primary "Start new period" (just-ended only) + Ghost "Close". **PeriodEndedBanner** — inline on HomeScreen below hero; "Your [Period name] has ended." + "R[unspent] left over. R[overspent] over budget." (omit zero lines); actions "Review" + "Start new period".
 
 ### Debt Tracking (Planned — NOT specified)
-Tagline: *"Money you owe, tracked without shame. The debt you can't forget, remembered for you."*
+
+Tagline: _"Money you owe, tracked without shame. The debt you can't forget, remembered for you."_
+
 - Status **Planned**; owner Elton Pascoal; `decision_record: none`; Overview/Flow/Edge_Cases/Screens are 23-line stubs (`version: 1.0.0`, `status: Planned`).
 - Planned shape: informal debt (creditor, amount, purpose); mashonisa preset (daily/weekly installments); each repayment is a Transaction referencing the Debt; remaining + next installment at a glance; on-device due-date reminders; never guilt.
 - **Data model decision (do not pre-implement):** Debt is a **separate entity, NOT a Wallet** → BR-W1 (no negative balances) and BR-X3 stay untouched.
@@ -212,4 +228,5 @@ Tagline: *"Money you owe, tracked without shame. The debt you can't forget, reme
 - Until playbook is edited to Detail/Draft, do **not** add Debt behavior to engine or UI.
 
 ## Architecture Notes
+
 - `apps/mobile/src/screens/HomeScreen.tsx` and `apps/web/app/page.tsx` already show the Onboarding tail (first Wallet + Period) — matches the Specified flows above.

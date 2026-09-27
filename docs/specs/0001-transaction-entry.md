@@ -18,11 +18,13 @@ The project uses a Tracer Bullet build approach: prove one real path through eve
 ## Requirements
 
 **User stories**:
+
 - As a user, I want to record an expense quickly so that I can see how it affects my safe to spend number.
 - As a user, I want to record income when money comes in so that my available balance reflects reality.
 - As a user, I want to correct mistakes by seeing a clear error when I try to spend more than I have.
 
 **Acceptance criteria** (the contract, each criterion is IDed and independently checkable):
+
 - **AC-1**: User taps the FAB on the home screen and a bottom sheet opens with the transaction form.
 - **AC-2**: User picks income or expense via a segmented control at the top of the sheet. Expense is the default.
 - **AC-3**: User enters an amount using the existing AmountInput component (Rand format, converted to cents for the engine).
@@ -48,11 +50,13 @@ The project uses a Tracer Bullet build approach: prove one real path through eve
 The FAB opens a bottom sheet containing the full transaction form. The sheet slides up from the bottom, the user fills in the fields, confirms, and the sheet dismisses. This matches the existing BottomSheet component pattern used elsewhere in the app.
 
 **Pros**:
+
 - Reuses the existing BottomSheet component. No new navigation pattern.
 - Feels native on mobile. Bottom sheets are the standard pattern for quick entry forms.
 - The home screen stays visible behind the sheet, so the user sees the safe to spend update immediately on dismiss.
 
 **Cons**:
+
 - Limited vertical space on small screens when the keyboard is open.
 - Category chip scroll may feel cramped on very small devices.
 
@@ -61,10 +65,12 @@ The FAB opens a bottom sheet containing the full transaction form. The sheet sli
 The FAB navigates to a new screen with the transaction form. More room for fields and the category picker.
 
 **Pros**:
+
 - More space for complex forms. Easier to add fields later.
 - Standard navigation pattern, works with expo router.
 
 **Cons**:
+
 - Leaves the home screen context. The user does not see the safe to spend number while filling the form.
 - Heavier navigation commitment for a 5 second task. Conflicts with the "under 5 seconds" goal in the project brief.
 
@@ -73,9 +79,11 @@ The FAB navigates to a new screen with the transaction form. More room for field
 The FAB shows a small radial menu (income / expense) first, then opens the sheet pre-set to the chosen type.
 
 **Pros**:
+
 - Eliminates the segmented control from the form. Slightly faster if the user always knows the type before opening.
 
 **Cons**:
+
 - Extra tap for users who are not sure of the type before opening.
 - Radial menus are uncommon in financial apps. Unfamiliar interaction pattern.
 
@@ -98,6 +106,7 @@ The live safe to spend preview is included because the core value of NUMI is see
 **Data model sketch**:
 
 No new entities. The Transaction entity already exists in the domain:
+
 - `Transaction.id`: string (UUID)
 - `Transaction.amount`: number (positive integer, cents)
 - `Transaction.type`: 'income' | 'expense'
@@ -109,6 +118,7 @@ No new entities. The Transaction entity already exists in the domain:
 - `Transaction.created_at`: Date
 
 The form draft state lives in zustand as transient state, not a persisted entity:
+
 - `draft.type`: 'income' | 'expense' (default: 'expense')
 - `draft.amount`: string (display format, e.g. "123.45")
 - `draft.categoryId`: string | null
@@ -124,34 +134,35 @@ Form state: empty → filling → valid (confirm enabled) → saving (confirm di
 
 **API surface**:
 
-| Operation | Method | Key inputs | Key outputs | Auth | Key errors |
-|---|---|---|---|---|---|
-| recordTransaction | function call | Transaction object (id, type, amount, wallet_id, category_id, date, note, created_at) | Result\<Transaction, EngineError\> | none (single user v1) | INSUFFICIENT_BALANCE, NOT_FOUND, INVALID_STATE |
-| getAvailableBalance | function call | walletId: string | Result\<number, EngineError\> (available balance in cents) | none | NOT_FOUND |
-| getDailySafeToSpend | function call | none | Result\<number \| null, EngineError\> (daily safe to spend, or null if no period) | none | none |
+| Operation           | Method        | Key inputs                                                                            | Key outputs                                                                       | Auth                  | Key errors                                     |
+| ------------------- | ------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------- | ---------------------------------------------- |
+| recordTransaction   | function call | Transaction object (id, type, amount, wallet_id, category_id, date, note, created_at) | Result\<Transaction, EngineError\>                                                | none (single user v1) | INSUFFICIENT_BALANCE, NOT_FOUND, INVALID_STATE |
+| getAvailableBalance | function call | walletId: string                                                                      | Result\<number, EngineError\> (available balance in cents)                        | none                  | NOT_FOUND                                      |
+| getDailySafeToSpend | function call | none                                                                                  | Result\<number \| null, EngineError\> (daily safe to spend, or null if no period) | none                  | none                                           |
 
 **Value sourcing**:
 
-| Action | Value produced / displayed | Source |
-|---|---|---|
-| Form opens | type = 'expense' | hardcoded default |
-| Form opens | amount = "" | empty string |
-| Form opens | categoryId = null | no selection |
-| Form opens | walletId | first wallet in state.wallets array order (auto-select single, user picks if multiple) |
-| Form opens | date = today | new Date() in device local timezone (BR-X4) |
-| Form opens | note = "" | empty string |
-| Preview (expense) | safe to spend after | engine.getAvailableBalance(selectedWalletId) minus parsed amount in cents. This matches the engine's canExpense check, so the preview never contradicts the validation. |
-| Confirm | Transaction object | constructed by the store action: id = generateUUID(), type from draft, amount = parseCurrency(draft.amount) from packages/utils/src/currency.ts, wallet_id from draft, category_id from draft (null for income), date from draft, note = draft.note trimmed or null, created_at = new Date() |
-| Confirm | categoryId | from chip selection, validated required for expenses (BR-C1) |
-| Confirm | walletId | from wallet picker or first in state.wallets array order |
-| Confirm | date | from date picker, defaults to today, time component zeroed to midnight for consistent ordering |
-| Confirm | note | from text input, trimmed, null if empty |
-| Toast message | "Logged" (expense) or "Income logged" (income) | derived from transaction type, auto-dismiss after 2 seconds, positioned at top |
-| Inline error | "Not enough in [wallet name]" | engine returns INSUFFICIENT_BALANCE error, wallet name from state.wallets lookup |
-| Generic error | "Something went wrong" | engine returns NOT_FOUND, INVALID_STATE, or other errors (map each to a neutral message, never expose error codes to users) |
-| No categories message | "No categories available. Set up your budget first." | state.categories.length === 0 AND type === 'expense' (hidden when type is income) |
+| Action                | Value produced / displayed                           | Source                                                                                                                                                                                                                                                                                       |
+| --------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Form opens            | type = 'expense'                                     | hardcoded default                                                                                                                                                                                                                                                                            |
+| Form opens            | amount = ""                                          | empty string                                                                                                                                                                                                                                                                                 |
+| Form opens            | categoryId = null                                    | no selection                                                                                                                                                                                                                                                                                 |
+| Form opens            | walletId                                             | first wallet in state.wallets array order (auto-select single, user picks if multiple)                                                                                                                                                                                                       |
+| Form opens            | date = today                                         | new Date() in device local timezone (BR-X4)                                                                                                                                                                                                                                                  |
+| Form opens            | note = ""                                            | empty string                                                                                                                                                                                                                                                                                 |
+| Preview (expense)     | safe to spend after                                  | engine.getAvailableBalance(selectedWalletId) minus parsed amount in cents. This matches the engine's canExpense check, so the preview never contradicts the validation.                                                                                                                      |
+| Confirm               | Transaction object                                   | constructed by the store action: id = generateUUID(), type from draft, amount = parseCurrency(draft.amount) from packages/utils/src/currency.ts, wallet_id from draft, category_id from draft (null for income), date from draft, note = draft.note trimmed or null, created_at = new Date() |
+| Confirm               | categoryId                                           | from chip selection, validated required for expenses (BR-C1)                                                                                                                                                                                                                                 |
+| Confirm               | walletId                                             | from wallet picker or first in state.wallets array order                                                                                                                                                                                                                                     |
+| Confirm               | date                                                 | from date picker, defaults to today, time component zeroed to midnight for consistent ordering                                                                                                                                                                                               |
+| Confirm               | note                                                 | from text input, trimmed, null if empty                                                                                                                                                                                                                                                      |
+| Toast message         | "Logged" (expense) or "Income logged" (income)       | derived from transaction type, auto-dismiss after 2 seconds, positioned at top                                                                                                                                                                                                               |
+| Inline error          | "Not enough in [wallet name]"                        | engine returns INSUFFICIENT_BALANCE error, wallet name from state.wallets lookup                                                                                                                                                                                                             |
+| Generic error         | "Something went wrong"                               | engine returns NOT_FOUND, INVALID_STATE, or other errors (map each to a neutral message, never expose error codes to users)                                                                                                                                                                  |
+| No categories message | "No categories available. Set up your budget first." | state.categories.length === 0 AND type === 'expense' (hidden when type is income)                                                                                                                                                                                                            |
 
 **Key invariants**:
+
 - Amount must be greater than zero before confirm is enabled (AC-13).
 - Expense requires a category (BR-C1). Income must not have a category (BR-C2). Confirm button is disabled when type is expense and categoryId is null.
 - Transaction amount is always stored as positive integer cents (BR-T1). Direction is set by type.
@@ -171,6 +182,7 @@ Single user, offline, no auth in v1. The engine enforces tier limits (BR-TR1, BR
 None new. The feature uses existing engine operations and store patterns.
 
 **Critical test scenarios** (each maps to an acceptance criterion in ## Requirements):
+
 - Happy path: User taps FAB, picks expense, enters R50.00, picks Food category, confirms. Store constructs Transaction, calls engine.recordTransaction, sheet dismisses, toast shows "Logged", getAvailableBalance decreases by R50.00, transaction appears in history. Verifies **AC-1**, **AC-2**, **AC-3**, **AC-4**, **AC-9**, **AC-11**, **AC-12**
 - Failure case: User tries to expense R500.00 from a wallet with R200.00 available balance. Engine returns INSUFFICIENT_BALANCE. Inline error shows "Not enough in Cash Wallet". Sheet stays open. Verifies **AC-10**
 - Preview accuracy: User has R1000 available balance, types R300. Preview shows "Safe to spend after: R700". User changes amount to R500. Preview updates to "Safe to spend after: R500". Verifies **AC-8**
@@ -196,17 +208,20 @@ Ordered by Tracer Bullet approach: prove the engine path first, then add UI, the
 ## Consequences
 
 **Positive**:
+
 - The app becomes usable for the first time. Users can record transactions and see the safe to spend number change.
 - The Tracer Bullet approach means this feature validates the entire stack: domain engine, database persistence, store sync, UI rendering.
 - The bottom sheet pattern is reusable for other quick entry forms (assignment management in Slice 2).
 
 **Negative / tradeoffs**:
+
 - Adding react-native-toast-message and @react-native-community/datetimepicker are two new dependencies. Both are well maintained and widely used, but they add to the dependency surface.
 - The form draft is lost on app restart (zustand only, not AsyncStorage). This is a conscious tradeoff for simplicity in v1; draft persistence across restarts can be added later if users request it.
 - The safe to spend preview calls getAvailableBalance on every keystroke. This is a pure in-memory calculation (no DB hit) so it should be fast, but on very old devices with many wallets it could cause minor jank. Profile and optimize if needed.
 - The store action must construct the full Transaction object (id, created_at, etc.) since engine.recordTransaction takes a complete entity. This means the store owns ID generation and timestamp creation, not the engine. This is acceptable because the engine is a pure function of state, and ID generation is infrastructure, not domain logic.
 
 **Neutral**:
+
 - The FAB position (bottom right, absolute positioned) may need adjustment when the keyboard is open. The existing FAB component handles this via zIndex and elevation; verify on device.
 - Category chips reuse category colors from the domain. If a user has many categories, the horizontal scroll may extend off screen. This is acceptable for v1; a collapsible or paginated picker could be added later.
 

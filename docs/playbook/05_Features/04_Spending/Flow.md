@@ -19,6 +19,7 @@ decision_record: none
 **Trigger:** User navigates to History tab.
 
 **Steps:**
+
 1. HistoryScreen opens.
 2. List grouped by date: Today, Yesterday, [Day name], Earlier this [Month name].
 3. Each group: TransactionRows (ListItem component).
@@ -26,6 +27,7 @@ decision_record: none
 5. Tap any row: TransactionDetailSheet opens.
 
 **Default view:**
+
 - All Wallets, all Categories, all types, last 30 days.
 - Most recent first.
 
@@ -36,6 +38,7 @@ decision_record: none
 **Trigger:** User wants to narrow down.
 
 **Steps:**
+
 1. Tap filter icon in header.
 2. BottomSheet opens with filter options:
    - Wallet (single select).
@@ -52,6 +55,7 @@ decision_record: none
 **Trigger:** User remembers a note they wrote.
 
 **Steps:**
+
 1. Tap search icon.
 2. TextInput appears in header.
 3. Type query. Debounced 300ms.
@@ -65,6 +69,7 @@ decision_record: none
 **Trigger:** Tap a TransactionRow.
 
 **Steps:**
+
 1. TransactionDetailSheet opens.
 2. Content:
    - Amount (large, `amountLg`).
@@ -84,6 +89,7 @@ decision_record: none
 **Trigger:** User made a mistake or wants to undo.
 
 **Steps:**
+
 1. TransactionDetailSheet → "Reverse this transaction".
 2. Confirmation sheet: "Reverse this R[amount] [type]?"
 3. Body: "A reversing entry will be created. Your history will show both transactions."
@@ -94,6 +100,7 @@ decision_record: none
 8. Both transactions remain visible in history (original + reversal).
 
 **Rules:**
+
 - Original Transaction is never edited or deleted.
 - Reversal is a new Transaction with `note: "Reversal of [original_id]"`.
 - User can reverse a reversal (double-negative). Engine handles it.
@@ -105,6 +112,7 @@ decision_record: none
 **Trigger:** User repeats a purchase.
 
 **Steps:**
+
 1. TransactionDetailSheet → "Log similar".
 2. TransactionLogSheet opens pre-filled:
    - Same amount.
@@ -119,13 +127,13 @@ decision_record: none
 
 ## Recovery Paths
 
-| If User... | Then... |
-|---|---|
-| Cancels filter sheet | List unchanged. |
+| If User...                    | Then...                                                        |
+| ----------------------------- | -------------------------------------------------------------- |
+| Cancels filter sheet          | List unchanged.                                                |
 | Applies filter with 0 results | EmptyState: "No transactions match." + "Clear filters" button. |
-| Reverses wrong transaction | Reverse the reversal. Both visible in history. |
-| Deletes app (Free) | History lost. No recovery. |
-| Web user views history | Lagged mirror. Stale banner if applicable. |
+| Reverses wrong transaction    | Reverse the reversal. Both visible in history.                 |
+| Deletes app (Free)            | History lost. No recovery.                                     |
+| Web user views history        | Lagged mirror. Stale banner if applicable.                     |
 
 ---
 

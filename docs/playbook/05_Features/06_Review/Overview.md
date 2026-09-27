@@ -33,11 +33,11 @@ decision_record: none
 
 ## Lens Mapping
 
-| Lens | Served? | How |
-|---|---|---|
-| **Current** | No | Period is closed. |
-| **Planned** | Yes | Shows every Assignment and whether it survived. |
-| **Actual** | Yes | Shows every expense and income in the Period. |
+| Lens        | Served? | How                                             |
+| ----------- | ------- | ----------------------------------------------- |
+| **Current** | No      | Period is closed.                               |
+| **Planned** | Yes     | Shows every Assignment and whether it survived. |
+| **Actual**  | Yes     | Shows every expense and income in the Period.   |
 
 ---
 
@@ -52,11 +52,11 @@ decision_record: none
 
 ## Tier Behavior
 
-| Tier | Review Difference |
-|---|---|
-| **Free** | Full Period summary. Basic Planned vs Actual table. |
-| **Freemium** | Same. Web view of archived Periods. |
-| **Premium** | Trend indicators ("You usually overspend Food by 15%"). Export Period as CSV/PDF. |
+| Tier         | Review Difference                                                                 |
+| ------------ | --------------------------------------------------------------------------------- |
+| **Free**     | Full Period summary. Basic Planned vs Actual table.                               |
+| **Freemium** | Same. Web view of archived Periods.                                               |
+| **Premium**  | Trend indicators ("You usually overspend Food by 15%"). Export Period as CSV/PDF. |
 
 ---
 
