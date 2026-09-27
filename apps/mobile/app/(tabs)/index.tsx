@@ -21,16 +21,17 @@ import {
   TransactionLogSheet,
 } from "@/components/ui";
 import {
-  BottomTabInset,
   formatCents,
   screenPadding,
   spacing,
   type StateToken,
 } from "@/constants/tokens";
+import { useTabBarSpace } from "@/hooks/use-tab-bar-space";
 import { useStore } from "@/store";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { dockContentBottom, dockOffset } = useTabBarSpace();
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const appState = useStore((s) => s.appState);
@@ -102,7 +103,7 @@ export default function HomeScreen() {
           styles.scroll,
           {
             paddingTop: insets.top + spacing.lg,
-            paddingBottom: insets.bottom + BottomTabInset + 104,
+            paddingBottom: dockContentBottom,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -209,7 +210,7 @@ export default function HomeScreen() {
       <CenterDockButton
         label="Log money"
         accessibilityHint="Opens the keypad to record money in or out"
-        offset={insets.bottom + BottomTabInset - 20}
+        offset={dockOffset}
         onPress={() => setSheetOpen(true)}
       />
 

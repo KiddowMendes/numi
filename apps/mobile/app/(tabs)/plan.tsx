@@ -22,12 +22,14 @@ import {
   screenPadding,
   spacing,
 } from "@/constants/tokens";
+import { useTabBarSpace } from "@/hooks/use-tab-bar-space";
 import { useThemeMode } from "@/hooks/use-theme";
 import { resolveAccentKeyForCategory } from "@/lib/category-accent";
 import { useStore } from "@/store";
 
 export default function PlanScreen() {
   const insets = useSafeAreaInsets();
+  const { contentBottom } = useTabBarSpace();
   const mode = useThemeMode();
   const activePeriod = useStore((s) => s.appState.activePeriod);
   const assignments = useStore((s) => s.appState.assignments);
@@ -79,7 +81,7 @@ export default function PlanScreen() {
           styles.scroll,
           {
             paddingTop: insets.top + spacing.lg,
-            paddingBottom: insets.bottom + 120,
+            paddingBottom: contentBottom,
           },
         ]}
         showsVerticalScrollIndicator={false}

@@ -109,8 +109,8 @@ decision_record: none
 
 ### Mobile
 
-- **iOS:** Respect `SafeAreaView`. Bottom tab bar adds padding for home indicator. Status bar text is `color.textPrimary` on `color.background`.
-- **Android:** Respect `StatusBar` height. No translucent bars. Solid `color.background`.
+- **iOS:** The tab bar adds the home indicator inset to its own padding. Status bar text is `color.textPrimary` on `color.background`.
+- **Android:** Edge to edge. Content runs under the status and navigation bars, so every screen applies the insets itself. No per-platform height constants — a screen reads `useSafeAreaInsets` for the top and `useTabBarSpace` for the bottom, and sheets apply `insets.bottom` before their own padding.
 - **Landscape:** Bottom tab bar moves to side (80px width) on tablets. Phones keep bottom tabs.
 
 ### Web

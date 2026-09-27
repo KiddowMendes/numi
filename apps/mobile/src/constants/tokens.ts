@@ -75,13 +75,6 @@ export const hairlineGap = spacing.xs;
 export const groupRadius = radius.xl;
 export const controlRadius = radius.full;
 
-/** Height the tab bar claims at the bottom of the screen, per platform. */
-export const BottomTabInset = Platform.select({
-  ios: 58,
-  android: 72,
-  default: 64,
-});
-
 function resolveFamily(family: FontFamilyToken): string {
   const name = fontFamilyName[family];
   return Platform.select({

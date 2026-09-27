@@ -10,6 +10,7 @@ import {
   themePreferences,
   type ThemePreferenceValue,
 } from "@/constants/tokens";
+import { useTabBarSpace } from "@/hooks/use-tab-bar-space";
 import { useStore } from "@/store";
 
 const THEME_OPTIONS = themePreferences.map((preference) => ({
@@ -25,6 +26,7 @@ const THEME_OPTIONS = themePreferences.map((preference) => ({
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const { contentBottom } = useTabBarSpace();
   const preference = useStore((s) => s.themePreference);
   const setPreference = useStore((s) => s.setThemePreference);
 
@@ -37,7 +39,7 @@ export default function SettingsScreen() {
           styles.scroll,
           {
             paddingTop: insets.top + spacing.lg,
-            paddingBottom: insets.bottom + 120,
+            paddingBottom: contentBottom,
           },
         ]}
         showsVerticalScrollIndicator={false}
