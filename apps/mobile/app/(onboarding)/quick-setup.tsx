@@ -79,6 +79,10 @@ function formatDay(date: Date): string {
 export default function QuickSetupScreen() {
   const { engine } = useEngine();
   const categories = useStore((s) => s.appState.categories);
+  const existingWalletCount = useStore((s) => s.appState.wallets.length);
+  const existingAssignmentCount = useStore(
+    (s) => s.appState.assignments.length,
+  );
   const setOnboardingSummary = useStore((s) => s.setOnboardingSummary);
   const syncFromEngine = useStore((s) => s.syncFromEngine);
 
@@ -185,6 +189,18 @@ export default function QuickSetupScreen() {
     setSaving(true);
     setError(null);
 
+    // Reached from `all-set` via "Back to quick setup", which is there so the
+    // user can look at what they set up. Everything already exists, so
+    // re-creating it can only fail — a second wallet returns TIER_LIMIT_EXCEEDED
+    // and leaves the user on this screen with no way forward. Show the summary
+    // of what is already there instead.
+    if (existingWalletCount > 0) {
+      writeSummary(existingWalletCount, existingAssignmentCount);
+      syncFromEngine();
+      router.replace("/(onboarding)/all-set");
+      return;
+    }
+
     const now = new Date();
     const wallet = engine.createWallet({
       id: `wallet-${now.getTime()}`,
@@ -251,6 +267,8 @@ export default function QuickSetupScreen() {
     categories,
     end,
     engine,
+    existingAssignmentCount,
+    existingWalletCount,
     finalWalletName,
     periodName,
     start,
@@ -263,6 +281,15 @@ export default function QuickSetupScreen() {
     if (saving) return;
     setSaving(true);
     setError(null);
+
+    // Same reasoning as `handleDone`: nothing left to skip if setup is already
+    // in place, and a second wallet would be rejected anyway.
+    if (existingWalletCount > 0) {
+      writeSummary(existingWalletCount, existingAssignmentCount);
+      syncFromEngine();
+      router.replace("/(onboarding)/all-set");
+      return;
+    }
 
     const now = new Date();
     // A zero-balance wallet is not optional bookkeeping: the engine rejects an
@@ -286,7 +313,14 @@ export default function QuickSetupScreen() {
     writeSummary(1, 0);
     syncFromEngine();
     router.replace("/(onboarding)/all-set");
-  }, [engine, saving, syncFromEngine, writeSummary]);
+  }, [
+    engine,
+    existingAssignmentCount,
+    existingWalletCount,
+    saving,
+    syncFromEngine,
+    writeSummary,
+  ]);
 
   return (
     <ScreenBackground>
