@@ -1,5 +1,6 @@
 import { StyleSheet, type ColorValue } from "react-native";
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppIcon, type IconName } from "@/components/app-icon";
 import {
@@ -9,6 +10,7 @@ import {
   typography,
   zIndex,
 } from "@/constants/tokens";
+import { useTabBarSpace } from "@/hooks/use-tab-bar-space";
 import { useTheme } from "@/hooks/use-theme";
 
 type TabDef = { name: string; title: string; icon: IconName };
@@ -22,6 +24,8 @@ const TABS: TabDef[] = [
 
 export default function TabsLayout() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const { tabBarHeight } = useTabBarSpace();
 
   return (
     <Tabs
@@ -35,6 +39,8 @@ export default function TabsLayout() {
             backgroundColor: theme.surface,
             borderTopColor: theme.borderSubtle,
             shadowColor: shadow.lg.shadowColor,
+            height: tabBarHeight,
+            paddingBottom: insets.bottom,
           },
         ],
         tabBarLabelStyle: styles.label,
@@ -76,7 +82,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.lg,
     elevation: 0,
     shadowOffset: { width: 0, height: -6 },
     shadowOpacity: 0.06,

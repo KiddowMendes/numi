@@ -41,12 +41,14 @@ decision_record: none
 **Exit trigger:** User creates their first Wallet and first Period.
 
 **What the user needs:**
+
 - Understand that NUMI is not a bank.
 - Understand that their data stays on their device.
 - Create a Wallet (default: "Cash Wallet").
 - Create a Period (name, start date, end date).
 
 **What the UI must show:**
+
 - Manifesto in 3 sentences, not a tutorial.
 - One primary action: "Start your first budget."
 - No account creation required. No internet check.
@@ -64,10 +66,12 @@ decision_record: none
 **Exit trigger:** User creates a new Period.
 
 **What the user needs:**
+
 - Know that money needs a time horizon to be meaningful.
 - Create a Period quickly (name, "how long must this money last?").
 
 **What the UI must show:**
+
 - Safe-to-Spend: "--" (null state).
 - Prompt: "How long does your current money need to last?"
 - No guilt. No "you failed to plan." Just a missing time horizon.
@@ -81,16 +85,19 @@ decision_record: none
 **Entry trigger:** Active Period exists.
 
 **Exit triggers:**
+
 - Safe-to-Spend goes negative (Over-Committed).
 - Period end date passes (Period Ended).
 - User stops opening app for 7+ days (Inactive).
 
 **What the user needs:**
+
 - See Daily Safe-to-Spend immediately.
 - Log transactions in under 5 seconds.
 - See Current, Planned, Actual at a glance.
 
 **What the UI must show:**
+
 - Home screen: Daily Safe-to-Spend (large).
 - One-tap transaction logging.
 - Visual indication of Period progress ("Day 12 of 90").
@@ -108,11 +115,13 @@ decision_record: none
 **Exit trigger:** User adjusts Assignments, deletes a Goal, receives new income, or extends/reduces Period.
 
 **What the user needs:**
-- Know *where* the over-commitment is (which Wallet, which Category).
+
+- Know _where_ the over-commitment is (which Wallet, which Category).
 - See options to fix it: reduce Assignment, delete Goal, log new income.
 - Not feel shamed. This is math, not morality.
 
 **What the UI must show:**
+
 - Warning state on affected Wallet(s).
 - Breakdown: "You planned R2,000 for Food but only have R1,500 in Cash Wallet."
 - Action buttons: "Reduce Food plan," "Move money from another Wallet," "I received more money."
@@ -130,11 +139,13 @@ decision_record: none
 **Exit trigger:** Safe-to-Spend returns to zero or positive (Active Budgeter). Or user gives up and closes the Period (Period Ended).
 
 **What the user needs:**
+
 - Confirmation that their action helped.
 - Updated numbers immediately.
 - Encouragement, not celebration. "You're back on track" is fine. "Great job!" is patronizing.
 
 **What the UI must show:**
+
 - Updated Safe-to-Spend.
 - Brief confirmation: "Food plan reduced to R1,500. You have R200 left per day."
 
@@ -149,11 +160,13 @@ decision_record: none
 **Exit trigger:** User creates a new Period.
 
 **What the user needs:**
+
 - Review what happened (Actual lens).
 - See unspent money (if any) and decide what to do with it.
 - Start fresh without losing history.
 
 **What the UI must show:**
+
 - "Your [Period name] has ended."
 - Summary: total income, total spent, unspent remaining.
 - Prompt: "Start a new period" or "Extend this one" (if they received late income).
@@ -171,11 +184,13 @@ decision_record: none
 **Exit trigger:** New Period created.
 
 **What the user needs:**
+
 - See previous Period's Assignments as suggestions, not defaults.
 - Adjust based on what actually happened.
 - Quick setup: "Same as last time" option.
 
 **What the UI must show:**
+
 - Previous Period summary.
 - Suggested Assignments based on Actual spending.
 - Editable fields. One-tap "Use same plan" or "Start fresh."
@@ -191,11 +206,13 @@ decision_record: none
 **Exit trigger:** User opens the app.
 
 **What the user needs:**
+
 - Not be scolded.
 - See their current state immediately, as if they never left.
 - Optionally, a gentle nudge if a Period is about to end.
 
 **What the UI must show:**
+
 - Exact same home screen as when they left.
 - If Period ends in < 3 days: subtle banner, not a popup.
 - No "we missed you" guilt.
@@ -206,33 +223,33 @@ decision_record: none
 
 ## State Table
 
-| State | Safe-to-Spend | Period Status | Primary Action |
-|---|---|---|---|
-| First Launch | -- | None | Create Wallet + Period |
-| No Period | -- | None | Create Period |
-| Active Budgeter | Positive or Zero | Active | Log transaction |
-| Over-Committed | Negative | Active | Fix commitment |
-| Recovering | Trending up | Active | Confirm fix |
-| Period Ended | -- | Expired | Review + Renew |
-| Renewing | -- | Expired | Create new Period |
-| Inactive | Last known | Any | Resume where left off |
+| State           | Safe-to-Spend    | Period Status | Primary Action         |
+| --------------- | ---------------- | ------------- | ---------------------- |
+| First Launch    | --               | None          | Create Wallet + Period |
+| No Period       | --               | None          | Create Period          |
+| Active Budgeter | Positive or Zero | Active        | Log transaction        |
+| Over-Committed  | Negative         | Active        | Fix commitment         |
+| Recovering      | Trending up      | Active        | Confirm fix            |
+| Period Ended    | --               | Expired       | Review + Renew         |
+| Renewing        | --               | Expired       | Create new Period      |
+| Inactive        | Last known       | Any           | Resume where left off  |
 
 ---
 
 ## Transition Triggers
 
-| From | To | Trigger |
-|---|---|---|
-| First Launch | No Period | Wallet created, no Period yet |
-| No Period | Active Budgeter | Period created |
-| Active Budgeter | Over-Committed | Safe-to-Spend < 0 |
-| Over-Committed | Recovering | User adjusts plan or adds income |
-| Recovering | Active Budgeter | Safe-to-Spend >= 0 |
-| Active Budgeter | Period Ended | `today > end_date` |
-| Period Ended | Renewing | User chooses "Start new period" |
-| Renewing | Active Budgeter | New Period created |
-| Any | Inactive | No app open for 7 days |
-| Inactive | Previous state | User opens app |
+| From            | To              | Trigger                          |
+| --------------- | --------------- | -------------------------------- |
+| First Launch    | No Period       | Wallet created, no Period yet    |
+| No Period       | Active Budgeter | Period created                   |
+| Active Budgeter | Over-Committed  | Safe-to-Spend < 0                |
+| Over-Committed  | Recovering      | User adjusts plan or adds income |
+| Recovering      | Active Budgeter | Safe-to-Spend >= 0               |
+| Active Budgeter | Period Ended    | `today > end_date`               |
+| Period Ended    | Renewing        | User chooses "Start new period"  |
+| Renewing        | Active Budgeter | New Period created               |
+| Any             | Inactive        | No app open for 7 days           |
+| Inactive        | Previous state  | User opens app                   |
 
 ---
 

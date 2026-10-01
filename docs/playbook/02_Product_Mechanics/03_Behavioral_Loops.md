@@ -38,6 +38,7 @@ This loop must complete without friction. If any step feels like work, the loop 
 **User need:** "I have money now. How do I make it last?"
 
 **NUMI behavior:**
+
 - If no active Period: prompt to create one. Pre-fill name based on common patterns ("NSFAS Semester 1", "March Job").
 - If active Period exists: offer to extend Period or close-and-start-new.
 - Do not auto-create. The user must consciously set the time horizon.
@@ -53,6 +54,7 @@ This loop must complete without friction. If any step feels like work, the loop 
 **User need:** "Where should this money go?"
 
 **NUMI behavior:**
+
 - Show total money in Wallets.
 - Show suggested Assignments based on previous Period's Actual spending.
 - Allow "Copy last plan" or manual assignment.
@@ -71,10 +73,12 @@ This loop must complete without friction. If any step feels like work, the loop 
 **User need:** "Can I afford this? Should I log this?"
 
 **NUMI behavior:**
+
 - **Before spending:** Glance at widget or home screen. See Daily Safe-to-Spend. Decide.
 - **After spending:** Log transaction in under 5 seconds. One screen. Amount, Category, optional note. Save.
 
 **The 5-second rule:**
+
 - Default to last-used Category.
 - Default to today.
 - Amount input is the first focus.
@@ -91,6 +95,7 @@ This loop must complete without friction. If any step feels like work, the loop 
 **User need:** "Can I buy this without breaking my plan?"
 
 **NUMI behavior:**
+
 - Home screen shows Daily Safe-to-Spend prominently.
 - Tapping it shows: global number, per-Wallet breakdown, days remaining in Period.
 - No judgment. Just math.
@@ -106,6 +111,7 @@ This loop must complete without friction. If any step feels like work, the loop 
 **User need:** "What happened? Did I make it? What should I do differently?"
 
 **NUMI behavior:**
+
 - Show Actual vs Planned for each Category.
 - Show total unspent (if any) — this is a win, not a failure to spend.
 - Offer to start new Period with adjusted Assignments based on Actual.
@@ -116,15 +122,15 @@ This loop must complete without friction. If any step feels like work, the loop 
 
 ## State-Specific Behaviors
 
-| State | Behavior | NUMI Response |
-|---|---|---|
-| First Launch | Curiosity, skepticism | Minimal setup. No account. Immediate value. |
-| No Period | Confusion, "what now?" | Prompt to set time horizon. Explain why. |
-| Active Budgeter | Routine logging | Fast capture. Daily number visible. |
-| Over-Committed | Anxiety, avoidance | Clear breakdown. Actionable fixes. No shame. |
-| Recovering | Cautious optimism | Confirm progress. Updated numbers. |
-| Period Ended | Reflection, reset | Summary. Suggestions. Fresh start. |
-| Inactive | Guilt, fear of mess | Resume exactly where left off. No "we missed you." |
+| State           | Behavior               | NUMI Response                                      |
+| --------------- | ---------------------- | -------------------------------------------------- |
+| First Launch    | Curiosity, skepticism  | Minimal setup. No account. Immediate value.        |
+| No Period       | Confusion, "what now?" | Prompt to set time horizon. Explain why.           |
+| Active Budgeter | Routine logging        | Fast capture. Daily number visible.                |
+| Over-Committed  | Anxiety, avoidance     | Clear breakdown. Actionable fixes. No shame.       |
+| Recovering      | Cautious optimism      | Confirm progress. Updated numbers.                 |
+| Period Ended    | Reflection, reset      | Summary. Suggestions. Fresh start.                 |
+| Inactive        | Guilt, fear of mess    | Resume exactly where left off. No "we missed you." |
 
 ---
 
@@ -133,11 +139,13 @@ This loop must complete without friction. If any step feels like work, the loop 
 **Default:** All notifications OFF. User must opt in.
 
 **Available notifications (all optional):**
+
 - Daily summary (08:00): "R45/day left. 12 days to go."
 - Period ending soon (3 days before end): "Your [Period] ends in 3 days. R200 unspent."
 - Goal deadline (1 day before): "[Goal name] deadline tomorrow. R150 to go."
 
 **Forbidden notifications:**
+
 - "You overspent."
 - "You haven't logged in 3 days."
 - Any notification with exclamation marks, emojis, or urgency.
@@ -148,6 +156,7 @@ This loop must complete without friction. If any step feels like work, the loop 
 ## Widget Behavior (Premium, v2)
 
 The home screen widget learns patterns:
+
 - Morning: shows Daily Safe-to-Spend.
 - Lunch: shows remaining for "Food" category.
 - Evening: shows if any Goal deadline is near.
@@ -159,6 +168,7 @@ No AI. No predictions. Just scheduled context based on time of day and user hist
 ## The Anti-Loop
 
 What NUMI deliberately does NOT do:
+
 - Does not open on launch to a dashboard. Opens to the number.
 - Does not require a "daily check-in." No streaks. No gamification.
 - Does not send "tips" or "articles." This is a tool, not a content app.

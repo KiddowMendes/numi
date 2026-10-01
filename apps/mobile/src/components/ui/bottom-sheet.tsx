@@ -14,6 +14,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { duration, radius, spacing, zIndex } from "@/constants/tokens";
@@ -45,6 +46,7 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
+  const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
 
   const progress = useSharedValue(0);
@@ -116,6 +118,7 @@ export function BottomSheet({
               backgroundColor: theme.surface,
               maxHeight: windowHeight * 0.7,
               borderColor: theme.borderSubtle,
+              paddingBottom: insets.bottom + spacing.xl,
             },
             sheetStyle,
             style,
@@ -151,7 +154,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: radius["2xl"],
     borderTopRightRadius: radius["2xl"],
     borderTopWidth: StyleSheet.hairlineWidth * 2,
-    paddingBottom: spacing.xl,
     zIndex: zIndex.sheet,
   },
   grabArea: {

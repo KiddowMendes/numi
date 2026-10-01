@@ -7,6 +7,7 @@ import type { Transaction } from "@numi/domain";
 import { ScreenBackground } from "@/components/screen-background";
 import { ThemedText } from "@/components/themed-text";
 import { EmptyState, TransactionRow } from "@/components/ui";
+import { useTabBarSpace } from "@/hooks/use-tab-bar-space";
 import { useThemeMode } from "@/hooks/use-theme";
 import {
   formatCents,
@@ -21,6 +22,7 @@ type DaySection = { title: string; data: Transaction[] };
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
+  const { contentBottom } = useTabBarSpace();
   const mode = useThemeMode();
   const transactions = useStore((s) => s.appState.transactions);
   const categories = useStore((s) => s.appState.categories);
@@ -68,7 +70,7 @@ export default function HistoryScreen() {
           styles.list,
           {
             paddingTop: insets.top + spacing.lg,
-            paddingBottom: insets.bottom + 120,
+            paddingBottom: contentBottom,
           },
         ]}
         showsVerticalScrollIndicator={false}

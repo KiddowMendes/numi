@@ -11,7 +11,7 @@ decision_record: none
 
 # 04 — Offline-First Strategy
 
-> The device is never waiting for permission to be correct. Sync is something that happens *to* the truth, not something the truth depends on.
+> The device is never waiting for permission to be correct. Sync is something that happens _to_ the truth, not something the truth depends on.
 
 ---
 
@@ -22,7 +22,7 @@ This document is the single source of truth for **how sync, conflict resolution,
 - `03_Architecture/02_System_Design.md` — names the Sync Layer and its failure domains.
 - `02_Product_Mechanics/04_Data_Flow.md` — sketches the push/pull paths and the outbox pattern.
 - `03_Architecture/05_Security.md` — defines what sync payloads must protect.
-- `04_Design_System/03_Patterns.md` — defines what the *user* sees when sync degrades.
+- `04_Design_System/03_Patterns.md` — defines what the _user_ sees when sync degrades.
 
 If any of those documents conflicts with this one on a sync mechanic, this document wins; they should be read as UI/security consequences of the rules defined here.
 
@@ -32,7 +32,7 @@ This document governs **Freemium and Premium tiers only**. Free tier has no clou
 
 ## Foundational Rule
 
-**R6.1 restated as an architectural constraint:** the local database on the device is the only ledger the Engine ever writes against. Nothing — not a cloud push acknowledgment, not a pending sync state, not a web edit — is permitted to block, delay, or roll back a local Engine operation. Sync is strictly an *outbound* concern layered on top of a ledger that has already committed.
+**R6.1 restated as an architectural constraint:** the local database on the device is the only ledger the Engine ever writes against. Nothing — not a cloud push acknowledgment, not a pending sync state, not a web edit — is permitted to block, delay, or roll back a local Engine operation. Sync is strictly an _outbound_ concern layered on top of a ledger that has already committed.
 
 This is why the Sync Layer sits outside the Engine boundary in `02_System_Design.md`: it consumes completed operations, it does not participate in producing them.
 
@@ -84,6 +84,7 @@ An outbox pattern, persisted locally so it survives app kill.
 ```
 
 **Trigger conditions for a sync attempt:**
+
 - App enters foreground (if online).
 - User pulls to refresh.
 - Every 15 minutes while the app is foregrounded, Premium tier only, user-configurable (per `01_Tech_Stack.md`'s Supabase real-time notes).
@@ -126,7 +127,8 @@ There is no field-level merge, no three-way diff, no "keep both" prompt. This is
 4. If the device has not pushed anything newer: **accept the web write**, update cloud state, and mark it as authoritative until the device's next push supersedes it (which it eventually will, since the device pushes on every foreground/refresh/interval trigger).
 
 **What "the device wins" does NOT mean:**
-- It does not mean device data silently overwrites a web edit the user just made. The rejection is explicit and shown to the user (I3): *"Your phone has newer data."*
+
+- It does not mean device data silently overwrites a web edit the user just made. The rejection is explicit and shown to the user (I3): _"Your phone has newer data."_
 - It does not mean the web edit is deleted from history. Rejected writes are logged locally in the web session (not persisted server-side) so the user can see what they attempted and manually re-apply it against fresh state if it's still relevant.
 - It does not mean two devices racing each other produce undefined behavior. Only one authoritative device path exists per user account in v1 (multi-device write conflicts are out of scope until Phase 5's family-sharing work; a second phone signed into the same account should be treated as a known unknown, not a supported configuration, until then).
 
@@ -136,15 +138,15 @@ There is no field-level merge, no three-way diff, no "keep both" prompt. This is
 
 Applies to push attempts only (pull is synchronous and simply fails/succeeds per request; a failed pull just means the web app shows a network-error read-only state, per `04_Design_System/03_Patterns.md`).
 
-| Parameter | Value |
-|---|---|
-| Initial backoff | 30 seconds |
-| Backoff growth | Doubles each attempt |
-| Backoff cap | 10 minutes |
-| Max attempts per sync run | 20 |
-| Queue retention limit | 5,000 pending items |
+| Parameter                 | Value                |
+| ------------------------- | -------------------- |
+| Initial backoff           | 30 seconds           |
+| Backoff growth            | Doubles each attempt |
+| Backoff cap               | 10 minutes           |
+| Max attempts per sync run | 20                   |
+| Queue retention limit     | 5,000 pending items  |
 
-**After 20 failed attempts:** the sync run stops for that session. It resumes on the next trigger condition (foreground, pull-to-refresh, or interval), starting the backoff sequence fresh. Data is never dropped — only the retry *cadence* resets, not the queue contents.
+**After 20 failed attempts:** the sync run stops for that session. It resumes on the next trigger condition (foreground, pull-to-refresh, or interval), starting the backoff sequence fresh. Data is never dropped — only the retry _cadence_ resets, not the queue contents.
 
 **If the queue reaches its 5,000-item retention limit:** this is treated as an escalation, not a silent truncation. Per `04_Design_System/03_Patterns.md`'s Sync Failure pattern, the banner escalates from the subtle "Sync pending" state to a blocking prompt asking the user to retry manually or contact support. The oldest queued changes are never dropped to make room — the device remains the authoritative ledger regardless of how large the backlog gets.
 
@@ -152,33 +154,33 @@ Applies to push attempts only (pull is synchronous and simply fails/succeeds per
 
 ## Failure Modes
 
-| Failure | What Happens Locally | What the User Sees | Recovery |
-|---|---|---|---|
-| Device offline | Nothing — Engine and local DB are unaffected | Nothing (no banner, per R4.4 and I7) | Sync resumes automatically on reconnect |
-| Push times out | Queue item stays `pending` | Nothing, until repeated failures escalate the banner | Backoff retry per table above |
-| Push succeeds but ack is lost | Item may be retried once more; cloud dedupes by checksum | Nothing | Cloud-side idempotency via `payload_checksum` prevents double-application |
-| Cloud rejects a web write (conflict) | N/A — device-side, unaffected | Web app: explicit "Your phone has newer data" message | User re-applies the edit on fresh data if still needed |
-| Cloud unreachable (web pull) | N/A | Web app: "Cannot reach server. Data may be outdated." Read-only. | Retry button; web app never invents state |
-| Local DB write fails (storage full) | In-memory `AppState` remains correct for the session; DB write queued for retry | Toast after repeated failure: "Unable to save. Free up space and try again." | Per Onboarding EC10 — same underlying storage-failure handling, not sync-specific |
-| Local DB corruption detected (C15 fails) | App enters read-only mode | Blocking banner, forced export/restore flow | Per `05_Security.md` and `04_Design_System/03_Patterns.md` Data Corruption pattern |
-| Queue exceeds retention limit | Queue itself is untouched (no drop) | Banner escalates to blocking, prompts manual retry/support | User-driven; data is never lost, only delayed |
+| Failure                                  | What Happens Locally                                                            | What the User Sees                                                           | Recovery                                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Device offline                           | Nothing — Engine and local DB are unaffected                                    | Nothing (no banner, per R4.4 and I7)                                         | Sync resumes automatically on reconnect                                            |
+| Push times out                           | Queue item stays `pending`                                                      | Nothing, until repeated failures escalate the banner                         | Backoff retry per table above                                                      |
+| Push succeeds but ack is lost            | Item may be retried once more; cloud dedupes by checksum                        | Nothing                                                                      | Cloud-side idempotency via `payload_checksum` prevents double-application          |
+| Cloud rejects a web write (conflict)     | N/A — device-side, unaffected                                                   | Web app: explicit "Your phone has newer data" message                        | User re-applies the edit on fresh data if still needed                             |
+| Cloud unreachable (web pull)             | N/A                                                                             | Web app: "Cannot reach server. Data may be outdated." Read-only.             | Retry button; web app never invents state                                          |
+| Local DB write fails (storage full)      | In-memory `AppState` remains correct for the session; DB write queued for retry | Toast after repeated failure: "Unable to save. Free up space and try again." | Per Onboarding EC10 — same underlying storage-failure handling, not sync-specific  |
+| Local DB corruption detected (C15 fails) | App enters read-only mode                                                       | Blocking banner, forced export/restore flow                                  | Per `05_Security.md` and `04_Design_System/03_Patterns.md` Data Corruption pattern |
+| Queue exceeds retention limit            | Queue itself is untouched (no drop)                                             | Banner escalates to blocking, prompts manual retry/support                   | User-driven; data is never lost, only delayed                                      |
 
 ---
 
 ## Tier Applicability
 
-| Tier | Local Ledger | Sync Queue | Push Triggers | Web Access |
-|---|---|---|---|---|
-| Free | Yes (SQLite) | None — no cloud exists | N/A | None (manual JSON export only, S11) |
-| Freemium | Yes (SQLite) | Yes | Foreground, pull-to-refresh, manual backup | Read-mostly, stale-gated (R3.5) |
-| Premium | Yes (SQLite) | Yes | Foreground, pull-to-refresh, 15-min interval | Full read/write when fresh (R3.5) |
+| Tier     | Local Ledger | Sync Queue             | Push Triggers                                | Web Access                          |
+| -------- | ------------ | ---------------------- | -------------------------------------------- | ----------------------------------- |
+| Free     | Yes (SQLite) | None — no cloud exists | N/A                                          | None (manual JSON export only, S11) |
+| Freemium | Yes (SQLite) | Yes                    | Foreground, pull-to-refresh, manual backup   | Read-mostly, stale-gated (R3.5)     |
+| Premium  | Yes (SQLite) | Yes                    | Foreground, pull-to-refresh, 15-min interval | Full read/write when fresh (R3.5)   |
 
 ---
 
 ## What This Document Does Not Cover
 
 - **Multi-device write conflicts** (two phones on one account) — explicitly deferred; see `07_Roadmap/03_Known_Unknowns.md`.
-- **End-to-end payload encryption details** — the *requirement* is defined in `05_Security.md` (S5); the specific KDF/cipher choice belongs to an implementation ADR when the sync package is built.
+- **End-to-end payload encryption details** — the _requirement_ is defined in `05_Security.md` (S5); the specific KDF/cipher choice belongs to an implementation ADR when the sync package is built.
 - **Self-hosted sync option** — Phase 5 scope per `07_Roadmap/02_Phases.md`; this document assumes Supabase-managed cloud per `01_Tech_Stack.md`.
 
 ---

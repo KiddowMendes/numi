@@ -1,250 +1,257 @@
 ---
-version: 1.0.0
+version: 2.0.0
 status: Locked
 owner: Elton Pascoal
 related_documents:
   - "docs/playbook/05_Features/01_Onboarding/Flow.md"
   - "docs/playbook/04_Design_System/02_Components.md"
-decision_record: none
+  - "docs/adr/0002-onboarding-wizard-flow.md"
+decision_record: "docs/adr/0002-onboarding-wizard-flow.md"
 ---
 
 # 01 — Onboarding: Screens
 
 > Every screen in onboarding: what it shows, why it exists, and how to leave it.
 
+> **Amended by ADR-0002.** Version 1 specified six screens, four of which were
+> sheets over Home. The app now has five full-screen routes.
+
 ---
 
-## Screen 1: SplashScreen
+## Screen 1: Welcome
 
-**Route:** `/` (initial)
+**Route:** `/(onboarding)/welcome`
 
-**Purpose:** Brand recognition. Loading time cover.
+**Purpose:** Name the app to the user, and get a name for the user.
 
 **Layout:**
-- Flexbox center.
-- Background: `color.background`.
 
-**Content:**
-- `typography.heading1`, `color.textPrimary`: "NUMI"
-- `typography.caption`, `color.textMuted`: "Financial clarity"
+- `ScreenBackground`.
+- `ScreenShell` with `RadialGlow` across the top 35% and a `RingWatermark` at
+  roughly 7% opacity, top-right, bleeding off the edge.
+- `KeyboardAvoidingView`, `padding` on iOS.
+
+**Content Blocks:**
+
+### Brand
+
+- `typography.display`, `color.textPrimary`: "NUMI"
+- `typography.body`, `color.textSecondary`: "Every rand gets a job."
+
+### Input
+
+- `TextField`, centred, `autoFocus`, `maxLength` 30, placeholder "What should we call you?"
+
+### Action
+
+- `Button` Primary, full width: "Let's go". Disabled below 2 trimmed characters.
 
 **Navigation:**
-- Auto-push to HomeScreen after 1500ms.
-- No back button. No gestures.
+
+- Entry: bootstrap gate, first launch only.
+- Success: `router.replace("/pin")`. Replace, not push — Back must not return to
+  a name field already submitted.
 
 **Accessibility:**
-- Screen reader: "NUMI. Loading."
+
+- "NUMI. Every rand gets a job. What should we call you?"
 
 ---
 
-## Screen 2: HomeScreen (First Launch)
+## Screen 2: PIN
 
-**Route:** `/home`
+**Route:** `/(onboarding)/pin`
 
-**Purpose:** The starting point. Shows the user what is missing and what to do.
+**Purpose:** Set the device lock.
 
 **Layout:**
-- SafeAreaView.
-- ScrollView.
-- Padding: `spacing.lg`.
+
+- `ScreenShell`, `paddingBottom: 0` — the pad owns the bottom third.
+- Back `Pressable` 48×48, `hitSlop` 8, top-left.
+- `ProgressDots total={4} current={1}`.
 
 **Content Blocks:**
 
-### Block A: SafeToSpendHero
-- Amount: "--"
-- Label: "Safe to spend today"
-- Context: "Create a wallet to get started"
-- Color: `color.textMuted` (null state styling)
+### Phase 1 — Create
 
-### Block B: EmptyState
-- Icon: `Wallet` (`icon.lg`, `color.textMuted`)
-- Headline: "No wallet yet"
-- Body: "Create your first wallet to track your money."
-- Action: Button Primary lg "Create wallet"
+- `typography.heading2`: "Create a PIN"
+- `PinDots`, 4, `radius.full`.
+- `PinPad`, always visible, no OS keyboard.
 
-### Block C: Manifesto Teaser (below fold)
-- `typography.body`, `color.textSecondary`
-- "NUMI makes your money visible. No account, no internet needed."
-- Disappears after first Transaction is logged.
+### Phase 2 — Confirm
+
+- `typography.heading2`: "Confirm your PIN"
+- Same `PinDots` and `PinPad`.
+- Error caption, `color.stateAlert`, only when the codes diverge.
+
+**The slide.** One row of width `containerWidth * 2`, translated on X. Measured
+from `onLayout`; nothing renders until it is non-zero. `SLIDE_DURATION` 300ms,
+`Easing.out(Easing.cubic)`.
+
+**Rules:**
+
+- 200ms pause after the fourth digit before sliding, so the last dot paints
+  before it leaves.
+- 100ms pause before the shake, so the error appears with the shake rather than
+  before it.
+- Error haptic on mismatch. Digit haptic on press.
+- Digits clear on mismatch. Error clears on the next press.
 
 **Navigation:**
-- Bottom tabs visible. Home active. Others disabled.
-- No header.
 
-**Entry Points:**
-- SplashScreen auto-navigation.
-- App relaunch after kill.
-
-**Exit Points:**
-- Tap "Create wallet" → WalletSetupSheet opens.
+- Back on phase 1 → `router.back()`. Back on phase 2 → slide to phase 1.
+- Success → `router.replace("/quick-setup")`.
 
 ---
 
-## Screen 3: WalletSetupSheet
+## Screen 3: Quick Setup
 
-**Route:** Modal over `/home`
+**Route:** `/(onboarding)/quick-setup`
 
-**Purpose:** Create the first (or subsequent) Wallet.
+**Purpose:** Create one Wallet, one Period, and a first budget. Or none of them.
 
 **Layout:**
-- BottomSheet (mobile): 50% height, expandable to 70%.
-- Modal (web): Centered, max-width 480px.
+
+- `ScreenShell`.
+- `ScrollView`, `keyboardShouldPersistTaps="handled"`, `paddingBottom` clear of
+  the fixed button block.
+- `ProgressDots total={4} current={2}`.
+- A bottom-right scroll hint, 36×36, `surfaceRaised`, only while the content is
+  scrollable and not at the bottom.
 
 **Content Blocks:**
 
-### Header
-- Title: `typography.heading2` "Create wallet"
-- Close button: Ghost, `X` icon.
+### Eyebrow
 
-### Body (scrollable)
-1. **Wallet name**
-   - Label: "Name"
-   - TextInput, pre-filled "Cash Wallet"
-   - `autoFocus: true`
-   - `returnKeyType: "next"`
+- `typography.overline`, `color.textMuted`: "Step 3 of 4 — Optional"
 
-2. **Wallet type**
-   - Label: "Type"
-   - SegmentedControl: Cash | Bank | Stokvel | Savings
-   - Default: Cash
+### Wallet
 
-3. **Starting balance**
-   - Label: "Starting balance (optional)"
-   - AmountInput, pre-filled "0"
-   - Helper text: "How much is in this wallet right now?"
+- `PillToggle` for type. Cash, Bank, Stokvel, Savings. Bank unlocks a name
+  `PillToggle` of the eight South African banks — **name only**, no brand colour.
+- `TextField` for wallet name.
+- `AmountInput` for balance. Own keypad, no OS keyboard.
 
-### Footer
-- Primary Button lg: "Create wallet" (disabled if name empty)
-- Ghost Button: "Cancel"
+### Period
+
+- `TextField` for name, pre-filled "This month".
+- Two `DateButton` rows — overline label above a `typography.title` date.
+- Inline `DateTimePicker` in `mode="date" display="inline"`, mounted only while
+  `picking` is set, so the inline wheel is never in the tree when idle.
+- Dates clamped so `end > start` cannot be violated by either picker.
+
+### First budget
+
+- One row per seeded category: dot, name, R5 stepper, running amount.
+- Footer: "Total set aside", `typography.amountLg`, `tabular`.
+
+**Rules:**
+
+- Cash or one bank, never both. `WALLET_LIMITS.free` is 1 and is not relaxed.
+- Rand→cents goes through `randToCents` in `@numi/utils`. Never `parseFloat(x) * 100`.
+- Total assigned cannot exceed wallet balance.
 
 **Navigation:**
-- Entry: Tap "Create wallet" on HomeScreen.
-- Success: Dismiss → auto-open PeriodSetupSheet (if first Wallet).
-- Cancel: Dismiss → HomeScreen.
+
+- Entry: from PIN.
+- Done → `router.replace("/all-set")`.
+- Skip → same destination, with a zero-balance cash wallet created.
+
+**Accessibility:**
+
+- Stepper buttons are 36px with `hitSlop` 8, so the effective target clears 48.
+- Disabled primary button announces as dimmed.
 
 ---
 
-## Screen 4: PeriodSetupSheet
+## Screen 4: All Set
 
-**Route:** Modal over `/home`
+**Route:** `/(onboarding)/all-set`
 
-**Purpose:** Define the time horizon for the money.
+**Purpose:** Confirm, then hand over.
 
-**Layout:** Same as WalletSetupSheet.
+**Layout:**
+
+- `ScreenBackground` with a `RadialGlow` in `color.stateSafe` at 15% — the only
+  green in the flow, and it appears exactly once.
+- Content vertically centred.
+- Back chevron, absolute, top-left, 48×48, `zIndex` above the glow.
 
 **Content Blocks:**
 
-### Header
-- Title: "Start a period"
+### Confirmation
 
-### Body
-1. **Period name**
-   - Label: "Name"
-   - TextInput, pre-filled "My Budget"
+- Success glyph, 48px, `color.stateSafe`.
+- `typography.heading1`, centred: "You're in, [name]."
+- `typography.caption`, `color.textMuted`: "N wallets · M budgets ready."
+  Pluralised. "1 wallets" is a defect.
 
-2. **Start date**
-   - Label: "Start date"
-   - Date picker, default today
+### Summary card
 
-3. **End date**
-   - Label: "End date"
-   - Date picker, default today + 30 days
-   - Helper: "How long must this money last?"
+- `Card tone="raised"`, up to three lines, `typography.amountSm`, `tabular`.
+- Omitted entirely when there is nothing to show.
 
-4. **Initial assignment (optional)**
-   - Label: "Assign money now?"
-   - AmountInput, pre-filled "0"
-   - Helper: "You have R[wallet_balance] available."
+### Action
 
-### Footer
-- Primary: "Start period"
-- Ghost: "Skip for now"
+- `Button` Primary, full width: "Open NUMI".
 
 **Navigation:**
-- Entry: Auto-open after first Wallet, or tap "Start a period" later.
-- Success: Dismiss → optional CategoryAssignmentSheet.
-- Skip: Dismiss → HomeScreen with Wallet but no Period.
+
+- Back chevron → `router.replace("/quick-setup")`. Objects already created are
+  not re-created; `createWallet` would return `TIER_LIMIT_EXCEEDED`.
+- Success → `completeOnboarding()`, then `router.replace("/auth/unlock")`.
 
 ---
 
-## Screen 5: CategoryAssignmentSheet
+## Screen 5: Unlock
 
-**Route:** Modal over `/home`
+**Route:** `/(auth)/unlock`
 
-**Purpose:** Give the initial money a job.
+**Purpose:** Verify the PIN on every launch after the first.
 
-**Layout:** BottomSheet, 70% height.
+**Layout:**
 
-**Content Blocks:**
+- `ScreenBackground`.
+- `ScreenShell`, centred.
+- `PinDots` and `PinPad`, identical to Screen 2.
+- `typography.heading1`: "Welcome back".
+- Attempts remaining, `typography.caption`, `color.textMuted`.
 
-### Header
-- Title: "Assign your money"
-- Subtitle: "R[remaining] left to assign"
+**Rules:**
 
-### Body
-- List of default Categories (Food, Transport, Airtime, Rent, etc.).
-- Each row: Category icon + name + AmountInput inline.
-- Running total at bottom: "Assigned: R[X] of R[total]"
-
-### Footer
-- Primary: "Done" (enabled when assigned <= total)
-- Ghost: "Skip"
-
-**Navigation:**
-- Entry: After PeriodSetup if initial assignment > 0.
-- Success: Dismiss → HomeScreen with Safe-to-Spend.
-- Skip: Dismiss → HomeScreen with unassigned money.
-
----
-
-## Screen 6: HomeScreen (Onboarding Complete)
-
-**Route:** `/home`
-
-**Purpose:** The normal operating screen. Same route as Screen 2, different state.
-
-**Layout:** Same as Screen 2.
-
-**Content Blocks:**
-
-### Block A: SafeToSpendHero
-- Amount: Daily Safe-to-Spend (calculated).
-- Label: "Safe to spend today"
-- Context: "R[global_safe] total · [days] days left"
-- Color: `color.stateSafe` (or Caution/Alert based on value).
-
-### Block B: WalletCard
-- Name, balance, available.
-- Tap to view Wallet detail.
-
-### Block C: CategoryCard List
-- Horizontal scroll if > 3 categories.
-- Each: Color dot, name, remaining amount.
-
-### Block D: FAB
-- "Log expense" (Primary, `Plus` icon).
+- No biometric auto-trigger. `expo-local-authentication` is out of scope.
+- `PIN_MAX_ATTEMPTS` 5, `PIN_LOCKOUT_SECONDS` 30.
+- Counter is component state. A kill clears it. This is a device lock, not
+  threat defence, and the lockout is a speed bump rather than a control.
+- During lockout the pad is disabled and the countdown is announced.
 
 **Navigation:**
-- Bottom tabs fully enabled.
-- FAB → TransactionLogSheet.
+
+- Success → `router.replace("/(tabs)")`.
+- "Forgot PIN? Reset app" → confirm, wipe the keychain entry and the engine, then
+  `router.replace("/welcome")`.
 
 ---
 
 ## Component Mapping
 
-| Screen | Components Used |
-|---|---|
-| SplashScreen | Text only |
-| HomeScreen (First Launch) | SafeToSpendHero, EmptyState, Button |
-| WalletSetupSheet | BottomSheet, TextInput, SegmentedControl, AmountInput, Button |
-| PeriodSetupSheet | BottomSheet, TextInput, Date picker, AmountInput, Button |
-| CategoryAssignmentSheet | BottomSheet, ListItem (custom), AmountInput, Button |
-| HomeScreen (Complete) | SafeToSpendHero, Card, FAB, SegmentedControl (in header) |
+| Screen      | Components Used                                                                           |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| Welcome     | ScreenBackground, ScreenShell, RadialGlow, RingWatermark, TextField, Button               |
+| PIN         | ScreenShell, ProgressDots, PinDots, PinPad, Button                                        |
+| Quick Setup | ScreenShell, ProgressDots, PillToggle, TextField, AmountInput, PinDots-free, Card, Button |
+| All Set     | ScreenBackground, RadialGlow, Card, Button, AppIcon                                       |
+| Unlock      | ScreenBackground, ScreenShell, PinDots, PinPad, Button                                    |
+
+New in ADR-0002: `ScreenShell`, `RadialGlow`, `RingWatermark`, `PinDots`, `PinPad`.
+Category selection reuses the existing `BottomSheet` and `CategoryPicker` rather
+than porting a `CategorySheet`.
 
 ---
 
 ## What Happens After This Document
 
-These screens are wired together in the app router. Edge cases define what happens when things go wrong.
+These screens are wired in `apps/mobile/app/(onboarding)/_layout.tsx` and gated by
+`apps/mobile/app/_layout.tsx`. Edge cases define what happens when things go wrong.
 
 Next: Edge_Cases.md.

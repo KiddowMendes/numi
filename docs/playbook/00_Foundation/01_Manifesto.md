@@ -19,7 +19,7 @@ decision_record: none
 
 Money is not math. Money is emotion, memory, family pressure, hunger, status, fear, and hope — wrapped in a number. Most financial tools treat it as math. They build spreadsheets and call it empowerment. But a spreadsheet does not help a person standing at a spaza shop deciding whether to buy airtime or save the R50 for tomorrow.
 
-NUMI exists because the decision happens *there*, in that moment, not in a monthly review. We do not build for the person who wants to optimize their portfolio. We build for the person who does not yet believe they have enough money to manage.
+NUMI exists because the decision happens _there_, in that moment, not in a monthly review. We do not build for the person who wants to optimize their portfolio. We build for the person who does not yet believe they have enough money to manage.
 
 We believe that person deserves clarity too.
 
@@ -39,9 +39,10 @@ We also know that shame does not work. Locking a card, hiding a purchase, or sen
 
 A world where every person can answer one question at any moment: **Will my money last?**
 
-Not "where did it go?" Not "how do I optimize?" Just: *Do I have enough for what matters?*
+Not "where did it go?" Not "how do I optimize?" Just: _Do I have enough for what matters?_
 
 In this world:
+
 - A student receiving a NSFAS payout can divide it across months before the first week eats it all.
 - A parent can set aside taxi money for the month and know it will still be there on the 25th.
 - A person can spend R30 on airtime without guilt, because they can see — clearly — that the taxi money is untouched and the food money is safe.
@@ -55,24 +56,31 @@ This world does not require wealth. It requires clarity. And clarity should be f
 These are non-negotiable. They outrank any feature request, any business model pressure, any technical convenience.
 
 ### 1. Agency, Not Automation
+
 NUMI never decides for the user. It makes the consequences visible so the user can choose. We do not auto-categorize, auto-save, or auto-block. We inform.
 
 ### 2. Visibility in the Moment
-Information must be available *before* the transaction, not after. A monthly report is a post-mortem. NUMI is a pulse check.
+
+Information must be available _before_ the transaction, not after. A monthly report is a post-mortem. NUMI is a pulse check.
 
 ### 3. Free Core, Funded Future
+
 The ability to see, plan, and track your money is free and unlimited on every platform, forever. No subscription, no account required, no data harvested. Additional capabilities — such as organizing money into multiple wallets, setting goals, or syncing across devices — are funded by those who choose to support the mission. NUMI never withholds your own data from you as a punishment for not paying.
 
 ### 4. No Shame, No Surveillance
+
 NUMI does not judge spending. It does not send passive-aggressive notifications. It does not share data. The user is the only audience for their own numbers.
 
 ### 5. Built for Small Amounts
+
 If NUMI is not useful for R50, it is not useful. We do not optimize for high-net-worth individuals. We optimize for the person who thinks they do not have "enough money to budget."
 
 ### 6. The Device is the Source of Truth
+
 NUMI works without the internet because data is expensive and privacy is physical. When the experience extends to the web or other platforms, it does so honestly — surfacing discrepancies rather than hiding them. The user always knows which version of their money is authoritative.
 
 ### 7. Current, Planned, Actual
+
 These three lenses are sacred. Every feature must map to one of them. If it serves none, it does not ship.
 
 ---

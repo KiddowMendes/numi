@@ -18,10 +18,10 @@ This directory is **append-only**. Entries are never edited after publication. E
 
 ## Modification Rule
 
-No ADR required to *add* an entry. Existing entries are immutable.
+No ADR required to _add_ an entry. Existing entries are immutable.
 
 ## Directory Inventory
 
-| File | Status | Locked Date | Last ADR |
-|---|---|---|---|
-| (entries added as shipped) | — | — | — |
+| File                       | Status | Locked Date | Last ADR |
+| -------------------------- | ------ | ----------- | -------- |
+| (entries added as shipped) | —      | —           | —        |

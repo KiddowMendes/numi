@@ -21,29 +21,35 @@ decision_record: none
 **Purpose:** Understand what happened and decide what's next.
 
 **Layout:**
+
 - SafeAreaView.
 - ScrollView.
 
 **Header:**
+
 - Title: "[Period name]" (`typography.heading1`).
 - Subtitle: "[start] – [end] · [duration] days" (`typography.caption`).
 
 **Content Blocks:**
 
 ### Block A: Period Summary Card
+
 - Background: `color.surface`.
 - Border radius: `radius.lg`.
 - Padding: `spacing.lg`.
 
 **Top row:**
+
 - Left: "Income" label, `textMuted`.
 - Right: Total income amount, `amountLg`, `color.income`.
 
 **Middle row:**
+
 - Left: "Spent" label.
 - Right: Total spent, `amountLg`, `color.expense`.
 
 **Bottom row:**
+
 - Left: "Left over" or "Over by" label.
 - Right: Absolute amount, `amountLg`.
   - If unspent: `color.stateSafe`.
@@ -53,9 +59,11 @@ decision_record: none
 ---
 
 ### Block B: Category Breakdown
+
 - Section header: "By category" (`typography.heading2`).
 
 **Each row (ListItem variant):**
+
 - Left: Category color dot + name (`typography.body`).
 - Middle: Planned amount (`typography.caption`, `textMuted`).
 - Right: Actual amount (`typography.amountMd`).
@@ -70,12 +78,14 @@ decision_record: none
 ---
 
 ### Block C: Wallet Breakdown (optional, collapsible)
+
 - Same pattern as Category Breakdown.
 - Shows which Wallets were used.
 
 ---
 
 ### Block D: Suggestion Card (if Period just ended)
+
 - Background: `color.surfaceRaised`.
 - Border left: 3px `color.primary`.
 - Headline: "Start your next period"
@@ -87,6 +97,7 @@ decision_record: none
 ---
 
 ### Block E: Actions
+
 - Primary: "Start new period" (if Period just ended).
 - Ghost: "Close".
 
@@ -99,12 +110,14 @@ decision_record: none
 **Purpose:** Soft prompt to review.
 
 **Layout:**
+
 - Full width, below SafeToSpendHero.
 - Background: `color.surfaceRaised`.
 - Border left: 3px `color.primary`.
 - Padding: `spacing.lg`.
 
 **Content:**
+
 - Headline: "Your [Period name] has ended."
 - Body: "R[unspent] left over. R[overspent] over budget." (omit zero lines).
 - Actions: Primary "Review" + Ghost "Start new period".
@@ -113,10 +126,10 @@ decision_record: none
 
 ## Component Mapping
 
-| Screen | Components |
-|---|---|
-| ReviewScreen | Card (summary), ListItem (breakdown), Button, Progress bar (difference) |
-| PeriodEndedBanner | Card (custom), Button |
+| Screen            | Components                                                              |
+| ----------------- | ----------------------------------------------------------------------- |
+| ReviewScreen      | Card (summary), ListItem (breakdown), Button, Progress bar (difference) |
+| PeriodEndedBanner | Card (custom), Button                                                   |
 
 ---
 

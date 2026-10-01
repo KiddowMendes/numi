@@ -20,16 +20,16 @@ decision_record: null
 
 Format: `type(scope): subject` — lowercase, imperative, 72 chars max.
 
-| Type | Use for |
-|---|---|
-| `feat` | New capability |
-| `fix` | Bug fix |
-| `docs` | Playbook, README, ADR changes |
-| `refactor` | Behavior-preserving change |
-| `chore` | Tooling, CI, deps |
-| `test` | Tests only |
-| `perf` | Performance |
-| `style` | Formatting, no behavior change |
+| Type       | Use for                        |
+| ---------- | ------------------------------ |
+| `feat`     | New capability                 |
+| `fix`      | Bug fix                        |
+| `docs`     | Playbook, README, ADR changes  |
+| `refactor` | Behavior-preserving change     |
+| `chore`    | Tooling, CI, deps              |
+| `test`     | Tests only                     |
+| `perf`     | Performance                    |
+| `style`    | Formatting, no behavior change |
 
 Scopes: `mobile`, `web`, `domain`, `design-system`, `database`, `playbook`, `context`, `adr`, `repo`.
 

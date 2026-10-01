@@ -33,11 +33,11 @@ decision_record: none
 
 ## Lens Mapping
 
-| Lens | Served? | How |
-|---|---|---|
-| **Current** | No | This is the past. |
+| Lens        | Served? | How                                                                           |
+| ----------- | ------- | ----------------------------------------------------------------------------- |
+| **Current** | No      | This is the past.                                                             |
 | **Planned** | Partial | Compare Actual vs Planned in Review feature. Spending shows raw history only. |
-| **Actual** | Yes | Complete. This is the only feature that serves Actual deeply in v1. |
+| **Actual**  | Yes     | Complete. This is the only feature that serves Actual deeply in v1.           |
 
 ---
 
@@ -52,11 +52,11 @@ decision_record: none
 
 ## Tier Behavior
 
-| Tier | Spending Difference |
-|---|---|
-| **Free** | Full history. No filters beyond time and type. |
-| **Freemium** | Same. Web view of history (lagged). |
-| **Premium** | Advanced filters (Category multi-select, amount range, search by note). CSV export. |
+| Tier         | Spending Difference                                                                 |
+| ------------ | ----------------------------------------------------------------------------------- |
+| **Free**     | Full history. No filters beyond time and type.                                      |
+| **Freemium** | Same. Web view of history (lagged).                                                 |
+| **Premium**  | Advanced filters (Category multi-select, amount range, search by note). CSV export. |
 
 ---
 

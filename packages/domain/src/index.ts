@@ -6,6 +6,7 @@ export type {
   UserTier,
   Period,
   Wallet,
+  WalletType,
   Category,
   Goal,
   Assignment,

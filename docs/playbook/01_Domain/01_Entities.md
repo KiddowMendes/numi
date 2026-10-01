@@ -20,6 +20,7 @@ The ghost identity. Minimal.
 - tier: 'free' | 'freemium' | 'premium'
 
 Rules:
+
 - U1. Exists even without an account. Tier defaults to 'free'.
 - U2. No email, name, or phone in domain. That lives in infrastructure (auth API).
 - U3. Domain enforces tier limits. It does not handle payments.
@@ -36,6 +37,7 @@ A lump-sum survival window. "This money must last from now until then."
 - created_at: Date
 
 Rules:
+
 - P1. Only ONE Period may be active at a time.
 - P2. Creating a new active Period closes the previous one.
 - P3. end_date must be after start_date.
@@ -54,6 +56,7 @@ Manual container for real-world money. Not linked to any bank.
 - created_at: Date
 
 Rules:
+
 - W1. Balance is manually maintained. No bank linking.
 - W2. Balance must equal sum of all Transactions for this Wallet (engine verifies).
 - W3. Tier limits: Free=1, Freemium=3, Premium=unlimited.
@@ -73,6 +76,7 @@ Purpose label for spending.
 - created_at: Date
 
 Rules:
+
 - C1. Unlimited on all tiers.
 - C2. Every expense Transaction must have exactly one Category.
 - C3. Income and Transfer Transactions have no Category.
@@ -92,6 +96,7 @@ Named target that reserves money INSIDE a Wallet. The money is still there — j
 - created_at: Date
 
 Rules:
+
 - G1. Tier limits: Free=0, Freemium=3, Premium=unlimited.
 - G2. current_amount cannot exceed target_amount.
 - G3. current_amount cannot exceed Wallet's available balance at reservation time.
@@ -111,6 +116,7 @@ The result of "giving every Rand a job." Makes Safe-to-Spend calculable.
 - created_at: Date
 
 Rules:
+
 - A1. Amount must be positive.
 - A2. Enforced when creating or increasing an Assignment: Sum of active Assignments + Sum of Goal reservations for a Wallet cannot exceed that Wallet's balance. Later expenses may push Safe-to-Spend negative without invalidating existing Assignments.
 - A3. Belongs to exactly one Period, one Category, one Wallet.
@@ -132,6 +138,7 @@ The atomic unit. Money moves. Truth is recorded.
 - created_at: Date
 
 Rules:
+
 - T1. Amount is always positive. Direction is set by type.
 - T2. Income: wallet_id is destination. category_id is null. to_wallet_id is null.
 - T3. Expense: wallet_id is source. category_id is required. to_wallet_id is null.

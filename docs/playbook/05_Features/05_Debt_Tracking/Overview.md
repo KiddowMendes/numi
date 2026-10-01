@@ -33,11 +33,11 @@ decision_record: none
 
 ## Lens Mapping
 
-| Lens | Served? | How |
-|---|---|---|
-| **Current** | No | An obligation is not an Available balance. Repayments surface in Current as normal Transfers when they happen. |
-| **Planned** | No | Installment dates are reminders, not Assignments. |
-| **Actual** | Yes | Every borrow and repayment is recorded in the Transaction history. |
+| Lens        | Served? | How                                                                                                            |
+| ----------- | ------- | -------------------------------------------------------------------------------------------------------------- |
+| **Current** | No      | An obligation is not an Available balance. Repayments surface in Current as normal Transfers when they happen. |
+| **Planned** | No      | Installment dates are reminders, not Assignments.                                                              |
+| **Actual**  | Yes     | Every borrow and repayment is recorded in the Transaction history.                                             |
 
 ---
 
@@ -56,7 +56,7 @@ decision_record: none
 Recorded in this document (no ADR store exists yet):
 
 1. **Informal debt is a separate Debt entity, not a Wallet.**
-   R8.2 allows a Wallet to *represent* informal debt, but BR-W1 forbids negative Wallet balances — a wallet holding an amount owed would go negative. A Debt entity lives outside Wallets: BR-W1 and the conservation invariant (BR-X3) stay untouched, and a Wallet may still represent informal debt as a simple asset (R8.2) where the user prefers it.
+   R8.2 allows a Wallet to _represent_ informal debt, but BR-W1 forbids negative Wallet balances — a wallet holding an amount owed would go negative. A Debt entity lives outside Wallets: BR-W1 and the conservation invariant (BR-X3) stay untouched, and a Wallet may still represent informal debt as a simple asset (R8.2) where the user prefers it.
 2. **Scope is general informal debt; mashonisa is a preset, not a separate machine.**
    The Glossary covers family, friends, and mashonisas. One toolchain serves all: Debt entry + installment schedule + due-date reminders + remaining balance. The mashonisa preset pre-fills daily/weekly installment cycles (per Phase 5: "Debt tracking (mashonisa support)").
 
@@ -64,11 +64,11 @@ Recorded in this document (no ADR store exists yet):
 
 ## Tier Behavior
 
-| Tier | Debt Tracking Difference |
-|---|---|
-| **Free** | Excluded entirely (R3.7). |
-| **Freemium** | Excluded entirely (R3.7). |
-| **Premium** | Full feature: Debt entries, mashonisa preset, installment schedules, due-date reminders, repayment history. |
+| Tier         | Debt Tracking Difference                                                                                    |
+| ------------ | ----------------------------------------------------------------------------------------------------------- |
+| **Free**     | Excluded entirely (R3.7).                                                                                   |
+| **Freemium** | Excluded entirely (R3.7).                                                                                   |
+| **Premium**  | Full feature: Debt entries, mashonisa preset, installment schedules, due-date reminders, repayment history. |
 
 ---
 

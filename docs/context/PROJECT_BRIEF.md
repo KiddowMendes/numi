@@ -18,7 +18,7 @@ related_documents:
 
 ## The problem, in my own words
 
-Money leaves my hands in small amounts — R50s, R100s — and I don't notice it going. I only understand what happened after it's gone, as regret: *that could have been used for something.* This isn't unique to me. It's true in my family too. We earn money. We still can't manage it, not because we don't care, but because we can't **see** it clearly enough, in the moment, to choose differently.
+Money leaves my hands in small amounts — R50s, R100s — and I don't notice it going. I only understand what happened after it's gone, as regret: _that could have been used for something._ This isn't unique to me. It's true in my family too. We earn money. We still can't manage it, not because we don't care, but because we can't **see** it clearly enough, in the moment, to choose differently.
 
 This is not a discipline problem. It's not that I need to be stopped from spending. It's that the information arrives too late to be useful.
 
@@ -37,8 +37,8 @@ Instead of only showing where your money went, NUMI helps you see where it's goi
 Three things follow from that:
 
 1. **Capture must be frictionless.** Money moves in R50s. Logging it can't take longer than spending it.
-2. **The view must be *now*, not later.** Not a monthly report. A number I can see before I hand over cash.
-3. **Set-aside money must feel *spoken-for*, not spendable.** Not locked away. Not hidden. Just clearly labeled as already committed, so my hand pauses before it moves.
+2. **The view must be _now_, not later.** Not a monthly report. A number I can see before I hand over cash.
+3. **Set-aside money must feel _spoken-for_, not spendable.** Not locked away. Not hidden. Just clearly labeled as already committed, so my hand pauses before it moves.
 
 NUMI shows money through three lenses — the same three lenses taught in standard South African financial literacy education:
 
@@ -51,8 +51,8 @@ NUMI shows money through three lenses — the same three lenses taught in standa
 Someone in a position like mine can:
 
 - Enter money in and money out in under 5 seconds, without navigating menus
-- See, at a glance, what is safe to spend *right now* without breaking commitments already made
-- Set money aside for a specific purpose and have it read as *unavailable* for casual spending
+- See, at a glance, what is safe to spend _right now_ without breaking commitments already made
+- Set money aside for a specific purpose and have it read as _unavailable_ for casual spending
 - Use the app fully without an internet connection, account, or subscription
 
 **Explicitly not v1:** goals, debt tracking, CSV import, cloud sync, voice logging, widgets. These are specified in the Playbook and scheduled for later phases.

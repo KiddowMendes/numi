@@ -3,14 +3,18 @@ import "@/lib/polyfill";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { Component, type ReactNode, useCallback, useEffect } from "react";
+import { Component, useCallback, useEffect, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  initialWindowMetrics,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 import { Toast, buildToastConfig } from "@/components/app-toast";
-import { EngineProvider, useStore } from "@/store";
 import { color, spacing, typography } from "@/constants/tokens";
 import { useThemeMode } from "@/hooks/use-theme";
+import { EngineProvider, useStore } from "@/store";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -24,11 +28,21 @@ const SPLASH_CEILING_MS = 1500;
 
 function AppToast() {
   const mode = useThemeMode();
-  return <Toast config={buildToastConfig(color[mode])} topOffset={72} />;
+  const insets = useSafeAreaInsets();
+  return (
+    <Toast
+      config={buildToastConfig(color[mode])}
+      topOffset={insets.top + spacing.xl}
+    />
+  );
 }
 
 function Routing() {
   const isOnboarded = useStore((s) => s.isOnboarded);
+  const pinSet = useStore((s) => s.pinSet);
+  const isUnlocked = useStore((s) => s.isUnlocked);
+  const keychainPinSet = useStore((s) => s.keychainPinSet);
+  const refreshKeychainPin = useStore((s) => s.refreshKeychainPin);
   const mode = useThemeMode();
 
   const [fontsLoaded, fontError] = useFonts({
@@ -51,9 +65,34 @@ function Routing() {
     return () => clearTimeout(ceiling);
   }, [ready, hide]);
 
-  if (!ready) return null;
+  // The keychain is the only state that outlives a cold launch, so it decides
+  // whether there is a lock to pass. Re-read whenever the store marks it stale
+  // (first mount, and after "Forgot PIN?" wipes the entry).
+  useEffect(() => {
+    if (keychainPinSet !== null) return;
+    void refreshKeychainPin();
+  }, [keychainPinSet, refreshKeychainPin]);
+
+  if (!ready || keychainPinSet === null) return null;
 
   const theme = color[mode];
+
+  // `pinSet` is the in-memory mirror the onboarding flow writes; `keychainPinSet`
+  // is the durable one. Either means a lock exists.
+  const locked = keychainPinSet || pinSet;
+
+  // The lock is asked for on the strength of the hash alone. It must NOT also
+  // require `isOnboarded`: after a cold launch the hash survives while
+  // `isOnboarded` resets to false, so gating on both would quietly skip the PIN
+  // on exactly the return visit it exists for.
+  //
+  // It is skipped while onboarding is still running, though. `pin` is
+  // deliberately mid-journey at that point, and demanding the code the user is
+  // still setting — before `quick-setup` and `all-set` have run — guards
+  // `(onboarding)` out from under the very navigation that is in flight.
+  const onboarding = !isOnboarded;
+  const showUnlock = locked && !isUnlocked && !onboarding;
+  const showApp = isOnboarded && (!locked || isUnlocked);
 
   return (
     <Stack
@@ -62,10 +101,13 @@ function Routing() {
         contentStyle: { backgroundColor: theme.background },
       }}
     >
-      <Stack.Protected guard={!isOnboarded}>
+      <Stack.Protected guard={!showApp && !showUnlock}>
         <Stack.Screen name="(onboarding)" />
       </Stack.Protected>
-      <Stack.Protected guard={isOnboarded}>
+      <Stack.Protected guard={showUnlock}>
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+      <Stack.Protected guard={showApp}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="review" />
       </Stack.Protected>
@@ -105,7 +147,7 @@ class ErrorBoundary extends Component<
 export default function RootLayout() {
   return (
     <ErrorBoundary>
-      <SafeAreaProvider>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <EngineProvider>
           <Routing />
           <AppToast />

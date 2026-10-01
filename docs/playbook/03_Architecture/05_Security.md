@@ -17,14 +17,14 @@ decision_record: none
 
 ## Threat Model
 
-| Threat | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Device stolen | High | High | Local encryption, no cloud account required |
-| App data extracted | Medium | High | SQLCipher or encrypted SQLite |
-| Network interception (sync v2) | Medium | Medium | TLS 1.3, certificate pinning |
-| Cloud breach | Low | High | Minimal data stored, no PII in domain |
-| Shoulder surfing | High | Medium | Large fonts, no masking of "safe" data, biometric lock optional |
-| Malicious backup restore | Low | Medium | Backup tied to device key, export is plaintext JSON (user's responsibility) |
+| Threat                         | Likelihood | Impact | Mitigation                                                                  |
+| ------------------------------ | ---------- | ------ | --------------------------------------------------------------------------- |
+| Device stolen                  | High       | High   | Local encryption, no cloud account required                                 |
+| App data extracted             | Medium     | High   | SQLCipher or encrypted SQLite                                               |
+| Network interception (sync v2) | Medium     | Medium | TLS 1.3, certificate pinning                                                |
+| Cloud breach                   | Low        | High   | Minimal data stored, no PII in domain                                       |
+| Shoulder surfing               | High       | Medium | Large fonts, no masking of "safe" data, biometric lock optional             |
+| Malicious backup restore       | Low        | Medium | Backup tied to device key, export is plaintext JSON (user's responsibility) |
 
 ---
 

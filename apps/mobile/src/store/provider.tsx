@@ -1,8 +1,9 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
-  useMemo,
+  useState,
   type ReactNode,
 } from "react";
 import { createEngine, type AppState, type EngineAPI } from "@numi/domain";
@@ -12,6 +13,14 @@ import { useStore } from "./store";
 
 type EngineContextValue = {
   engine: EngineAPI;
+  /**
+   * Discards the engine and builds a fresh one at its seed state.
+   *
+   * Backs "Forgot PIN? Reset app". `EngineAPI` has no `reset()`, and adding one
+   * would mean a method on the engine whose only caller is a screen — the reset
+   * is a new-user concern, so the fresh instance is created here instead.
+   */
+  resetEngine: () => void;
 };
 
 const EngineContext = createContext<EngineContextValue | null>(null);
@@ -65,14 +74,21 @@ function createInitialState(): AppState {
 }
 
 export function EngineProvider({ children }: Props) {
-  const engine = useMemo(() => createEngine(createInitialState()), []);
+  // State, not `useMemo`: the instance has to be replaceable by `resetEngine`.
+  const [engine, setEngine] = useState<EngineAPI>(() =>
+    createEngine(createInitialState()),
+  );
+
+  const resetEngine = useCallback(() => {
+    setEngine(createEngine(createInitialState()));
+  }, []);
 
   useEffect(() => {
     useStore.getState().setEngine(engine);
   }, [engine]);
 
   return (
-    <EngineContext.Provider value={{ engine }}>
+    <EngineContext.Provider value={{ engine, resetEngine }}>
       {children}
     </EngineContext.Provider>
   );

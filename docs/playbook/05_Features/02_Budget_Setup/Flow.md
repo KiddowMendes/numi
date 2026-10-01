@@ -19,6 +19,7 @@ decision_record: none
 **Trigger:** Today > active Period end_date. User opens app.
 
 **Steps:**
+
 1. HomeScreen shows Period Ended state.
 2. Banner: "Your [Period name] ended. Start a new period?"
 3. User taps "Start new period".
@@ -37,6 +38,7 @@ decision_record: none
 **Trigger:** User receives unexpected income mid-Period.
 
 **Steps:**
+
 1. User logs income (Daily Budgeting flow).
 2. Toast offers: "Start a new period?" (dismissible, not blocking).
 3. If user taps:
@@ -52,6 +54,7 @@ decision_record: none
 **Trigger:** User realizes they need more time (late income, miscalculation).
 
 **Steps:**
+
 1. PlanScreen → Period card → "Extend period".
 2. Sheet: New end date picker.
 3. Validation: Must be after current end_date.
@@ -64,6 +67,7 @@ decision_record: none
 **Trigger:** User wants the same Assignments as last time.
 
 **Steps:**
+
 1. During Period creation, sheet shows "Use last plan" button.
 2. Tapping pre-fills all Assignments from previous Period.
 3. User can edit individual amounts before saving.
@@ -76,6 +80,7 @@ decision_record: none
 **Trigger:** User wants a blank slate.
 
 **Steps:**
+
 1. During Period creation, "Clear all" button.
 2. All suggested Assignments removed.
 3. User creates Assignments one by one.
@@ -88,6 +93,7 @@ decision_record: none
 **Trigger:** User wants to end a Period before the end_date.
 
 **Steps:**
+
 1. PlanScreen → Period card → "Close period".
 2. Confirmation sheet: "Close '[Name]' early? R[unspent] will become unassigned."
 3. Confirm.
@@ -98,11 +104,11 @@ decision_record: none
 
 ## Recovery Paths
 
-| If User... | Then... |
-|---|---|
-| Cancels Period creation | Returns to previous state. Old Period remains active (if not ended). |
-| Creates Period with 0 assignments | Valid. All money unassigned. Safe-to-Spend = full balance / days. |
-| Extends Period but no money left | Valid. Daily Safe-to-Spend may be 0 or negative. |
+| If User...                          | Then...                                                                  |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| Cancels Period creation             | Returns to previous state. Old Period remains active (if not ended).     |
+| Creates Period with 0 assignments   | Valid. All money unassigned. Safe-to-Spend = full balance / days.        |
+| Extends Period but no money left    | Valid. Daily Safe-to-Spend may be 0 or negative.                         |
 | Closes Period with negative balance | Valid. Over-commitment is preserved in history. New Period starts fresh. |
 
 ---

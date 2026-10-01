@@ -1,5 +1,5 @@
-import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
-import { Repository } from '../src/repository.js';
+import initSqlJs, { Database as SqlJsDatabase } from "sql.js";
+import { Repository } from "../src/repository.js";
 
 let SQL: Awaited<ReturnType<typeof initSqlJs>>;
 

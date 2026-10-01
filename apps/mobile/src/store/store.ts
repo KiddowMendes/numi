@@ -1,11 +1,14 @@
 import { create } from "zustand";
 
 import type { AppState, EngineAPI, Transaction } from "@numi/domain";
+import { randToCents } from "@numi/utils";
 
 import {
   defaultThemePreference,
   type ThemePreferenceValue,
 } from "@numi/design-system";
+
+import { hasPin } from "@/lib/pin";
 
 type TransactionDraft = {
   type: "income" | "expense";
@@ -20,6 +23,13 @@ type TransactionResult =
   | { ok: true; value: Transaction }
   | { ok: false; errors: { code: string; message: string }[] };
 
+/** What `all-set` shows, and what it would show if the user backed out of it. */
+export type OnboardingSummary = {
+  walletCount: number;
+  budgetCount: number;
+  lines: string[];
+};
+
 function generateId(): string {
   if (
     typeof globalThis.crypto !== "undefined" &&
@@ -30,21 +40,49 @@ function generateId(): string {
   return `tx-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function parseAmountToCents(input: string): number {
-  const cleaned = input.replace(/[^0-9.\-]/g, "");
-  return Math.round(parseFloat(cleaned) * 100);
-}
-
 type StoreState = {
   /** Current app state snapshot — synced from Engine on every mutation */
   appState: AppState;
   /** Reference to the Engine instance — set once on mount */
   engine: EngineAPI | null;
-  /** Whether user has finished the onboarding flow */
+  /**
+   * Whether the user finished `all-set`. Explicit, never derived.
+   *
+   * It used to be computed in `setEngine` as
+   * `!!activePeriod && (assignments || transactions)`, which cannot express the
+   * ADR-0002 flow: `quick-setup` is skippable, so onboarding completes with no
+   * period and no assignments at all.
+   */
   isOnboarded: boolean;
+  /** Display name captured on `welcome`. Trimmed before it is stored. */
+  userName: string;
+  /**
+   * Mirrors the keychain, not the source of truth for it.
+   *
+   * Only ever set after `SecureStore.setItemAsync` resolves. An optimistic flip
+   * would strand a user on an `unlock` screen they cannot pass, because the
+   * hash was never written. See `Edge_Cases.md` EC19.
+   */
+  pinSet: boolean;
+  /**
+   * The durable half of the lock: has the keychain entry been read yet, and is
+   * a PIN stored?
+   *
+   * `null` means "not read yet" and gates the bootstrap render, because a
+   * routing decision taken before the read is the decision to show onboarding
+   * to someone who has a PIN. Lives in the store rather than in `_layout`
+   * local state so `resetForNewUser` can invalidate it — a mount-only read
+   * kept claiming a PIN was set after "Forgot PIN?" had deleted it, which
+   * stranded the user on an unlock screen with no way past it.
+   */
+  keychainPinSet: boolean | null;
+  /** Cleared on a cold launch, and re-earned by passing `unlock`. */
+  isUnlocked: boolean;
+  /** Written by `quick-setup`, read by `all-set`. */
+  onboardingSummary: OnboardingSummary | null;
   /** Transient draft for the transaction entry form */
   draft: TransactionDraft;
-  /** Light/dark choice made during onboarding. Never defaults to `system`. */
+  /** Light/dark choice. Never defaults to `system`. */
   themePreference: ThemePreferenceValue;
 };
 
@@ -55,6 +93,26 @@ type StoreActions = {
   syncFromEngine: () => void;
   /** Complete the onboarding flow and show main tabs */
   completeOnboarding: () => void;
+  setUserName: (name: string) => void;
+  /** Call only after the keychain write resolves. */
+  markPinSet: () => void;
+  /** Re-read the keychain and update `keychainPinSet`. */
+  refreshKeychainPin: () => Promise<void>;
+  markUnlocked: () => void;
+  setOnboardingSummary: (summary: OnboardingSummary) => void;
+  /**
+   * Wipe the store back to its first-launch shape.
+   *
+   * Backs "Forgot PIN? Reset app". The caller is also responsible for
+   * `resetEngine()` from `useEngine()` — the engine and the store are separate
+   * owners, and stale wallets left in the engine would make the next
+   * `createWallet` return TIER_LIMIT_EXCEEDED against a wallet the user can no
+   * longer see.
+   *
+   * `isOnboarded` is cleared too, so the bootstrap gate returns the user to
+   * `welcome` rather than onto the empty Home they just reset.
+   */
+  resetForNewUser: () => void;
   /** Update a single field on the transaction draft */
   setDraftField: <K extends keyof TransactionDraft>(
     key: K,
@@ -64,7 +122,7 @@ type StoreActions = {
   clearDraft: () => void;
   /** Log a transaction from the current draft, sync engine, return result */
   logTransaction: () => TransactionResult;
-  /** Set the light/dark choice. Called from onboarding, then from Settings. */
+  /** Set the light/dark choice. Called from Settings. */
   setThemePreference: (preference: ThemePreferenceValue) => void;
 };
 
@@ -77,31 +135,33 @@ const INITIAL_DRAFT: TransactionDraft = {
   date: new Date(),
 };
 
+const INITIAL_APP_STATE: AppState = {
+  user: { id: "", tier: "free" },
+  activePeriod: null,
+  periods: [],
+  wallets: [],
+  categories: [],
+  goals: [],
+  assignments: [],
+  transactions: [],
+};
+
 export const useStore = create<StoreState & StoreActions>((set, get) => ({
-  appState: {
-    user: { id: "", tier: "free" },
-    activePeriod: null,
-    periods: [],
-    wallets: [],
-    categories: [],
-    goals: [],
-    assignments: [],
-    transactions: [],
-  },
+  appState: INITIAL_APP_STATE,
   engine: null,
   isOnboarded: false,
+  userName: "",
+  pinSet: false,
+  keychainPinSet: null,
+  isUnlocked: false,
+  onboardingSummary: null,
   draft: { ...INITIAL_DRAFT },
   themePreference: defaultThemePreference,
 
   setEngine: (engine) => {
-    const appState = engine.getState();
-    set({
-      engine,
-      appState,
-      isOnboarded:
-        !!appState.activePeriod &&
-        (appState.assignments.length > 0 || appState.transactions.length > 0),
-    });
+    // `isOnboarded` is deliberately not touched here. It is set by
+    // `completeOnboarding` and cleared by `resetForNewUser`, and nothing else.
+    set({ engine, appState: engine.getState() });
   },
 
   syncFromEngine: () => {
@@ -113,6 +173,50 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
 
   completeOnboarding: () => {
     set({ isOnboarded: true });
+  },
+
+  setUserName: (name) => {
+    set({ userName: name.trim() });
+  },
+
+  markPinSet: () => {
+    set({ pinSet: true });
+  },
+
+  refreshKeychainPin: async () => {
+    try {
+      set({ keychainPinSet: await hasPin() });
+    } catch (error: unknown) {
+      console.error("[Store] Keychain read failed:", error);
+      // Fail open, as the bootstrap did before this moved into the store. An
+      // unreadable keychain is no reason to strand someone on a splash, and
+      // refusing entry when no PIN is set locks out every first launch.
+      set({ keychainPinSet: false });
+    }
+  },
+
+  markUnlocked: () => {
+    set({ isUnlocked: true });
+  },
+
+  setOnboardingSummary: (summary) => {
+    set({ onboardingSummary: summary });
+  },
+
+  resetForNewUser: () => {
+    set({
+      appState: INITIAL_APP_STATE,
+      isOnboarded: false,
+      userName: "",
+      isUnlocked: false,
+      // The caller has just deleted the stored hash, so a stale `true` here
+      // would keep demanding a PIN that no longer exists. `null` forces the
+      // next bootstrap to read the keychain again.
+      pinSet: false,
+      keychainPinSet: null,
+      onboardingSummary: null,
+      draft: { ...INITIAL_DRAFT, date: new Date() },
+    });
   },
 
   setThemePreference: (preference) => {
@@ -146,7 +250,7 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
       };
     }
 
-    const amountCents = parseAmountToCents(draft.amount);
+    const amountCents = randToCents(draft.amount);
     if (amountCents <= 0) {
       return {
         ok: false,

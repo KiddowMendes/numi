@@ -21,7 +21,7 @@ decision_record: none
 A free registration that enables cloud-adjacent features (web view, manual backup, limited history). Distinct from a Wallet. Does not require payment.
 
 **Actual**  
-One of the three sacred lenses. A record of what *really happened* — money that was truly spent, earned, or moved. Used for learning and calibration, not judgment. See also: Current, Planned.
+One of the three sacred lenses. A record of what _really happened_ — money that was truly spent, earned, or moved. Used for learning and calibration, not judgment. See also: Current, Planned.
 
 **Agency**  
 The user's right to choose. NUMI informs; it does not decide. A core principle.
@@ -41,10 +41,10 @@ A plan for money that has already arrived. In NUMI, a budget is not a forecast o
 A label that describes the purpose of a transaction. Examples: Groceries, Transport, Airtime. Categories are unlimited on all tiers. A transaction must have exactly one category.
 
 **Commitment**  
-Money that has been assigned to a category or goal and is therefore no longer available for casual spending. Committed money is still physically present in a Wallet, but it reads as *spoken-for*.
+Money that has been assigned to a category or goal and is therefore no longer available for casual spending. Committed money is still physically present in a Wallet, but it reads as _spoken-for_.
 
 **Current**  
-One of the three sacred lenses. A real-time view of what is *truly free to spend right now* — total available money minus total commitments. The default view when the app opens.
+One of the three sacred lenses. A real-time view of what is _truly free to spend right now_ — total available money minus total commitments. The default view when the app opens.
 
 ---
 
@@ -119,7 +119,7 @@ Colloquial term for a Wallet. A manual representation of a real-world store of m
 ## P
 
 **Planned**  
-One of the three sacred lenses. A view of money that has been *assigned to a purpose* but not yet spent. Shows whether commitments will last until the next income arrives. Used to surface tension before it becomes a crisis.
+One of the three sacred lenses. A view of money that has been _assigned to a purpose_ but not yet spent. Shows whether commitments will last until the next income arrives. Used to surface tension before it becomes a crisis.
 
 **Premium Tier**  
 NUMI Supporter. Paid. Unlocks unlimited Wallets and Goals, real-time sync, voice logging, widgets, advanced insights, export tools, and family sharing. Funds the free tier.
@@ -165,7 +165,7 @@ The atomic unit of NUMI. A record of money moving in, out, or between Wallets. E
 ## V
 
 **Visibility**  
-The state of seeing money clearly *before* spending it. The opposite of invisible spending. The core value proposition.
+The state of seeing money clearly _before_ spending it. The opposite of invisible spending. The core value proposition.
 
 ---
 

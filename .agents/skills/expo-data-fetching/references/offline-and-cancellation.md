@@ -67,7 +67,7 @@ useEffect(() => {
 // Cancellation only occurs when the query function consumes the provided signal,
 // for example by passing it to fetch:
 useQuery({
-  queryKey: ['data', url],
-  queryFn: ({ signal }) => fetch(url, { signal }).then(r => r.json()),
+  queryKey: ["data", url],
+  queryFn: ({ signal }) => fetch(url, { signal }).then((r) => r.json()),
 });
 ```

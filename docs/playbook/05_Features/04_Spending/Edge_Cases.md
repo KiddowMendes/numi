@@ -22,6 +22,7 @@ decision_record: none
 **Symptoms:** User opens History with zero Transactions logged.
 
 **Expected:**
+
 - HistoryScreen shows Block C empty state: "No transactions yet. Log your first spend to see your money clearly."
 - Filter icon still opens; applying any filter changes nothing (list stays on the empty state).
 - The rest of the app works: logging, Wallets, Daily Budgeting (per Daily Budgeting EC1).
@@ -35,6 +36,7 @@ decision_record: none
 **Symptoms:** Filters active but nothing matches; search query has no hits.
 
 **Expected:**
+
 - Filters: "No transactions match. Clear filters?" (Block C). "Clear all" resets to the default view (per Flow 2).
 - Search (Premium): "No results for '[query]'." + "Try a different word or clear filters." (SearchOverlay empty state, per Screens 4).
 - Zero-result states are neutral — the data is not lost, the filter is.
@@ -48,6 +50,7 @@ decision_record: none
 **Symptoms:** 5+ years of history, tens of thousands of Transactions; mid-range Android device.
 
 **Expected:**
+
 - HistoryScreen renders from in-memory state loaded at app start — no per-frame/on-scroll DB reads (per `03_Architecture/04_Offline_First_Strategy.md` load-at-start pattern).
 - Lists virtualize after 50 items; scroll-to-load-more stays responsive (Flow 1).
 - Search (Premium) is a local SQLite LIKE query with a 300ms debounce — no network (Flow 3).
@@ -62,6 +65,7 @@ decision_record: none
 **Symptoms:** No active Budget Period (fresh install or ended period — BR-S4); user selects "This period" in FilterSheet.
 
 **Expected:**
+
 - "This period" has no meaning without a Period, so it falls back to **All time** silently. The list shows everything, unchanged.
 - No nudge, no empty state, no Budget Setup redirect — History is the honest record and keeps showing it.
 
@@ -74,6 +78,7 @@ decision_record: none
 **Symptoms:** User reverses a Transaction that is itself a reversal (Flow 5 allows it: "User can reverse a reversal.").
 
 **Expected:**
+
 - Allowed. The Engine creates a new reversing Transaction referencing the reversal's ID (BR-T3, BR-T4).
 - History shows the full chain: original → reversal → re-reversal. Net effect on balances is restored; Safe-to-Spend updates immediately.
 - Each entry: note "Reversal of [id]" pointing at its immediate predecessor.
@@ -87,6 +92,7 @@ decision_record: none
 **Symptoms:** User reverses a Transfer Transaction.
 
 **Expected:**
+
 - The reversal is a new **Transfer** Transaction with source and destination swapped (BR-T5: two different Wallets; BR-C2: no Category).
 - Both Wallet balances update atomically by the Engine (BR-W5), and Safe-to-Spend updates immediately.
 - Detail sheet shows the reversal entry as a Transfer with its own color (Screens 3), note referencing the original (BR-T4).
@@ -100,6 +106,7 @@ decision_record: none
 **Symptoms:** User taps "Reverse this transaction" or the confirmation "Confirm" twice in rapid succession.
 
 **Expected:**
+
 - Exactly one reversing Transaction is created — the second tap is ignored while the first resolves (I6).
 - One toast: "Reversed." The sheet dismisses once.
 
@@ -112,6 +119,7 @@ decision_record: none
 **Symptoms:** User reverses a Transaction with no connectivity (airplane mode).
 
 **Expected:**
+
 - Reversal works locally: the reversing Transaction is created immediately, balances and Safe-to-Spend update (I7, R4.4).
 - The original and its reversal both enter the persistent sync queue **in creation order** — the queue is never reordered or dropped (OF8, OF9), so the pair syncs in sequence when connectivity returns and never appears as a lone reversal upstream.
 - No "You're offline" warning, no sync spinner in History (OF10 — the queue is invisible in the core UI).
@@ -125,6 +133,7 @@ decision_record: none
 **Symptoms:** Freemium/Premium user has a Category multi-select filter or Search active; the tier expires (R6.6).
 
 **Expected:**
+
 - The active view keeps working exactly as before — filters and search results stay (nothing is wiped).
 - New Premium actions are blocked at the point of action with a neutral upsell: starting a new search shows the tier message at creation time (I8). "CSV export" button is disabled with the same neutral note.
 - Nothing is auto-downgraded: applying a new filter simply returns the control to Free behavior (single-select Category).
@@ -138,6 +147,7 @@ decision_record: none
 **Symptoms:** User opens History in the web app.
 
 **Expected:**
+
 - Web History is a lagged mirror of the cloud (OF2, OF6): data shown is as-of the last sync, with sync status visible (OF14).
 - Web reversal attempts behave like any web edit: subject to the timestamp check — rejected with "Your phone has newer data." (OF13) when the device has newer data.
 - Divergence is never silent: the user is told what state the web view is in (R6.2).
@@ -151,9 +161,10 @@ decision_record: none
 **Symptoms:** Device local timezone changes (travel) or a Transaction is logged at 23:55 local.
 
 **Expected:**
+
 - Date grouping ("Today", "Yesterday") is always computed in the device's local timezone (BR-X4 — no UTC conversion).
 - A Transaction logged at 23:55 on 31 August stays on 31 August, even across a timezone change.
-- If a Transaction was logged in a different timezone, it displays in the *current* local-date grouping — stored timestamps are never rewritten.
+- If a Transaction was logged in a different timezone, it displays in the _current_ local-date grouping — stored timestamps are never rewritten.
 
 **Forbidden:** UTC conversion of stored times, regrouping by a timezone other than device-local, or editing the stored timestamp on display.
 
@@ -164,6 +175,7 @@ decision_record: none
 **Symptoms:** App backgrounded/closed while History was open; user switches tabs mid-scroll or mid-search.
 
 **Expected:**
+
 - Nothing is committed unless an action completed: filters, search query, and scroll position are transient and discarded quietly (I6).
 - No "Resume where you left off?" modal, no draft restoration — History reopens at the default view (last 30 days, all Wallets/Categories).
 - A committed reversal (or its toast) is never lost after a completed confirm.
@@ -176,12 +188,12 @@ decision_record: none
 
 This document meets the directory's required edge-case coverage for Spending:
 
-| Required class | Covered by |
-|---|---|
-| No data | EC1 (fresh install), EC2 (zero-result filters/search) |
-| Too much data | EC3 (large datasets, slow devices) |
-| Offline | EC8 (offline reversal), EC10 (web lagged mirror) |
-| User interruption | EC7 (double-submit), EC12 (interrupt browse/search) |
+| Required class    | Covered by                                            |
+| ----------------- | ----------------------------------------------------- |
+| No data           | EC1 (fresh install), EC2 (zero-result filters/search) |
+| Too much data     | EC3 (large datasets, slow devices)                    |
+| Offline           | EC8 (offline reversal), EC10 (web lagged mirror)      |
+| User interruption | EC7 (double-submit), EC12 (interrupt browse/search)   |
 
 ---
 

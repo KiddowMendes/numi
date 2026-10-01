@@ -20,6 +20,7 @@ decision_record: none
 **Symptoms:** SafeToSpendHero shows "--" and "No active budget period."
 
 **Expected:**
+
 - Logging still works (Expense, Income, Transfer all available) — Transactions with no Period are permitted (BR-A4 only binds Assignments).
 - Wallet balances still count and display correctly.
 - A soft, dismissible prompt nudge appears: "Start a new budget period to see your daily plan." Dismissal persists (suppressed via local flag).
@@ -33,6 +34,7 @@ decision_record: none
 **Symptoms:** User logs an expense larger than the Wallet's available balance; Safe-to-Spend would go negative.
 
 **Expected:**
+
 - v1 engine policy (C12): hard reject — `INSUFFICIENT_BALANCE`. Inline error under AmountInput: "You don't have enough available in this wallet." Input shake, Save disabled until corrected.
 - No income minus expense direction policy — income is logged as its own Transaction; expenses are checked against available balance only.
 
@@ -45,6 +47,7 @@ decision_record: none
 **Symptoms:** Empty field, `0`, negative, malformed input (e.g. two decimal points).
 
 **Expected:**
+
 - Save stays disabled until a valid positive amount is present (BR-T1).
 - AmountInput restricts bad characters on entry; failures are silent-until-submit, then inline.
 
@@ -65,6 +68,7 @@ decision_record: none
 **Symptoms:** Sheet closed mid-typing; app backgrounded or killed while the sheet was open.
 
 **Expected:**
+
 - No Transaction is committed unless "Save" was tapped.
 - Unsaved input is discarded quietly — no "Resume draft?" modal; that friction would kill speed (I6).
 - If amount AND category were entered (the draft is plausibly complete), the draft is retained in memory only and discarded on app exit — no persistence.
@@ -78,6 +82,7 @@ decision_record: none
 **Symptoms:** User taps Save twice in rapid succession.
 
 **Expected:**
+
 - Save debounces: second tap ignored while the first is resolving (I6).
 - Exactly one Transaction created — the toast fires once.
 
@@ -118,6 +123,7 @@ decision_record: none
 **Symptoms:** No connectivity; possibly never connected.
 
 **Expected:**
+
 - Core loop fully functional: logging, balances, Safe-to-Spend, breakdown — all local (R4.4, I7).
 - Deferred sync queue holds outgoing changes; queue length is invisible in the core UI (per `03_Architecture/04_Offline_First_Strategy.md`).
 - No offline banner, no "You're offline" nag, no degraded styling on the core screen.
@@ -141,6 +147,7 @@ decision_record: none
 **Symptoms:** 5+ years of history, tens of thousands of Transactions; mid-range Android device.
 
 **Expected:**
+
 - HomeScreen renders from in-memory state — no per-frame DB reads (per `04_Offline_First_Strategy.md` load-at-start pattern).
 - Lists virtualize; breakdown math is cached and invalidated on write, not recomputed on read (C5 constant-time lookup).
 
@@ -152,11 +159,11 @@ decision_record: none
 
 This document meets the directory's required edge-case coverage for Daily Budgeting:
 
-| Required class | Covered by |
-|---|---|
-| No data | EC1 (no Period / fresh install) |
-| Too much data | EC12 (large datasets) |
-| Offline | EC10 (airplane mode), EC11 (sync conflicts) |
+| Required class    | Covered by                                      |
+| ----------------- | ----------------------------------------------- |
+| No data           | EC1 (no Period / fresh install)                 |
+| Too much data     | EC12 (large datasets)                           |
+| Offline           | EC10 (airplane mode), EC11 (sync conflicts)     |
 | User interruption | EC5 (mid-log interruption), EC6 (double-submit) |
 
 ---

@@ -17,12 +17,12 @@ decision_record: none
 
 ## Data Stores
 
-| Store | Purpose | Owner |
-|---|---|---|
-| Local Database (Device) | Authoritative ledger. All entities. | Device |
-| In-Memory State | Current AppState passed to Engine. | App |
+| Store                   | Purpose                                   | Owner                             |
+| ----------------------- | ----------------------------------------- | --------------------------------- |
+| Local Database (Device) | Authoritative ledger. All entities.       | Device                            |
+| In-Memory State         | Current AppState passed to Engine.        | App                               |
 | Cloud Mirror (Optional) | Copy of device data for web/multi-device. | User's account (Freemium/Premium) |
-| Web Cache | Lagged read-only copy for web app. | Browser |
+| Web Cache               | Lagged read-only copy for web app.        | Browser                           |
 
 ---
 
@@ -60,14 +60,14 @@ decision_record: none
 
 ## Data Transformations
 
-| From | To | Where | How |
-|---|---|---|---|
-| User input (Rands) | Cents (integer) | UI layer | Multiply by 100, round |
-| Cents (integer) | Display Rands | UI layer | Divide by 100, format |
-| Local DB rows | AppState | Repository layer | Map rows to entities |
-| AppState | Local DB rows | Repository layer | Map entities to rows |
-| AppState | Engine result | Engine | Pure function: old state + operation = new state |
-| Engine result | UI update | UI layer | Reactive binding |
+| From               | To              | Where            | How                                              |
+| ------------------ | --------------- | ---------------- | ------------------------------------------------ |
+| User input (Rands) | Cents (integer) | UI layer         | Multiply by 100, round                           |
+| Cents (integer)    | Display Rands   | UI layer         | Divide by 100, format                            |
+| Local DB rows      | AppState        | Repository layer | Map rows to entities                             |
+| AppState           | Local DB rows   | Repository layer | Map entities to rows                             |
+| AppState           | Engine result   | Engine           | Pure function: old state + operation = new state |
+| Engine result      | UI update       | UI layer         | Reactive binding                                 |
 
 ---
 
@@ -123,26 +123,26 @@ A simple outbox pattern on the device:
 
 ## Failure Modes
 
-| Scenario | Behavior |
-|---|---|
-| Device offline | Continue normally. Queue sync for later. |
-| DB corruption on device | Enter read-only mode. Prompt user to restore from backup (Freemium/Premium) or export data. |
-| Cloud sync conflict | Device wins. Web edit rejected with message: "Your phone has newer data." |
-| App killed mid-transaction | In-memory state lost, but DB has last known good state. On relaunch, resume from DB. |
-| User deletes app | Local data gone. Freemium/Premium users can restore from cloud backup. Free users lose data (by design — no account, no cloud). |
+| Scenario                   | Behavior                                                                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Device offline             | Continue normally. Queue sync for later.                                                                                        |
+| DB corruption on device    | Enter read-only mode. Prompt user to restore from backup (Freemium/Premium) or export data.                                     |
+| Cloud sync conflict        | Device wins. Web edit rejected with message: "Your phone has newer data."                                                       |
+| App killed mid-transaction | In-memory state lost, but DB has last known good state. On relaunch, resume from DB.                                            |
+| User deletes app           | Local data gone. Freemium/Premium users can restore from cloud backup. Free users lose data (by design — no account, no cloud). |
 
 ---
 
 ## Privacy Boundary
 
-| Data | Stays on Device | Goes to Cloud |
-|---|---|---|
-| Transactions | Yes | Only if user has account and sync enabled |
-| Categories | Yes | Yes (if synced) |
-| Wallet names | Yes | Yes (if synced) |
-| Goals | Yes | Yes (if synced) |
-| User email/password | No (not in domain) | Yes (handled by auth infrastructure) |
-| Analytics events | No | Aggregate counts only, no user ID |
+| Data                | Stays on Device    | Goes to Cloud                             |
+| ------------------- | ------------------ | ----------------------------------------- |
+| Transactions        | Yes                | Only if user has account and sync enabled |
+| Categories          | Yes                | Yes (if synced)                           |
+| Wallet names        | Yes                | Yes (if synced)                           |
+| Goals               | Yes                | Yes (if synced)                           |
+| User email/password | No (not in domain) | Yes (handled by auth infrastructure)      |
+| Analytics events    | No                 | Aggregate counts only, no user ID         |
 
 ---
 

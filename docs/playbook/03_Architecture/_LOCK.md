@@ -24,10 +24,10 @@ ADR required.
 
 ## Directory Inventory
 
-| File | Status | Locked Date | Last ADR |
-|---|---|---|---|
-| 01_Tech_Stack.md | Locked | 2026-08-22 | — |
-| 02_System_Design.md | Locked | 2026-08-22 | — |
-| 03_Monorepo_Structure.md | Locked | 2026-08-22 | — |
-| 04_Offline_First_Strategy.md | Locked | 2026-08-22 | — |
-| 05_Security.md | Locked | 2026-08-22 | — |
+| File                         | Status | Locked Date | Last ADR |
+| ---------------------------- | ------ | ----------- | -------- |
+| 01_Tech_Stack.md             | Locked | 2026-08-22  | —        |
+| 02_System_Design.md          | Locked | 2026-08-22  | —        |
+| 03_Monorepo_Structure.md     | Locked | 2026-08-22  | —        |
+| 04_Offline_First_Strategy.md | Locked | 2026-08-22  | —        |
+| 05_Security.md               | Locked | 2026-08-22  | —        |
