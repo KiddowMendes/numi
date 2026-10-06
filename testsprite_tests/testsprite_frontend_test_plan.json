@@ -1,0 +1,994 @@
+[
+  {
+    "id": "TC001",
+    "title": "Log an expense from home and see it reflected immediately",
+    "description": "This verifies that a user can create an expense from the home screen and immediately see the safe-to-spend and history update.",
+    "category": "Transaction entry",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the floating action button"
+      },
+      {
+        "type": "action",
+        "description": "Select an expense transaction type"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid amount into the amount field"
+      },
+      {
+        "type": "action",
+        "description": "Select a category"
+      },
+      {
+        "type": "action",
+        "description": "Fill a note into the note field"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the transaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the safe-to-spend value is updated"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new transaction appears in history"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Unlock the app with a valid PIN",
+    "description": "A returning user can enter the correct PIN and reach the app content after the unlock gate.",
+    "category": "PIN unlock gate",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /unlock"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the PIN field with a valid PIN"
+      },
+      {
+        "type": "action",
+        "description": "Submit the PIN"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the app content is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the unlock gate is no longer blocking access"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Create and confirm a PIN during onboarding",
+    "description": "This test verifies that a user can create a 4-digit PIN, confirm it successfully, and continue to the next onboarding step.",
+    "category": "Onboarding PIN creation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /pin"
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid 4-digit PIN"
+      },
+      {
+        "type": "action",
+        "description": "Continue to the confirmation step"
+      },
+      {
+        "type": "action",
+        "description": "Re-enter the same 4-digit PIN for confirmation"
+      },
+      {
+        "type": "action",
+        "description": "Submit the confirmation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the quick setup step is shown"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Continue into the app when keychain read is unreadable",
+    "description": "If the unlock gate cannot read stored keychain data, the user still continues into the app instead of getting stuck.",
+    "category": "PIN unlock gate",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /unlock"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the app content is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the unlock gate does not strand the user"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Log income from home without choosing a category",
+    "description": "This verifies that a user can create an income transaction from the home screen without a category and see the result reflected immediately.",
+    "category": "Transaction entry",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the floating action button"
+      },
+      {
+        "type": "action",
+        "description": "Select an income transaction type"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid amount into the amount field"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the transaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the safe-to-spend value is updated"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new transaction appears in history"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Lock the PIN pad after repeated wrong attempts",
+    "description": "Five wrong PIN attempts trigger a temporary lockout and prevent further unlocking until the lockout expires.",
+    "category": "PIN unlock gate",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /unlock"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the PIN field with an invalid PIN"
+      },
+      {
+        "type": "action",
+        "description": "Submit the PIN"
+      },
+      {
+        "type": "action",
+        "description": "Repeat the wrong PIN submission until the lockout state appears"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a lockout state is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the PIN pad is disabled"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Complete quick setup with wallet and budget",
+    "description": "This test verifies that a first-time user can create the initial wallet, budget period, and budget amount and then reach the all-set step.",
+    "category": "Onboarding quick setup",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /quick-setup"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a wallet name"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid period start date"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a valid budget amount"
+      },
+      {
+        "type": "action",
+        "description": "Submit the quick setup form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the all-set step is shown"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Show the home dashboard with safe-to-spend and balance summary",
+    "description": "A user reaching the home screen sees the safe-to-spend hero and the total balance summary.",
+    "category": "Home screen with safe to spend",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the safe-to-spend hero is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the balance summary is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Create onboarding display name and continue",
+    "description": "This test verifies that a first-time user can enter a display name on the welcome step and proceed to PIN creation.",
+    "category": "Onboarding welcome",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /welcome"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the display name field with a valid name"
+      },
+      {
+        "type": "action",
+        "description": "Submit the onboarding form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the PIN creation step is shown"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Complete onboarding and enter the app",
+    "description": "A first-time user can finish onboarding and reach the main app with the setup summary confirmed.",
+    "category": "Onboarding summary",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /all-set"
+      },
+      {
+        "type": "action",
+        "description": "Click the control to confirm setup completion"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the main app is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the onboarding summary no longer blocks access"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Open transaction entry from the home screen",
+    "description": "A user can open the transaction entry sheet from the home screen without changing the read-only dashboard state.",
+    "category": "Home screen with safe to spend",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the floating action button to open transaction entry"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the transaction entry sheet is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the home dashboard remains in place behind the sheet"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "Show a newly created transaction immediately in history",
+    "description": "This verifies that creating a transaction from home is immediately reflected in the history screen without waiting for a reload.",
+    "category": "History screen",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the floating action button"
+      },
+      {
+        "type": "action",
+        "description": "Select an income transaction type"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid amount into the amount field"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the transaction"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /history"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the newly created transaction appears at the top of the list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Handle a mismatched PIN confirmation",
+    "description": "This test verifies that a mismatched confirmation PIN is rejected and the user remains on the PIN step with clear feedback.",
+    "category": "Onboarding PIN creation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /pin"
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid 4-digit PIN"
+      },
+      {
+        "type": "action",
+        "description": "Continue to the confirmation step"
+      },
+      {
+        "type": "action",
+        "description": "Re-enter a different 4-digit PIN for confirmation"
+      },
+      {
+        "type": "action",
+        "description": "Submit the confirmation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a PIN confirmation error is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "Skip quick setup and continue onboarding",
+    "description": "This test verifies that a user can skip quick setup and still complete onboarding.",
+    "category": "Onboarding quick setup",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /quick-setup"
+      },
+      {
+        "type": "action",
+        "description": "Skip quick setup"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the all-set step is shown"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC015",
+    "title": "Prevent double submission while a transaction is being processed",
+    "description": "This verifies that the confirm action is disabled during processing so the same transaction cannot be submitted twice.",
+    "category": "Transaction entry",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the floating action button"
+      },
+      {
+        "type": "action",
+        "description": "Select an expense transaction type"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid amount into the amount field"
+      },
+      {
+        "type": "action",
+        "description": "Select a category"
+      },
+      {
+        "type": "action",
+        "description": "Click the confirm action twice in quick succession"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the confirm action becomes disabled during submission"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify only one new transaction appears in history"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC016",
+    "title": "View the current plan assignments",
+    "description": "This verifies that the plan screen shows the current period and its category assignments in a read-only view.",
+    "category": "Plan screen",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /plan"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the current period is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify assignment amounts are displayed with category names"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC017",
+    "title": "Inspect the transaction ledger in newest-first order",
+    "description": "This verifies that the history screen lists transactions with the newest transaction first and shows the key details for each entry.",
+    "category": "History screen",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /history"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify transactions are displayed in newest-first order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify transaction details such as date, category, and amount are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC018",
+    "title": "Reject an empty onboarding display name",
+    "description": "This test verifies that the welcome step blocks continuation when the display name is missing and shows validation feedback.",
+    "category": "Onboarding welcome",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /welcome"
+      },
+      {
+        "type": "action",
+        "description": "Submit the onboarding form without entering a display name"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a display name validation error is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC019",
+    "title": "Prevent entering the app before onboarding is complete",
+    "description": "A user who opens the final onboarding summary too early is blocked or redirected back to the required setup step.",
+    "category": "Onboarding summary",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /all-set"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a blocked or redirected state is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the required onboarding step is shown"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC020",
+    "title": "Block zero or negative transaction amounts",
+    "description": "This verifies that invalid transaction amounts are rejected inline and the transaction sheet stays open.",
+    "category": "Transaction entry",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the floating action button"
+      },
+      {
+        "type": "action",
+        "description": "Select an expense transaction type"
+      },
+      {
+        "type": "action",
+        "description": "Fill an invalid amount into the amount field"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the transaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a validation error is visible for the amount"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the transaction sheet remains open"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC021",
+    "title": "Reject invalid quick setup budget data",
+    "description": "This test verifies that invalid or missing quick setup budget data is blocked and the user stays on the quick setup step.",
+    "category": "Onboarding quick setup",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /quick-setup"
+      },
+      {
+        "type": "action",
+        "description": "Leave the budget amount empty"
+      },
+      {
+        "type": "action",
+        "description": "Submit the quick setup form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a budget validation error is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC022",
+    "title": "Show an unusable safe-to-spend state when no active budget period exists",
+    "description": "The home screen remains usable and shows an empty safe-to-spend state when there is no active budget period.",
+    "category": "Home screen with safe to spend",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the safe-to-spend value is unavailable"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the home screen remains usable"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC023",
+    "title": "Block an expense when no category is selected",
+    "description": "This verifies that an expense cannot be saved without a category and the user stays on the transaction sheet.",
+    "category": "Transaction entry",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the floating action button"
+      },
+      {
+        "type": "action",
+        "description": "Select an expense transaction type"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid amount into the amount field"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the transaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a category validation error is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the transaction sheet remains open"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC024",
+    "title": "View the review summary",
+    "description": "The user can open the review screen and see a complete financial summary with category breakdowns.",
+    "category": "Review screen",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /review"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify balance, assigned, spent, and remaining summary information is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify category breakdown information is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC025",
+    "title": "Stay on the final onboarding step when completion is inconsistent",
+    "description": "If onboarding state is inconsistent during completion, the user remains on the final onboarding step and sees an error state.",
+    "category": "Onboarding summary",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /all-set"
+      },
+      {
+        "type": "action",
+        "description": "Click the control to confirm setup completion"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an error state is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the final onboarding step remains visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC026",
+    "title": "Show guidance when no categories are available",
+    "description": "This verifies that the transaction sheet explains there are no categories available and offers a way back to onboarding.",
+    "category": "Transaction entry",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the floating action button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a no-categories message is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a link back to onboarding is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC027",
+    "title": "View the settings surface",
+    "description": "The user can open the settings route and see the exposed preferences surface when it is available.",
+    "category": "Settings screen",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /settings"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a settings surface is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify app preferences content is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC028",
+    "title": "Show a fallback state when no active period exists",
+    "description": "This verifies that the plan screen shows an empty or fallback state when there is no active period.",
+    "category": "Plan screen",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /plan"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a fallback or empty state is visible for the period area"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC029",
+    "title": "See review fallback content when data is unavailable",
+    "description": "The user can open the review screen in an empty state and see fallback content instead of a broken page.",
+    "category": "Review screen",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /review"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a fallback or empty-state message is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the review screen remains usable"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC030",
+    "title": "Open settings without changing product behavior",
+    "description": "The user can open settings and confirm that preferences are not part of the active product flow.",
+    "category": "Settings screen",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /settings"
+      },
+      {
+        "type": "action",
+        "description": "Scroll the settings surface"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the settings screen remains limited or placeholder-like"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no core finance workflow is blocked"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC031",
+    "title": "Open the review screen from the app tabs",
+    "description": "The user can try to reach the review screen from the current navigation and see the unavailable navigation state when it is not wired in.",
+    "category": "Review screen",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /review"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the review screen is not available from the current tab navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an unavailable navigation state is shown"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC032",
+    "title": "See settings placeholder behavior in the current build",
+    "description": "The user can access settings in the current build scope and see that the surface is limited or placeholder behavior.",
+    "category": "Settings screen",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /settings"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify limited or placeholder settings behavior is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the settings surface is not presented as a full active product area"
+      }
+    ],
+    "priority": "Low"
+  }
+]

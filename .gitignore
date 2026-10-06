@@ -7,6 +7,7 @@ node_modules
 
 # Local env files
 .env
+.testsprite/
 .env.local
 .env.development.local
 .env.test.local
@@ -29,6 +30,7 @@ coverage
 out/
 build
 dist
+dist-testsprite
 
 
 # Debug
@@ -42,3 +44,5 @@ yarn-error.log*
 
 # Temp clone residue
 .turbo-clone-temp
+testsprite_tests/tmp/
+testsprite_tests/tmp/config.json
