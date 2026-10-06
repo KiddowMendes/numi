@@ -109,13 +109,16 @@ packages/
 │       └── api/
 │
 ├── database/                # @numi/database — Repository layer
-│   ├── package.json         # NOT YET CREATED (planned with sync work)
+│   ├── package.json
 │   ├── tsconfig.json
+│   ├── vitest.config.ts
 │   └── src/
 │       ├── index.ts
 │       ├── schema.ts
+│       ├── repository.ts
 │       ├── migrations/
-│       └── mappers/
+│       ├── mappers/
+│       └── types/           # ambient declarations for untyped deps (sql.js)
 │
 ├── design-system/           # @numi/design-system — Tokens
 │   ├── package.json
@@ -150,7 +153,6 @@ packages/
 **Repo note:**
 
 - The three `@repo/*` packages are create-turborepo leftovers. Remove them once `tooling/` configs are in use.
-- `packages/database` does not exist yet. It is created when the sync layer (v2) begins.
 
 ---
 

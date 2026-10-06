@@ -37,7 +37,7 @@ decision_record: null
 - **Scope:** Engine + repository (`packages/database`) — wallet persistence round trips, period close + reopen, engine restarts with existing data.
 - **Tool:** Vitest with in-memory SQLite.
 - **Target:** ≥ 80% of `packages/database`.
-- **Note:** `packages/database` does not exist yet — it is created when the sync layer begins (v2). The integration suite is specified now and stands up with the package.
+- **Note:** `packages/database` exists and its unit suite runs with the package; the sync integration suite is specified now and stands up when the sync layer begins.
 
 ## Component Tests (Optional)
 
