@@ -12,6 +12,7 @@
     "@numi/database": "workspace:*",
     "@numi/design-system": "workspace:*",
     "@numi/domain": "workspace:*",
+    "@numi/utils": "workspace:*",
     "@react-native-community/datetimepicker": "^9.2.1",
     "expo": "~57.0.9",
     "expo-constants": "~57.0.17",

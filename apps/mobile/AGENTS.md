@@ -9,7 +9,7 @@ The Expo React Native app, NUMI's primary interface. It uses expo router for fil
 - Expo SDK 57, React Native 0.86, React 19
 - expo router (file based routes, entry is `expo-router/entry`)
 - zustand for client state
-- Workspace deps: @numi/domain and @numi/database
+- Workspace deps: @numi/domain, @numi/database, @numi/design-system, @numi/utils
 
 ## Commands
 
