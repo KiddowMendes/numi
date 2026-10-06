@@ -14,6 +14,11 @@ const config = getDefaultConfig(projectRoot, {
 config.watchman = false;
 config.unstable_enableSymlinks = false;
 
+// Single transform worker. The default worker pool exhausts the Windows file
+// handle limit (EMFILE) partway through a web bundle, which fails the render
+// with "too many open files" rather than a real module error.
+config.maxWorkers = 1;
+
 // Watch the monorepo root so Metro sees workspace packages
 config.watchFolders = [monorepoRoot];
 
