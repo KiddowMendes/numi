@@ -1,9 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  calculatePeriodClose,
-  closePeriodState,
-} from "../../src/calculations/period-close.js";
-import { factories } from "../factories/index.js";
+import { calculatePeriodClose, closePeriodState } from "./period-close.js";
+import { factories } from "../test-support/index.js";
 
 describe("C14 - Period Close Calculation", () => {
   it("should return 0 when no assignments", () => {
@@ -107,8 +104,8 @@ describe("closePeriodState", () => {
     };
     const result = closePeriodState(state);
     expect(result.activePeriod).toBeNull();
-    expect(result.periods[0].is_active).toBe(false);
-    expect(result.wallets[0].balance).toBe(130000);
+    expect(result.periods[0]!.is_active).toBe(false);
+    expect(result.wallets[0]!.balance).toBe(130000);
   });
 
   it("should not change wallet balance when totalRemaining is zero", () => {
@@ -127,7 +124,7 @@ describe("closePeriodState", () => {
       transactions: [spentTx],
     };
     const result = closePeriodState(state);
-    expect(result.wallets[0].balance).toBe(100000);
+    expect(result.wallets[0]!.balance).toBe(100000);
   });
 
   it("should throw when no active period", () => {

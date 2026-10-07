@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { createEngine } from "../../src/api/EngineAPI.js";
-import { factories } from "../factories/index.js";
-import type { AppState } from "../../src/state.js";
+import { createEngine } from "./EngineAPI.js";
+import { factories } from "../test-support/index.js";
+import type { AppState } from "../state.js";
 
 function makeState(overrides: Partial<AppState> = {}): AppState {
   const user = factories.createUser({ id: "user1", tier: "freemium" });

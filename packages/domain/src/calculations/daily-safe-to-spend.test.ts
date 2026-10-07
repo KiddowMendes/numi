@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { calculateDailySafeToSpend } from "../../src/calculations/daily-safe-to-spend.js";
-import { factories } from "../factories/index.js";
+import { calculateDailySafeToSpend } from "./daily-safe-to-spend.js";
+import { factories } from "../test-support/index.js";
 
 describe("C5 - Daily Safe-to-Spend", () => {
   it("should return null if no active period", () => {
@@ -56,12 +56,13 @@ describe("C5 - Daily Safe-to-Spend", () => {
   });
 
   it("should subtract assignments and goals from wallets", () => {
-    const wallets = [factories.createWallet({ balance: 100000 })];
+    const wallet = factories.createWallet({ balance: 100000 });
+    const wallets = [wallet];
     const assignments = [
-      factories.createAssignment({ wallet_id: wallets[0].id, amount: 40000 }),
+      factories.createAssignment({ wallet_id: wallet.id, amount: 40000 }),
     ];
     const goals = [
-      factories.createGoal({ wallet_id: wallets[0].id, current_amount: 20000 }),
+      factories.createGoal({ wallet_id: wallet.id, current_amount: 20000 }),
     ];
     const period = factories.createPeriod({
       start_date: new Date(2026, 0, 1),

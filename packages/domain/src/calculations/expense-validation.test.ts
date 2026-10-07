@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { canExpense } from "../../src/calculations/expense-validation.js";
-import { factories } from "../factories/index.js";
+import { canExpense } from "./expense-validation.js";
+import { factories } from "../test-support/index.js";
 
 describe("C12 - Expense Validation", () => {
   it("should allow expense within available balance", () => {

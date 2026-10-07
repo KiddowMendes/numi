@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { calculateGlobalSafeToSpend } from "../../src/calculations/global-safe-to-spend.js";
-import { factories } from "../factories/index.js";
+import { calculateGlobalSafeToSpend } from "./global-safe-to-spend.js";
+import { factories } from "../test-support/index.js";
 
 describe("C3 - Global Safe-to-Spend", () => {
   it("should sum available balances across wallets", () => {

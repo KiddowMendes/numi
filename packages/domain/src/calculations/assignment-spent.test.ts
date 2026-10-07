@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { calculateAssignmentSpent } from "../../src/calculations/assignment-spent.js";
-import { factories } from "../factories/index.js";
+import { calculateAssignmentSpent } from "./assignment-spent.js";
+import { factories } from "../test-support/index.js";
 
 describe("C6 - Assignment Spent", () => {
   it("should return 0 when no transactions", () => {

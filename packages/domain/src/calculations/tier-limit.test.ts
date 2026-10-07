@@ -1,9 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  canCreateWallet,
-  canCreateGoal,
-} from "../../src/calculations/tier-limit.js";
-import { factories } from "../factories/index.js";
+import { canCreateWallet, canCreateGoal } from "./tier-limit.js";
+import { factories } from "../test-support/index.js";
 
 describe("C13 - Tier Limit Check", () => {
   describe("canCreateWallet", () => {

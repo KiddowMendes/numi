@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { calculateDaysRemaining } from "../../src/calculations/days-remaining.js";
-import { factories } from "../factories/index.js";
+import { calculateDaysRemaining } from "./days-remaining.js";
+import { factories } from "../test-support/index.js";
 
 describe("C4 - Days Remaining in Active Period", () => {
   it("should return null if no active period", () => {

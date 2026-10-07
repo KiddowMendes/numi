@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { calculateWalletBalance } from "../../src/calculations/wallet-balance.js";
-import { factories } from "../factories/index.js";
+import { calculateWalletBalance } from "./wallet-balance.js";
+import { factories } from "../test-support/index.js";
 
 describe("C1 - Wallet Balance Verification", () => {
   it("should match when no transactions exist", () => {

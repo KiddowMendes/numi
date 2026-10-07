@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { canCreateAssignment } from "../../src/calculations/assignment-creation.js";
-import { factories } from "../factories/index.js";
+import { canCreateAssignment } from "./assignment-creation.js";
+import { factories } from "../test-support/index.js";
 
 describe("C10 - Assignment Creation Check", () => {
   it("should allow when within balance", () => {

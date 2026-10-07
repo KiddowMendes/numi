@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { canReserveForGoal } from "../../src/calculations/goal-reservation.js";
-import { factories } from "../factories/index.js";
+import { canReserveForGoal } from "./goal-reservation.js";
+import { factories } from "../test-support/index.js";
 
 describe("C9 - Goal Reservation Check", () => {
   it("should allow reservation when sufficient available balance", () => {

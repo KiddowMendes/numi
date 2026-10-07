@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { canTransfer } from "../../src/calculations/transfer-validation.js";
-import { factories } from "../factories/index.js";
+import { canTransfer } from "./transfer-validation.js";
+import { factories } from "../test-support/index.js";
 
 describe("C11 - Transfer Validation", () => {
   it("should allow valid transfer", () => {
@@ -13,16 +13,17 @@ describe("C11 - Transfer Validation", () => {
   it("should reject transfer to same wallet", () => {
     const wallet = factories.createWallet({ id: "w1", balance: 100000 });
     const result = canTransfer(wallet, wallet, [], [], 50000);
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe("Cannot transfer to same wallet");
+    expect(result).toEqual({
+      valid: false,
+      error: "Cannot transfer to same wallet",
+    });
   });
 
   it("should reject insufficient balance", () => {
     const from = factories.createWallet({ id: "from", balance: 10000 });
     const to = factories.createWallet({ id: "to", balance: 0 });
     const result = canTransfer(from, to, [], [], 50000);
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe("Insufficient balance");
+    expect(result).toEqual({ valid: false, error: "Insufficient balance" });
   });
 
   it("should account for assignments in available balance", () => {

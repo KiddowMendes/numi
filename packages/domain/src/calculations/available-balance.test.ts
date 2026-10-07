@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   calculateAvailableBalance,
   getActiveAssignmentsForWallet,
-} from "../../src/calculations/available-balance.js";
-import { factories } from "../factories/index.js";
+} from "./available-balance.js";
+import { factories } from "../test-support/index.js";
 
 describe("C2 - Wallet Available Balance", () => {
   it("should return full balance when no assignments or goals", () => {
@@ -80,6 +80,6 @@ describe("C2 helper - getActiveAssignmentsForWallet", () => {
     ];
     const result = getActiveAssignmentsForWallet(assignments, "w1", period);
     expect(result).toHaveLength(1);
-    expect(result[0].amount).toBe(1000);
+    expect(result[0]!.amount).toBe(1000);
   });
 });

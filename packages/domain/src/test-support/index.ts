@@ -1,10 +1,10 @@
-import type { User } from "../../src/entities/User.js";
-import type { Period } from "../../src/entities/Period.js";
-import type { Wallet } from "../../src/entities/Wallet.js";
-import type { Category } from "../../src/entities/Category.js";
-import type { Goal } from "../../src/entities/Goal.js";
-import type { Assignment } from "../../src/entities/Assignment.js";
-import type { Transaction } from "../../src/entities/Transaction.js";
+import type { User } from "../entities/User.js";
+import type { Period } from "../entities/Period.js";
+import type { Wallet } from "../entities/Wallet.js";
+import type { Category } from "../entities/Category.js";
+import type { Goal } from "../entities/Goal.js";
+import type { Assignment } from "../entities/Assignment.js";
+import type { Transaction } from "../entities/Transaction.js";
 
 let idCounter = 0;
 
@@ -42,9 +42,10 @@ function createWallet(overrides: Partial<Wallet> = {}): Wallet {
   return {
     id: uid("wallet"),
     name: "Main Wallet",
-    type: "main",
+    type: "cash",
     balance: 100000,
     currency: "ZAR",
+    created_at: new Date(),
     ...overrides,
   };
 }
@@ -56,6 +57,7 @@ function createCategory(overrides: Partial<Category> = {}): Category {
     color: "#4CAF50",
     icon: "🛒",
     is_default: false,
+    created_at: new Date(),
     ...overrides,
   };
 }
@@ -68,6 +70,7 @@ function createGoal(overrides: Partial<Goal> = {}): Goal {
     current_amount: 100000,
     deadline: null,
     wallet_id: "wallet_1",
+    created_at: new Date(),
     ...overrides,
   };
 }
@@ -79,6 +82,7 @@ function createAssignment(overrides: Partial<Assignment> = {}): Assignment {
     category_id: "cat_1",
     wallet_id: "wallet_1",
     amount: 20000,
+    created_at: new Date(),
     ...overrides,
   };
 }
@@ -93,6 +97,7 @@ function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
     wallet_id: "wallet_1",
     to_wallet_id: null,
     note: null,
+    created_at: new Date(),
     ...overrides,
   };
 }

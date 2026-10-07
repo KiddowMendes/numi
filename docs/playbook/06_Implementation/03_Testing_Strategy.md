@@ -29,7 +29,7 @@ decision_record: null
 - **Scope:** Every calculation C1–C15 in `01_Domain/03_Calculations.md`, every business rule BR-_ in `01_Domain/02_Business_Rules.md`, and every Edge Case recorded in `05_Features/_/Edge_Cases.md`.
 - **Coverage:** 100% of `packages/domain` line coverage. `coverage` check is part of CI.
 - **Tool:** Vitest.
-- **Data:** Factory helpers per entity (`packages/domain/tests/factories/`). No hand-rolled inline objects.
+- **Data:** Factory helpers per entity (`packages/domain/src/test-support/`). No hand-rolled inline objects.
 - **Money:** Assert on integer cents. Never on floats.
 
 ## Integration Tests (Recommended)

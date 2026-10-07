@@ -31,7 +31,7 @@ Forbidden arrows:
 - Import order: external → `@numi/*` → relative.
 - Prettier width 100.
 - kebab-case files, verb-first camelCase functions, PascalCase types/components, `UPPER_SNAKE_CASE` constants, co-located `*.styles.ts`.
-- All domain logic (BR-\*, C1–C15) must be unit tested; factories in `packages/domain/tests/factories/`.
+- All domain logic (BR-\*, C1–C15) must be unit tested; factories in `packages/domain/src/test-support/`.
 
 ## Git / CI / Release
 

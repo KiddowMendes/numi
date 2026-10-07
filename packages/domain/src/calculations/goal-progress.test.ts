@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { calculateGoalProgress } from "../../src/calculations/goal-progress.js";
-import { factories } from "../factories/index.js";
+import { calculateGoalProgress } from "./goal-progress.js";
+import { factories } from "../test-support/index.js";
 
 describe("C8 - Goal Progress", () => {
   it("should return 0% when no progress", () => {

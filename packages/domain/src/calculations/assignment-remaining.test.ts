@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { calculateAssignmentRemaining } from "../../src/calculations/assignment-remaining.js";
-import { factories } from "../factories/index.js";
+import { calculateAssignmentRemaining } from "./assignment-remaining.js";
+import { factories } from "../test-support/index.js";
 
 describe("C7 - Assignment Remaining", () => {
   it("should equal assignment amount when no transactions", () => {
