@@ -1,19 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Platform, StyleSheet, View } from "react-native";
-import * as Haptics from "expo-haptics";
+import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 import { ScreenBackground } from "@/components/screen-background";
 import { ThemedText } from "@/components/themed-text";
 import { Button, PinDots, PinPad, ScreenShell } from "@/components/ui";
 import { spacing } from "@/constants/tokens";
-import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { PRE_SHAKE_DELAY_MS, useShake } from "@/hooks/use-shake";
 import {
   PIN_LOCKOUT_SECONDS,
   PIN_MAX_ATTEMPTS,
@@ -23,17 +17,8 @@ import {
 } from "@/lib/pin";
 import { useEngine, useStore } from "@/store";
 
-const SHAKE_STEP = 50;
-const SHAKE_DISTANCE = 10;
-const PRE_SHAKE_DELAY_MS = 100;
-
-function errorFeedback() {
-  if (Platform.OS === "web") return;
-  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-}
-
 export default function UnlockScreen() {
-  const reduceMotion = useReducedMotion();
+  const { shakeStyle, triggerShake } = useShake();
   const { resetEngine } = useEngine();
   const markUnlocked = useStore((s) => s.markUnlocked);
   const isOnboarded = useStore((s) => s.isOnboarded);
@@ -48,11 +33,6 @@ export default function UnlockScreen() {
   const [lockedFor, setLockedFor] = useState(0);
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [error, setError] = useState("");
-
-  const shakeX = useSharedValue(0);
-  const shakeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: shakeX.value }],
-  }));
 
   const locked = lockedFor > 0;
 
@@ -70,22 +50,9 @@ export default function UnlockScreen() {
       setError(message);
       digitsRef.current = "";
       setDigits("");
-      errorFeedback();
-      if (reduceMotion) return;
-      // `shakeX.value = withSequence(...)` is Reanimated's documented API for
-      // starting an animation from a JS event handler; the animation itself
-      // runs on the UI thread. The immutability rule reads it as a render-scope
-      // mutation, so it is suppressed here rather than worked around. Same
-      // pattern as `bottom-sheet.tsx`.
-      // eslint-disable-next-line react-hooks/immutability
-      shakeX.value = withSequence(
-        withTiming(-SHAKE_DISTANCE, { duration: SHAKE_STEP }),
-        withTiming(SHAKE_DISTANCE, { duration: SHAKE_STEP }),
-        withTiming(-SHAKE_DISTANCE, { duration: SHAKE_STEP }),
-        withTiming(0, { duration: SHAKE_STEP }),
-      );
+      triggerShake();
     },
-    [reduceMotion, shakeX],
+    [triggerShake],
   );
 
   const handleDigitPress = useCallback(

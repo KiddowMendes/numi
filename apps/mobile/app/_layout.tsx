@@ -19,6 +19,7 @@ import {
 
 import { Toast, buildToastConfig } from "@/components/app-toast";
 import { color, spacing, typography } from "@/constants/tokens";
+import { useStackScreenOptions } from "@/hooks/use-stack-screen-options";
 import { useThemeMode } from "@/hooks/use-theme";
 import { EngineProvider, useStore } from "@/store";
 
@@ -49,7 +50,7 @@ function Routing() {
   const isUnlocked = useStore((s) => s.isUnlocked);
   const keychainPinSet = useStore((s) => s.keychainPinSet);
   const refreshKeychainPin = useStore((s) => s.refreshKeychainPin);
-  const mode = useThemeMode();
+  const screenOptions = useStackScreenOptions();
 
   const [fontsLoaded, fontError] = useFonts({
     Inter: Inter_400Regular,
@@ -81,8 +82,6 @@ function Routing() {
 
   if (!ready || keychainPinSet === null) return null;
 
-  const theme = color[mode];
-
   // `pinSet` is the in-memory mirror the onboarding flow writes; `keychainPinSet`
   // is the durable one. Either means a lock exists.
   const locked = keychainPinSet || pinSet;
@@ -101,12 +100,7 @@ function Routing() {
   const showApp = isOnboarded && (!locked || isUnlocked);
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: theme.background },
-      }}
-    >
+    <Stack screenOptions={screenOptions}>
       <Stack.Protected guard={!showApp && !showUnlock}>
         <Stack.Screen name="(onboarding)" />
       </Stack.Protected>

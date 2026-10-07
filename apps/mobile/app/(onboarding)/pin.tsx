@@ -1,12 +1,10 @@
 import { useCallback, useRef, useState } from "react";
-import { Platform, Pressable, StyleSheet, View } from "react-native";
-import * as Haptics from "expo-haptics";
+import { Pressable, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSequence,
   withTiming,
 } from "react-native-reanimated";
 
@@ -16,29 +14,22 @@ import { ThemedText } from "@/components/themed-text";
 import { PinDots, PinPad, ProgressDots, ScreenShell } from "@/components/ui";
 import { duration, spacing } from "@/constants/tokens";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { PRE_SHAKE_DELAY_MS, useShake } from "@/hooks/use-shake";
 import { useTheme } from "@/hooks/use-theme";
 import { PIN_LENGTH, isCompletePin, savePin } from "@/lib/pin";
 import { useStore } from "@/store";
 
 const SLIDE_DURATION = duration.base;
-const SHAKE_STEP = 50;
-const SHAKE_DISTANCE = 10;
 
 /** Pause after the last digit so the final dot paints before it slides away. */
 const PRE_SLIDE_DELAY_MS = 200;
-/** Pause before the shake, so the error text and the shake land together. */
-const PRE_SHAKE_DELAY_MS = 100;
 
 type Phase = "create" | "confirm";
-
-function errorFeedback() {
-  if (Platform.OS === "web") return;
-  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-}
 
 export default function PinScreen() {
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
+  const { shakeStyle, triggerShake } = useShake();
   const markPinSet = useStore((s) => s.markPinSet);
 
   const [phase, setPhase] = useState<Phase>("create");
@@ -53,7 +44,6 @@ export default function PinScreen() {
   const [containerWidth, setContainerWidth] = useState(0);
 
   const slideX = useSharedValue(0);
-  const shakeX = useSharedValue(0);
 
   // The keypad buffer is authoritative in a ref. `handleDigitPress` is a
   // `useCallback` over `digits`, so two taps landing before React re-renders
@@ -71,15 +61,11 @@ export default function PinScreen() {
     transform: [{ translateX: slideX.value }],
   }));
 
-  const shakeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: shakeX.value }],
-  }));
-
-  // Writing `slideX.value` / `shakeX.value` is Reanimated's documented API for
-  // starting an animation from a JS event handler; the animation runs on the UI
-  // thread. The immutability rule reads it as a render-scope mutation, so it is
+  // Writing `slideX.value` is Reanimated's documented API for starting an
+  // animation from a JS event handler; the animation runs on the UI thread.
+  // The immutability rule reads it as a render-scope mutation, so it is
   // suppressed here rather than worked around. Same pattern as
-  // `bottom-sheet.tsx`.
+  // `bottom-sheet.tsx` and `use-shake`.
 
   const clearDigits = useCallback(() => {
     digitsRef.current = "";
@@ -114,18 +100,6 @@ export default function PinScreen() {
           easing: Easing.out(Easing.cubic),
         });
   }, [clearDigits, reduceMotion, slideX]);
-
-  const triggerShake = useCallback(() => {
-    errorFeedback();
-    if (reduceMotion) return;
-    // eslint-disable-next-line react-hooks/immutability
-    shakeX.value = withSequence(
-      withTiming(-SHAKE_DISTANCE, { duration: SHAKE_STEP }),
-      withTiming(SHAKE_DISTANCE, { duration: SHAKE_STEP }),
-      withTiming(-SHAKE_DISTANCE, { duration: SHAKE_STEP }),
-      withTiming(0, { duration: SHAKE_STEP }),
-    );
-  }, [reduceMotion, shakeX]);
 
   const handleDigitPress = useCallback(
     (digit: string) => {

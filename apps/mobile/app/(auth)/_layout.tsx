@@ -1,19 +1,12 @@
 import { Stack } from "expo-router";
 
-import { color } from "@/constants/tokens";
-import { useThemeMode } from "@/hooks/use-theme";
+import { useStackScreenOptions } from "@/hooks/use-stack-screen-options";
 
 export default function AuthLayout() {
-  const mode = useThemeMode();
+  const screenOptions = useStackScreenOptions("fade");
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: color[mode].background },
-        animation: "fade",
-      }}
-    >
+    <Stack screenOptions={screenOptions}>
       <Stack.Screen name="unlock" />
     </Stack>
   );

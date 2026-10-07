@@ -16,43 +16,19 @@ import {
   GroupList,
   GroupRow,
 } from "@/components/ui";
-import {
-  formatCents,
-  resolveCategoryAccent,
-  screenPadding,
-  spacing,
-} from "@/constants/tokens";
+import { formatCents, screenPadding, spacing } from "@/constants/tokens";
+import { useCategoryAccentMap } from "@/hooks/use-category-accent-map";
 import { useTabBarSpace } from "@/hooks/use-tab-bar-space";
-import { useThemeMode } from "@/hooks/use-theme";
-import { resolveAccentKeyForCategory } from "@/lib/category-accent";
 import { useStore } from "@/store";
 
 export default function PlanScreen() {
   const insets = useSafeAreaInsets();
   const { contentBottom } = useTabBarSpace();
-  const mode = useThemeMode();
   const activePeriod = useStore((s) => s.appState.activePeriod);
   const assignments = useStore((s) => s.appState.assignments);
-  const categories = useStore((s) => s.appState.categories);
   const transactions = useStore((s) => s.appState.transactions);
   const wallets = useStore((s) => s.appState.wallets);
-
-  const categoryById = useMemo(
-    () =>
-      new Map(
-        categories.map((category) => [
-          category.id,
-          {
-            name: category.name,
-            color: resolveCategoryAccent(
-              resolveAccentKeyForCategory(category.id, category.name),
-              mode,
-            ),
-          },
-        ]),
-      ),
-    [categories, mode],
-  );
+  const categoryById = useCategoryAccentMap();
 
   const totalAssigned = useMemo(
     () =>

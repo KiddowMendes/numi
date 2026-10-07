@@ -7,15 +7,9 @@ import type { Transaction } from "@numi/domain";
 import { ScreenBackground } from "@/components/screen-background";
 import { ThemedText } from "@/components/themed-text";
 import { EmptyState, TransactionRow } from "@/components/ui";
+import { formatCents, screenPadding, spacing } from "@/constants/tokens";
+import { useCategoryAccentMap } from "@/hooks/use-category-accent-map";
 import { useTabBarSpace } from "@/hooks/use-tab-bar-space";
-import { useThemeMode } from "@/hooks/use-theme";
-import {
-  formatCents,
-  resolveCategoryAccent,
-  screenPadding,
-  spacing,
-} from "@/constants/tokens";
-import { resolveAccentKeyForCategory } from "@/lib/category-accent";
 import { useStore } from "@/store";
 
 type DaySection = { title: string; data: Transaction[] };
@@ -23,26 +17,8 @@ type DaySection = { title: string; data: Transaction[] };
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { contentBottom } = useTabBarSpace();
-  const mode = useThemeMode();
   const transactions = useStore((s) => s.appState.transactions);
-  const categories = useStore((s) => s.appState.categories);
-
-  const categoryById = useMemo(
-    () =>
-      new Map(
-        categories.map((category) => [
-          category.id,
-          {
-            name: category.name,
-            color: resolveCategoryAccent(
-              resolveAccentKeyForCategory(category.id, category.name),
-              mode,
-            ),
-          },
-        ]),
-      ),
-    [categories, mode],
-  );
+  const categoryById = useCategoryAccentMap();
 
   const sections = useMemo<DaySection[]>(() => {
     const buckets = new Map<string, Transaction[]>();
