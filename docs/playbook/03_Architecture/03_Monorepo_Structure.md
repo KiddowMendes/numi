@@ -105,8 +105,9 @@ packages/
 │       ├── index.ts
 │       ├── entities/
 │       ├── rules/
-│       ├── calculations/
-│       └── api/
+│       ├── calculations/    # + *.test.ts colocated beside each module
+│       ├── api/
+│       └── test-support/    # unit-test factories, never exported from index.ts
 │
 ├── database/                # @numi/database — Repository layer
 │   ├── package.json
@@ -125,8 +126,8 @@ packages/
 │   ├── tsconfig.json
 │   └── src/
 │       ├── index.ts
-│       ├── tokens/
-│       └── theme.ts
+│       ├── color-scheme.ts
+│       └── tokens/
 │
 ├── types/                   # @numi/types — Shared TypeScript
 │   ├── package.json
@@ -149,6 +150,8 @@ packages/
 ```
 
 **Rule:** `packages/domain` must not import `packages/database`. The dependency arrow points inward: `database` depends on `domain`, not reverse.
+
+**Repo note:** `packages/domain` has no `tests/` folder — unit tests are colocated in `src/` next to the module they exercise, and `src/test-support/` holds the shared factories.
 
 **Repo note:**
 
