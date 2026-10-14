@@ -34,12 +34,13 @@ pnpm --filter mobile lint
 
 ## Routes
 
-14 route files. The tables below are the complete dependency map: what each route imports from the repo, and how far each shared module reaches. React Native and Expo primitives (`react-native`, `expo-router`, `react-native-reanimated`, `expo-haptics`, `react-native-safe-area-context`, …) are omitted — they carry no repo coupling. The one third-party native dep worth naming is `@react-native-community/datetimepicker`, used only by `quick-setup`.
+15 route files. The tables below are the complete dependency map: what each route imports from the repo, and how far each shared module reaches. React Native and Expo primitives (`react-native`, `expo-router`, `react-native-reanimated`, `expo-haptics`, `react-native-safe-area-context`, …) are omitted — they carry no repo coupling. The one third-party native dep worth naming is `@react-native-community/datetimepicker`, used only by `quick-setup`.
 
 | Route                          | `src/` imports                                                                                                                                                                                             | Workspace packages            |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
 | `_layout.tsx`                  | `lib/polyfill`, `components/app-toast`, `constants/tokens`, `hooks/use-stack-screen-options`, `hooks/use-theme`, `store`                                                                                   | —                             |
 | `review.tsx`                   | `components/screen-background`, `components/themed-text`, `components/ui`, `constants/tokens`, `store`                                                                                                     | —                             |
+| `wallets.tsx`                  | `components/screen-background`, `components/themed-text`, `components/ui`, `constants/tokens`, `lib/wallet-types`, `store`                                                                                 | `@numi/domain`                |
 | `(onboarding)/_layout.tsx`     | `hooks/use-stack-screen-options`                                                                                                                                                                           | —                             |
 | `(onboarding)/welcome.tsx`     | `components/screen-background`, `components/themed-text`, `components/ui`, `constants/tokens`, `hooks/use-theme`, `store`                                                                                  | —                             |
 | `(onboarding)/pin.tsx`         | `components/app-icon`, `components/screen-background`, `components/themed-text`, `components/ui`, `constants/tokens`, `hooks/use-reduced-motion`, `hooks/use-shake`, `hooks/use-theme`, `lib/pin`, `store` | —                             |
@@ -48,7 +49,7 @@ pnpm --filter mobile lint
 | `(auth)/_layout.tsx`           | `hooks/use-stack-screen-options`                                                                                                                                                                           | —                             |
 | `(auth)/unlock.tsx`            | `components/screen-background`, `components/themed-text`, `components/ui`, `constants/tokens`, `hooks/use-shake`, `lib/pin`, `store`                                                                       | —                             |
 | `(tabs)/_layout.tsx`           | `components/app-icon`, `constants/tokens`, `hooks/use-tab-bar-space`, `hooks/use-theme`                                                                                                                    | —                             |
-| `(tabs)/index.tsx`             | `components/screen-background`, `components/themed-text`, `components/ui`, `constants/tokens`, `hooks/use-tab-bar-space`, `store`                                                                          | `@numi/domain`                |
+| `(tabs)/index.tsx`             | `components/screen-background`, `components/themed-text`, `components/ui`, `constants/tokens`, `hooks/use-tab-bar-space`, `lib/wallet-types`, `store`                                                      | `@numi/domain`                |
 | `(tabs)/plan.tsx`              | `components/screen-background`, `components/themed-text`, `components/ui`, `constants/tokens`, `hooks/use-category-accent-map`, `hooks/use-tab-bar-space`, `store`                                         | `@numi/domain`                |
 | `(tabs)/history.tsx`           | `components/screen-background`, `components/themed-text`, `components/ui`, `constants/tokens`, `hooks/use-category-accent-map`, `hooks/use-tab-bar-space`, `store`                                         | `@numi/domain`                |
 | `(tabs)/settings.tsx`          | `components/screen-background`, `components/themed-text`, `components/ui`, `constants/tokens`, `hooks/use-tab-bar-space`, `store`                                                                          | —                             |
@@ -57,16 +58,17 @@ pnpm --filter mobile lint
 
 | Module                                                                                    | Routes                                                                                |
 | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `constants/tokens`                                                                        | 12 (every route but the `(auth)` and `(onboarding)` layouts)                          |
-| `store`                                                                                   | 11 (every route but the three group layouts)                                          |
-| `components/ui`                                                                           | 10 (every route but the four `_layout` files)                                         |
-| `components/themed-text`                                                                  | 10 (every route but the four `_layout` files)                                         |
-| `components/screen-background`                                                            | 10 (every route but the four `_layout` files)                                         |
+| `constants/tokens`                                                                        | 13 (every route but the `(auth)` and `(onboarding)` layouts)                          |
+| `store`                                                                                   | 12 (every route but the three group layouts)                                          |
+| `components/ui`                                                                           | 11 (every route but the four `_layout` files)                                         |
+| `components/themed-text`                                                                  | 11 (every route but the four `_layout` files)                                         |
+| `components/screen-background`                                                            | 11 (every route but the four `_layout` files)                                         |
 | `hooks/use-theme`                                                                         | 6 (`_layout`, `(tabs)/_layout`, `welcome`, `pin`, `quick-setup`, `all-set`)           |
 | `hooks/use-tab-bar-space`                                                                 | 5 (`(tabs)/_layout`, `index`, `plan`, `history`, `settings`)                          |
 | `components/app-icon`                                                                     | 4 (`(tabs)/_layout`, `quick-setup`, `pin`, `all-set`)                                 |
 | `hooks/use-stack-screen-options`                                                          | 3 (the root, `(auth)` and `(onboarding)` stacks; `(tabs)` is a `Tabs`, not a `Stack`) |
 | `hooks/use-shake`, `lib/pin`                                                              | 2 (`unlock`, `pin`)                                                                   |
+| `lib/wallet-types`                                                                        | 2 (`wallets`, `(tabs)/index`)                                                         |
 | `hooks/use-category-accent-map`                                                           | 2 (`plan`, `history`)                                                                 |
 | `lib/category-accent`, `hooks/use-reduced-motion`, `components/app-toast`, `lib/polyfill` | 1 each (`quick-setup`, `pin`, `_layout`, `_layout`)                                   |
 
