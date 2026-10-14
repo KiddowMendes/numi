@@ -295,17 +295,258 @@ describe("EngineAPI", () => {
     it("should fail when exceeding available balance", () => {
       const engine = createEngine(makeState());
       const result = engine.createAssignment(
-        factories.createAssignment({ wallet_id: "w1", amount: 200000 }),
+        factories.createAssignment({
+          wallet_id: "w1",
+          category_id: "c1",
+          period_id: "p1",
+          amount: 200000,
+        }),
       );
       expect(result.ok).toBe(false);
+      if (!result.ok)
+        expect(result.errors[0]?.code).toBe("INSUFFICIENT_BALANCE");
     });
 
     it("should fail for nonexistent wallet", () => {
       const engine = createEngine(makeState());
       const result = engine.createAssignment(
-        factories.createAssignment({ wallet_id: "nonexistent", amount: 30000 }),
+        factories.createAssignment({
+          wallet_id: "nonexistent",
+          category_id: "c1",
+          period_id: "p1",
+          amount: 30000,
+        }),
       );
       expect(result.ok).toBe(false);
+    });
+
+    it("should fail for nonexistent category", () => {
+      const engine = createEngine(makeState());
+      const result = engine.createAssignment(
+        factories.createAssignment({
+          wallet_id: "w1",
+          category_id: "nonexistent",
+          period_id: "p1",
+          amount: 30000,
+        }),
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errors[0]?.code).toBe("NOT_FOUND");
+    });
+
+    it("should fail when the period is not the active period", () => {
+      const engine = createEngine(makeState());
+      const result = engine.createAssignment(
+        factories.createAssignment({
+          wallet_id: "w1",
+          category_id: "c1",
+          period_id: "closed-period",
+          amount: 30000,
+        }),
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errors[0]?.code).toBe("INVALID_STATE");
+    });
+
+    it("should fail when there is no active period", () => {
+      const engine = createEngine(makeState({ activePeriod: undefined }));
+      const result = engine.createAssignment(
+        factories.createAssignment({
+          wallet_id: "w1",
+          category_id: "c1",
+          period_id: "p1",
+          amount: 30000,
+        }),
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errors[0]?.code).toBe("INVALID_STATE");
+    });
+
+    it("should fail for a non-positive amount", () => {
+      const engine = createEngine(makeState());
+      const result = engine.createAssignment(
+        factories.createAssignment({
+          wallet_id: "w1",
+          category_id: "c1",
+          period_id: "p1",
+          amount: 0,
+        }),
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errors[0]?.code).toBe("INVALID_STATE");
+    });
+
+    it("should reject a duplicate category and wallet in the active period", () => {
+      const engine = createEngine(makeState());
+      const first = engine.createAssignment(
+        factories.createAssignment({
+          id: "a1",
+          wallet_id: "w1",
+          category_id: "c1",
+          period_id: "p1",
+          amount: 30000,
+        }),
+      );
+      expect(first.ok).toBe(true);
+      const second = engine.createAssignment(
+        factories.createAssignment({
+          id: "a2",
+          wallet_id: "w1",
+          category_id: "c1",
+          period_id: "p1",
+          amount: 10000,
+        }),
+      );
+      expect(second.ok).toBe(false);
+      if (!second.ok) expect(second.errors[0]?.code).toBe("INVALID_STATE");
+    });
+
+    it("should allow the same category in a second wallet", () => {
+      const state = makeState({
+        wallets: [
+          factories.createWallet({ id: "w1", balance: 100000 }),
+          factories.createWallet({ id: "w2", balance: 100000 }),
+        ],
+      });
+      const engine = createEngine(state);
+      engine.createAssignment(
+        factories.createAssignment({
+          id: "a1",
+          wallet_id: "w1",
+          category_id: "c1",
+          period_id: "p1",
+          amount: 30000,
+        }),
+      );
+      const result = engine.createAssignment(
+        factories.createAssignment({
+          id: "a2",
+          wallet_id: "w2",
+          category_id: "c1",
+          period_id: "p1",
+          amount: 30000,
+        }),
+      );
+      expect(result.ok).toBe(true);
+    });
+  });
+
+  describe("updateAssignment", () => {
+    function stateWithAssignment(amount = 30000): AppState {
+      return makeState({
+        assignments: [
+          factories.createAssignment({
+            id: "a1",
+            wallet_id: "w1",
+            category_id: "c1",
+            period_id: "p1",
+            amount,
+          }),
+        ],
+      });
+    }
+
+    it("should update the amount", () => {
+      const engine = createEngine(stateWithAssignment());
+      const result = engine.updateAssignment("a1", { amount: 40000 });
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.value.amount).toBe(40000);
+      const stored = engine.getState().assignments[0];
+      expect(stored?.amount).toBe(40000);
+    });
+
+    it("should allow raising the amount up to the full balance", () => {
+      const engine = createEngine(stateWithAssignment(30000));
+      const result = engine.updateAssignment("a1", { amount: 100000 });
+      expect(result.ok).toBe(true);
+    });
+
+    it("should lower the amount", () => {
+      const engine = createEngine(stateWithAssignment(50000));
+      const result = engine.updateAssignment("a1", { amount: 10000 });
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.value.amount).toBe(10000);
+    });
+
+    it("should fail for a nonexistent assignment", () => {
+      const engine = createEngine(makeState());
+      const result = engine.updateAssignment("nonexistent", { amount: 10000 });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errors[0]?.code).toBe("NOT_FOUND");
+    });
+
+    it("should fail when the row is not in the active period", () => {
+      const state = makeState({
+        assignments: [
+          factories.createAssignment({
+            id: "a1",
+            wallet_id: "w1",
+            category_id: "c1",
+            period_id: "closed-period",
+            amount: 30000,
+          }),
+        ],
+      });
+      const engine = createEngine(state);
+      const result = engine.updateAssignment("a1", { amount: 10000 });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errors[0]?.code).toBe("INVALID_STATE");
+    });
+
+    it("should fail for a non-positive amount", () => {
+      const engine = createEngine(stateWithAssignment());
+      const result = engine.updateAssignment("a1", { amount: 0 });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errors[0]?.code).toBe("INVALID_STATE");
+    });
+
+    it("should fail when the assignment's wallet is missing", () => {
+      const state = makeState({
+        wallets: [],
+        assignments: [
+          factories.createAssignment({
+            id: "a1",
+            wallet_id: "ghost",
+            category_id: "c1",
+            period_id: "p1",
+            amount: 30000,
+          }),
+        ],
+      });
+      const engine = createEngine(state);
+      const result = engine.updateAssignment("a1", { amount: 10000 });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errors[0]?.code).toBe("NOT_FOUND");
+    });
+
+    it("should fail when exceeding the wallet balance", () => {
+      const state = makeState({
+        assignments: [
+          factories.createAssignment({
+            id: "a1",
+            wallet_id: "w1",
+            category_id: "c1",
+            period_id: "p1",
+            amount: 30000,
+          }),
+          factories.createAssignment({
+            id: "a2",
+            wallet_id: "w1",
+            category_id: "c2",
+            period_id: "p1",
+            amount: 40000,
+          }),
+        ],
+        categories: [
+          factories.createCategory({ id: "c1" }),
+          factories.createCategory({ id: "c2" }),
+        ],
+      });
+      const engine = createEngine(state);
+      const result = engine.updateAssignment("a1", { amount: 70000 });
+      expect(result.ok).toBe(false);
+      if (!result.ok)
+        expect(result.errors[0]?.code).toBe("INSUFFICIENT_BALANCE");
     });
   });
 
@@ -316,6 +557,8 @@ describe("EngineAPI", () => {
         factories.createAssignment({
           id: "a1",
           wallet_id: "w1",
+          category_id: "c1",
+          period_id: "p1",
           amount: 30000,
         }),
       );

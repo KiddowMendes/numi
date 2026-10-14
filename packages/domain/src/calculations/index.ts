@@ -11,6 +11,7 @@ export { calculateAssignmentRemaining } from "./assignment-remaining";
 export { calculateGoalProgress } from "./goal-progress";
 export { canReserveForGoal } from "./goal-reservation";
 export { canCreateAssignment } from "./assignment-creation";
+export { canUpdateAssignment } from "./assignment-update";
 export { canTransfer } from "./transfer-validation";
 export { canExpense } from "./expense-validation";
 export { canCreateWallet, canCreateGoal } from "./tier-limit";

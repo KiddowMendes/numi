@@ -27,6 +27,7 @@ export {
   calculateGoalProgress,
   canReserveForGoal,
   canCreateAssignment,
+  canUpdateAssignment,
   canTransfer,
   canExpense,
   canCreateWallet,

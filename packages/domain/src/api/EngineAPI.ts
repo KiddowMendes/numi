@@ -20,6 +20,7 @@ import {
   calculateGoalProgress,
   canReserveForGoal,
   canCreateAssignment,
+  canUpdateAssignment,
   canTransfer,
   canExpense,
   canCreateWallet,
@@ -38,6 +39,10 @@ export type EngineAPI = {
 
   // Assignments
   createAssignment(assignment: Assignment): Result<Assignment, EngineError>;
+  updateAssignment(
+    id: string,
+    patch: { amount: number },
+  ): Result<Assignment, EngineError>;
   deleteAssignment(id: string): Result<void, EngineError>;
 
   // Wallets
@@ -233,6 +238,53 @@ export function createEngine(initialState: AppState): EngineAPI {
         ]);
       }
 
+      const category = findCategory(assignment.category_id);
+      if (!category) {
+        return err([
+          {
+            code: "NOT_FOUND",
+            message: `Category ${assignment.category_id} not found`,
+          },
+        ]);
+      }
+
+      if (
+        !state.activePeriod ||
+        assignment.period_id !== state.activePeriod.id
+      ) {
+        return err([
+          {
+            code: "INVALID_STATE",
+            message: "Assignment must belong to the active period",
+          },
+        ]);
+      }
+
+      if (assignment.amount <= 0) {
+        return err([
+          {
+            code: "INVALID_STATE",
+            message: "Amount must be greater than zero",
+          },
+        ]);
+      }
+
+      const duplicate = state.assignments.some(
+        (a) =>
+          a.period_id === assignment.period_id &&
+          a.category_id === assignment.category_id &&
+          a.wallet_id === assignment.wallet_id,
+      );
+      if (duplicate) {
+        return err([
+          {
+            code: "INVALID_STATE",
+            message:
+              "An assignment for this category and wallet already exists in this period",
+          },
+        ]);
+      }
+
       if (
         !canCreateAssignment(
           wallet,
@@ -255,6 +307,75 @@ export function createEngine(initialState: AppState): EngineAPI {
       };
 
       return ok(assignment);
+    },
+
+    updateAssignment(
+      id: string,
+      patch: { amount: number },
+    ): Result<Assignment, EngineError> {
+      const assignment = findAssignment(id);
+      if (!assignment) {
+        return err([
+          { code: "NOT_FOUND", message: `Assignment ${id} not found` },
+        ]);
+      }
+
+      if (
+        !state.activePeriod ||
+        assignment.period_id !== state.activePeriod.id
+      ) {
+        return err([
+          {
+            code: "INVALID_STATE",
+            message: "Assignment is not in the active period",
+          },
+        ]);
+      }
+
+      if (patch.amount <= 0) {
+        return err([
+          {
+            code: "INVALID_STATE",
+            message: "Amount must be greater than zero",
+          },
+        ]);
+      }
+
+      const wallet = findWallet(assignment.wallet_id);
+      if (!wallet) {
+        return err([
+          {
+            code: "NOT_FOUND",
+            message: `Wallet ${assignment.wallet_id} not found`,
+          },
+        ]);
+      }
+
+      if (
+        !canUpdateAssignment(
+          wallet,
+          state.assignments,
+          state.goals,
+          id,
+          patch.amount,
+        )
+      ) {
+        return err([
+          {
+            code: "INSUFFICIENT_BALANCE",
+            message: "Cannot update assignment: exceeds available balance",
+          },
+        ]);
+      }
+
+      const updated = { ...assignment, amount: patch.amount };
+
+      state = {
+        ...state,
+        assignments: state.assignments.map((a) => (a.id === id ? updated : a)),
+      };
+
+      return ok(updated);
     },
 
     deleteAssignment(id: string): Result<void, EngineError> {
