@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { canCreateWallet, canCreateGoal } from "./tier-limit.js";
+import {
+  canCreateWallet,
+  canCreateGoal,
+  walletLimitFor,
+} from "./tier-limit.js";
 import { factories } from "../test-support/index.js";
 
 describe("C13 - Tier Limit Check", () => {
@@ -27,6 +31,20 @@ describe("C13 - Tier Limit Check", () => {
     it("should allow premium user unlimited", () => {
       const user = factories.createUser({ tier: "premium" });
       expect(canCreateWallet(user, 100)).toBe(true);
+    });
+  });
+
+  describe("walletLimitFor", () => {
+    it("should return 1 for free", () => {
+      expect(walletLimitFor("free")).toBe(1);
+    });
+
+    it("should return 3 for freemium", () => {
+      expect(walletLimitFor("freemium")).toBe(3);
+    });
+
+    it("should return Infinity when unlimited for premium", () => {
+      expect(walletLimitFor("premium")).toBe(Infinity);
     });
   });
 

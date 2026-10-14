@@ -25,6 +25,9 @@ import {
   canExpense,
   canCreateWallet,
   canCreateGoal,
+  isDuplicateWalletName,
+  canDeleteWallet,
+  canUpdateWalletBalance,
   calculatePeriodClose,
   closePeriodState,
   checkConservation,
@@ -47,6 +50,11 @@ export type EngineAPI = {
 
   // Wallets
   createWallet(wallet: Wallet): Result<Wallet, EngineError>;
+  updateWallet(
+    id: string,
+    patch: Partial<Pick<Wallet, "name" | "type" | "balance">>,
+  ): Result<Wallet, EngineError>;
+  deleteWallet(id: string): Result<void, EngineError>;
 
   // Goals
   createGoal(goal: Goal): Result<Goal, EngineError>;
@@ -404,12 +412,107 @@ export function createEngine(initialState: AppState): EngineAPI {
         ]);
       }
 
+      if (wallet.balance < 0) {
+        return err([
+          {
+            code: "INVALID_STATE",
+            message: "Wallet balance cannot be negative",
+          },
+        ]);
+      }
+
+      if (isDuplicateWalletName(state.wallets, wallet.name)) {
+        return err([
+          {
+            code: "INVALID_STATE",
+            message: "A wallet with this name already exists",
+          },
+        ]);
+      }
+
       state = {
         ...state,
         wallets: [...state.wallets, wallet],
       };
 
       return ok(wallet);
+    },
+
+    updateWallet(
+      id: string,
+      patch: Partial<Pick<Wallet, "name" | "type" | "balance">>,
+    ): Result<Wallet, EngineError> {
+      const wallet = findWallet(id);
+      if (!wallet) {
+        return err([{ code: "NOT_FOUND", message: `Wallet ${id} not found` }]);
+      }
+
+      if (patch.balance !== undefined && patch.balance < 0) {
+        return err([
+          {
+            code: "INVALID_STATE",
+            message: "Wallet balance cannot be negative",
+          },
+        ]);
+      }
+
+      if (
+        patch.name !== undefined &&
+        isDuplicateWalletName(state.wallets, patch.name, id)
+      ) {
+        return err([
+          {
+            code: "INVALID_STATE",
+            message: "A wallet with this name already exists",
+          },
+        ]);
+      }
+
+      if (patch.balance !== undefined) {
+        const check = canUpdateWalletBalance(
+          wallet,
+          state.assignments,
+          state.goals,
+          patch.balance,
+        );
+        if (!check.valid) {
+          return err([{ code: "INSUFFICIENT_BALANCE", message: check.error }]);
+        }
+      }
+
+      const updated: Wallet = { ...wallet, ...patch };
+
+      state = {
+        ...state,
+        wallets: state.wallets.map((w) => (w.id === id ? updated : w)),
+      };
+
+      return ok(updated);
+    },
+
+    deleteWallet(id: string): Result<void, EngineError> {
+      const wallet = findWallet(id);
+      if (!wallet) {
+        return err([{ code: "NOT_FOUND", message: `Wallet ${id} not found` }]);
+      }
+
+      const check = canDeleteWallet(
+        wallet,
+        state.wallets,
+        state.assignments,
+        state.goals,
+        state.transactions,
+      );
+      if (!check.valid) {
+        return err([{ code: "INVALID_STATE", message: check.error }]);
+      }
+
+      state = {
+        ...state,
+        wallets: state.wallets.filter((w) => w.id !== id),
+      };
+
+      return ok(undefined);
     },
 
     createGoal(goal: Goal): Result<Goal, EngineError> {

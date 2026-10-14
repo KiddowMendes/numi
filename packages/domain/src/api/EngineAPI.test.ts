@@ -577,7 +577,7 @@ describe("EngineAPI", () => {
     it("should create wallet within tier limits", () => {
       const engine = createEngine(makeState());
       const result = engine.createWallet(
-        factories.createWallet({ id: "w2", balance: 50000 }),
+        factories.createWallet({ id: "w2", name: "Savings", balance: 50000 }),
       );
       expect(result.ok).toBe(true);
     });
@@ -593,6 +593,165 @@ describe("EngineAPI", () => {
       const engine = createEngine(state);
       const result = engine.createWallet(factories.createWallet({ id: "w4" }));
       expect(result.ok).toBe(false);
+    });
+
+    it("should reject a negative starting balance", () => {
+      const engine = createEngine(makeState());
+      const result = engine.createWallet(
+        factories.createWallet({ id: "w2", name: "Savings", balance: -1 }),
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errors[0]?.code).toBe("INVALID_STATE");
+      }
+    });
+
+    it("should reject a duplicate name, trimmed and case insensitive", () => {
+      const engine = createEngine(makeState());
+      const result = engine.createWallet(
+        factories.createWallet({ id: "w2", name: "  main wallet  " }),
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errors[0]?.code).toBe("INVALID_STATE");
+      }
+    });
+  });
+
+  describe("updateWallet", () => {
+    it("should apply a name, type, and balance patch", () => {
+      const engine = createEngine(makeState());
+      const result = engine.updateWallet("w1", {
+        name: "Capitec",
+        type: "bank",
+        balance: 250000,
+      });
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.name).toBe("Capitec");
+        expect(result.value.type).toBe("bank");
+        expect(result.value.balance).toBe(250000);
+      }
+    });
+
+    it("should keep untouched fields", () => {
+      const engine = createEngine(makeState());
+      const result = engine.updateWallet("w1", { name: "Capitec" });
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.name).toBe("Capitec");
+        expect(result.value.type).toBe("cash");
+        expect(result.value.balance).toBe(100000);
+      }
+    });
+
+    it("should fail for a nonexistent wallet", () => {
+      const engine = createEngine(makeState());
+      const result = engine.updateWallet("nonexistent", { name: "Capitec" });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errors[0]?.code).toBe("NOT_FOUND");
+      }
+    });
+
+    it("should reject a negative balance", () => {
+      const engine = createEngine(makeState());
+      const result = engine.updateWallet("w1", { balance: -1 });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errors[0]?.code).toBe("INVALID_STATE");
+      }
+    });
+
+    it("should reject a duplicate name but allow keeping its own name", () => {
+      const state = makeState({
+        wallets: [
+          factories.createWallet({ id: "w1", name: "Main Wallet" }),
+          factories.createWallet({ id: "w2", name: "Savings" }),
+        ],
+      });
+      const engine = createEngine(state);
+
+      const clash = engine.updateWallet("w2", { name: "main wallet" });
+      expect(clash.ok).toBe(false);
+      if (!clash.ok) {
+        expect(clash.errors[0]?.code).toBe("INVALID_STATE");
+      }
+
+      const sameName = engine.updateWallet("w1", { name: "Main Wallet" });
+      expect(sameName.ok).toBe(true);
+    });
+
+    it("should reject a balance below the committed money", () => {
+      const state = makeState({
+        assignments: [
+          factories.createAssignment({
+            id: "a1",
+            wallet_id: "w1",
+            period_id: "p1",
+            category_id: "c1",
+            amount: 80000,
+          }),
+        ],
+      });
+      const engine = createEngine(state);
+      const result = engine.updateWallet("w1", { balance: 50000 });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errors[0]?.code).toBe("INSUFFICIENT_BALANCE");
+      }
+    });
+  });
+
+  describe("deleteWallet", () => {
+    it("should delete an empty wallet when another remains", () => {
+      const state = makeState({
+        wallets: [
+          factories.createWallet({ id: "w1", name: "Main Wallet", balance: 0 }),
+          factories.createWallet({ id: "w2", name: "Savings" }),
+        ],
+      });
+      const engine = createEngine(state);
+      const result = engine.deleteWallet("w1");
+      expect(result.ok).toBe(true);
+      expect(engine.getState().wallets).toHaveLength(1);
+    });
+
+    it("should fail for a nonexistent wallet", () => {
+      const engine = createEngine(makeState());
+      const result = engine.deleteWallet("nonexistent");
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errors[0]?.code).toBe("NOT_FOUND");
+      }
+    });
+
+    it("should reject deleting the last wallet", () => {
+      const engine = createEngine(makeState());
+      const result = engine.deleteWallet("w1");
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errors[0]?.code).toBe("INVALID_STATE");
+      }
+    });
+
+    it("should reject a wallet with data or a non zero balance", () => {
+      const state = makeState({
+        wallets: [
+          factories.createWallet({
+            id: "w1",
+            name: "Main Wallet",
+            balance: 100,
+          }),
+          factories.createWallet({ id: "w2", name: "Savings" }),
+        ],
+      });
+      const engine = createEngine(state);
+      const result = engine.deleteWallet("w1");
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errors[0]?.code).toBe("INVALID_STATE");
+      }
     });
   });
 

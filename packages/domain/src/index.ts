@@ -32,6 +32,10 @@ export {
   canExpense,
   canCreateWallet,
   canCreateGoal,
+  walletLimitFor,
+  isDuplicateWalletName,
+  canDeleteWallet,
+  canUpdateWalletBalance,
   calculatePeriodClose,
   checkConservation,
 } from "./calculations/index";

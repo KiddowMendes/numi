@@ -20,6 +20,14 @@ export function canCreateWallet(user: User, currentCount: number): boolean {
   return currentCount < WALLET_LIMITS[user.tier];
 }
 
+/**
+ * Wallet Management. Wallet Limit For Tier.
+ * The number of wallets a tier allows, Infinity when unlimited (premium).
+ */
+export function walletLimitFor(tier: UserTier): number {
+  return WALLET_LIMITS[tier];
+}
+
 export function canCreateGoal(user: User, currentCount: number): boolean {
   return currentCount < GOAL_LIMITS[user.tier];
 }
