@@ -10,7 +10,9 @@ import {
 import { ScreenBackground } from "@/components/screen-background";
 import { ThemedText } from "@/components/themed-text";
 import {
+  AssignmentSheet,
   Card,
+  CenterDockButton,
   EmptyState,
   GemBadge,
   GroupList,
@@ -23,11 +25,13 @@ import { useStore } from "@/store";
 
 export default function PlanScreen() {
   const insets = useSafeAreaInsets();
-  const { contentBottom } = useTabBarSpace();
+  const { dockOffset, dockContentBottom } = useTabBarSpace();
   const activePeriod = useStore((s) => s.appState.activePeriod);
   const assignments = useStore((s) => s.appState.assignments);
   const transactions = useStore((s) => s.appState.transactions);
   const wallets = useStore((s) => s.appState.wallets);
+  const openAddAssignmentSheet = useStore((s) => s.openAddAssignmentSheet);
+  const openEditAssignmentSheet = useStore((s) => s.openEditAssignmentSheet);
   const categoryById = useCategoryAccentMap();
 
   const totalAssigned = useMemo(
@@ -57,7 +61,7 @@ export default function PlanScreen() {
           styles.scroll,
           {
             paddingTop: insets.top + spacing.lg,
-            paddingBottom: contentBottom,
+            paddingBottom: dockContentBottom,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -124,6 +128,10 @@ export default function PlanScreen() {
               const over = remaining < 0;
               const used =
                 assignment.amount > 0 ? spent / assignment.amount : 0;
+              // v1 has only active period rows. A closed period row (once
+              // period management lands) must not open a doomed edit, so it
+              // keeps no tap and no chevron.
+              const isActive = assignment.period_id === activePeriod.id;
 
               return (
                 <GroupRow
@@ -133,7 +141,12 @@ export default function PlanScreen() {
                   dotColor={category?.color}
                   value={formatCents(remaining)}
                   valueTone={over ? "expense" : "textPrimary"}
-                  trailingIcon={undefined}
+                  onPress={
+                    isActive
+                      ? () => openEditAssignmentSheet(assignment.id)
+                      : undefined
+                  }
+                  trailingIcon={isActive ? "forward" : undefined}
                   isLast={index === assignments.length - 1}
                   accessory={
                     <GemBadge
@@ -153,6 +166,16 @@ export default function PlanScreen() {
           </GroupList>
         )}
       </ScrollView>
+
+      <CenterDockButton
+        icon="add"
+        label="Add assignment"
+        accessibilityHint="Opens a sheet to commit money to a category"
+        offset={dockOffset}
+        onPress={openAddAssignmentSheet}
+      />
+
+      <AssignmentSheet />
     </ScreenBackground>
   );
 }

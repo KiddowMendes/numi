@@ -28,7 +28,7 @@ export type GroupRowProps = {
     | "expense";
   /** Sits between the value and the chevron, e.g. a status badge. */
   accessory?: ReactNode;
-  /** Right-hand glyph, e.g. a chevron. Not shown if `value` is set. */
+  /** Right-hand glyph, e.g. a chevron. Pass `undefined` to hide it. */
   trailingIcon?: IconName;
   detail?: string;
   disabled?: boolean;
@@ -55,10 +55,9 @@ export function GroupRow({
   style,
 }: GroupRowProps) {
   const theme = useTheme();
-  const showTrailing =
-    value === undefined &&
-    accessory === undefined &&
-    trailingIcon !== undefined;
+  // The chevron is opt in: pass a name to show it, `undefined` to hide it. A
+  // pressable row can carry a value and a badge and still show it is tappable.
+  const showTrailing = trailingIcon !== undefined;
 
   return (
     <Pressable

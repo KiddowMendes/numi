@@ -1,5 +1,6 @@
 export { AmountInput } from "./amount-input";
 export type { AmountInputProps } from "./amount-input";
+export { AssignmentSheet } from "./assignment-sheet";
 export { BottomSheet } from "./bottom-sheet";
 export { Button } from "./button";
 export type { ButtonProps, ButtonSize, ButtonVariant } from "./button";

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 
 import {
   calculateDaysRemaining,
@@ -154,6 +155,8 @@ export default function HomeScreen() {
             icon="plan"
             label="Adjust the plan"
             tone="plain"
+            accessibilityHint="Opens the plan to change what is set aside"
+            onPress={() => router.navigate("/(tabs)/plan")}
           />
         </View>
 

@@ -1,6 +1,11 @@
 import { create } from "zustand";
 
-import type { AppState, EngineAPI, Transaction } from "@numi/domain";
+import type {
+  AppState,
+  EngineAPI,
+  Transaction,
+  Assignment,
+} from "@numi/domain";
 import { randToCents } from "@numi/utils";
 
 import {
@@ -21,6 +26,24 @@ type TransactionDraft = {
 
 type TransactionResult =
   | { ok: true; value: Transaction }
+  | { ok: false; errors: { code: string; message: string }[] };
+
+/** The transient form the assignment sheet edits, add mode or edit mode. */
+type AssignmentDraft = {
+  categoryId: string | null;
+  walletId: string | null;
+  amount: string;
+};
+
+/** Which mode the assignment sheet is in. `closed` hides it but keeps the draft. */
+export type AssignmentSheetMode = "closed" | "add" | "edit";
+
+type AssignmentResult =
+  | { ok: true; value: Assignment }
+  | { ok: false; errors: { code: string; message: string }[] };
+
+type AssignmentDeleteResult =
+  | { ok: true }
   | { ok: false; errors: { code: string; message: string }[] };
 
 /** What `all-set` shows, and what it would show if the user backed out of it. */
@@ -82,6 +105,18 @@ type StoreState = {
   onboardingSummary: OnboardingSummary | null;
   /** Transient draft for the transaction entry form */
   draft: TransactionDraft;
+  /**
+   * Transient draft for the assignment sheet, shared by add and edit.
+   *
+   * It survives the sheet being dismissed and tab switches, and clears only on a
+   * successful confirm or an app reset — so a half-typed budget is not lost when
+   * the user glances at another tab.
+   */
+  assignmentDraft: AssignmentDraft;
+  /** Which mode the assignment sheet is in. `closed` hides it. */
+  assignmentSheetMode: AssignmentSheetMode;
+  /** The row the sheet is editing, or null in add mode. */
+  editingAssignmentId: string | null;
   /** Light/dark choice. Never defaults to `system`. */
   themePreference: ThemePreferenceValue;
 };
@@ -122,6 +157,27 @@ type StoreActions = {
   clearDraft: () => void;
   /** Log a transaction from the current draft, sync engine, return result */
   logTransaction: () => TransactionResult;
+  /** Update a single field on the assignment draft */
+  setAssignmentDraftField: <K extends keyof AssignmentDraft>(
+    key: K,
+    value: AssignmentDraft[K],
+  ) => void;
+  /** Reset the assignment draft to its initial state */
+  clearAssignmentDraft: () => void;
+  /** Open the sheet in add mode. Keeps any draft; clears the edit id. */
+  openAddAssignmentSheet: () => void;
+  /** Open the sheet in edit mode, prefilled from the given row. */
+  openEditAssignmentSheet: (id: string) => void;
+  /** Close the sheet. Keeps the draft so it survives the dismissal. */
+  closeAssignmentSheet: () => void;
+  /** Pick a category in add mode; a duplicate row routes to edit instead. */
+  selectAssignmentCategory: (categoryId: string) => void;
+  /** Create the drafted assignment. Refuses without an active period. */
+  addAssignment: () => AssignmentResult;
+  /** Update the editing row's amount. Refuses without an active period. */
+  updateAssignment: () => AssignmentResult;
+  /** Delete the editing row. */
+  deleteAssignment: () => AssignmentDeleteResult;
   /** Set the light/dark choice. Called from Settings. */
   setThemePreference: (preference: ThemePreferenceValue) => void;
 };
@@ -134,6 +190,40 @@ const INITIAL_DRAFT: TransactionDraft = {
   note: "",
   date: new Date(),
 };
+
+const INITIAL_ASSIGNMENT_DRAFT: AssignmentDraft = {
+  categoryId: null,
+  walletId: null,
+  amount: "",
+};
+
+/**
+ * Cents to the bare decimal string the amount keypad edits, e.g. 50000 →
+ * "500.00". The currency helpers stay out of the draft and apply at display and
+ * submit only.
+ */
+function centsToDraftAmount(cents: number): string {
+  return (cents / 100).toFixed(2);
+}
+
+/**
+ * The one row per (active period, category, wallet) rule, as a lookup. Used to
+ * route a duplicate category pick to edit instead of creating a second row.
+ */
+function findDuplicateAssignment(
+  appState: AppState,
+  categoryId: string,
+  walletId: string,
+): Assignment | undefined {
+  const periodId = appState.activePeriod?.id;
+  if (!periodId) return undefined;
+  return appState.assignments.find(
+    (a) =>
+      a.period_id === periodId &&
+      a.category_id === categoryId &&
+      a.wallet_id === walletId,
+  );
+}
 
 const INITIAL_APP_STATE: AppState = {
   user: { id: "", tier: "free" },
@@ -156,6 +246,9 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
   isUnlocked: false,
   onboardingSummary: null,
   draft: { ...INITIAL_DRAFT },
+  assignmentDraft: { ...INITIAL_ASSIGNMENT_DRAFT },
+  assignmentSheetMode: "closed",
+  editingAssignmentId: null,
   themePreference: defaultThemePreference,
 
   setEngine: (engine) => {
@@ -216,6 +309,10 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
       keychainPinSet: null,
       onboardingSummary: null,
       draft: { ...INITIAL_DRAFT, date: new Date() },
+      // A stale assignment draft must not survive "Forgot PIN? Reset app".
+      assignmentDraft: { ...INITIAL_ASSIGNMENT_DRAFT },
+      assignmentSheetMode: "closed",
+      editingAssignmentId: null,
     });
   },
 
@@ -284,6 +381,222 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
     if (result.ok) {
       get().syncFromEngine();
       get().clearDraft();
+    }
+
+    return result;
+  },
+
+  setAssignmentDraftField: (key, value) => {
+    set((state) => ({
+      assignmentDraft: { ...state.assignmentDraft, [key]: value },
+    }));
+  },
+
+  clearAssignmentDraft: () => {
+    set({ assignmentDraft: { ...INITIAL_ASSIGNMENT_DRAFT } });
+  },
+
+  openAddAssignmentSheet: () => {
+    const { appState, assignmentDraft } = get();
+    set({
+      assignmentSheetMode: "add",
+      editingAssignmentId: null,
+      // Default the wallet to the first one; keep a wallet the user already
+      // picked, since the draft survives a dismissal.
+      assignmentDraft: {
+        ...assignmentDraft,
+        walletId: assignmentDraft.walletId ?? appState.wallets[0]?.id ?? null,
+      },
+    });
+  },
+
+  openEditAssignmentSheet: (id) => {
+    const { appState } = get();
+    const assignment = appState.assignments.find((a) => a.id === id);
+    if (!assignment) return;
+    set({
+      assignmentSheetMode: "edit",
+      editingAssignmentId: id,
+      assignmentDraft: {
+        categoryId: assignment.category_id,
+        walletId: assignment.wallet_id,
+        amount: centsToDraftAmount(assignment.amount),
+      },
+    });
+  },
+
+  closeAssignmentSheet: () => {
+    set({ assignmentSheetMode: "closed" });
+  },
+
+  selectAssignmentCategory: (categoryId) => {
+    const { assignmentSheetMode, assignmentDraft, appState } = get();
+
+    if (assignmentSheetMode === "add") {
+      const walletId =
+        assignmentDraft.walletId ?? appState.wallets[0]?.id ?? null;
+      const duplicate = walletId
+        ? findDuplicateAssignment(appState, categoryId, walletId)
+        : undefined;
+
+      if (duplicate) {
+        // One budget per category and wallet: route the pick to edit and drop
+        // the half-typed add amount for the row's own.
+        set({
+          assignmentSheetMode: "edit",
+          editingAssignmentId: duplicate.id,
+          assignmentDraft: {
+            categoryId: duplicate.category_id,
+            walletId: duplicate.wallet_id,
+            amount: centsToDraftAmount(duplicate.amount),
+          },
+        });
+        return;
+      }
+    }
+
+    set((state) => ({
+      assignmentDraft: { ...state.assignmentDraft, categoryId },
+    }));
+  },
+
+  addAssignment: () => {
+    const { engine, appState, assignmentDraft } = get();
+    if (!engine) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "Engine not initialized" }],
+      };
+    }
+    if (!appState.activePeriod) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "No active period" }],
+      };
+    }
+    if (!assignmentDraft.categoryId) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "Pick a category" }],
+      };
+    }
+    const walletId =
+      assignmentDraft.walletId ?? appState.wallets[0]?.id ?? null;
+    if (!walletId) {
+      return {
+        ok: false,
+        errors: [{ code: "NOT_FOUND", message: "No wallet available" }],
+      };
+    }
+    const amountCents = randToCents(assignmentDraft.amount || "0");
+    if (amountCents <= 0) {
+      return {
+        ok: false,
+        errors: [
+          {
+            code: "INVALID_STATE",
+            message: "Amount must be greater than zero",
+          },
+        ],
+      };
+    }
+
+    const assignment: Assignment = {
+      id: generateId(),
+      period_id: appState.activePeriod.id,
+      category_id: assignmentDraft.categoryId,
+      wallet_id: walletId,
+      amount: amountCents,
+      created_at: new Date(),
+    };
+
+    const result = engine.createAssignment(assignment);
+
+    if (result.ok) {
+      get().syncFromEngine();
+      set({
+        assignmentSheetMode: "closed",
+        editingAssignmentId: null,
+        assignmentDraft: { ...INITIAL_ASSIGNMENT_DRAFT },
+      });
+    }
+
+    return result;
+  },
+
+  updateAssignment: () => {
+    const { engine, appState, assignmentDraft, editingAssignmentId } = get();
+    if (!engine) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "Engine not initialized" }],
+      };
+    }
+    if (!appState.activePeriod) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "No active period" }],
+      };
+    }
+    if (!editingAssignmentId) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "No assignment selected" }],
+      };
+    }
+    const amountCents = randToCents(assignmentDraft.amount || "0");
+    if (amountCents <= 0) {
+      return {
+        ok: false,
+        errors: [
+          {
+            code: "INVALID_STATE",
+            message: "Amount must be greater than zero",
+          },
+        ],
+      };
+    }
+
+    const result = engine.updateAssignment(editingAssignmentId, {
+      amount: amountCents,
+    });
+
+    if (result.ok) {
+      get().syncFromEngine();
+      set({
+        assignmentSheetMode: "closed",
+        editingAssignmentId: null,
+        assignmentDraft: { ...INITIAL_ASSIGNMENT_DRAFT },
+      });
+    }
+
+    return result;
+  },
+
+  deleteAssignment: () => {
+    const { engine, editingAssignmentId } = get();
+    if (!engine) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "Engine not initialized" }],
+      };
+    }
+    if (!editingAssignmentId) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "No assignment selected" }],
+      };
+    }
+
+    const result = engine.deleteAssignment(editingAssignmentId);
+
+    if (result.ok) {
+      get().syncFromEngine();
+      set({
+        assignmentSheetMode: "closed",
+        editingAssignmentId: null,
+        assignmentDraft: { ...INITIAL_ASSIGNMENT_DRAFT },
+      });
     }
 
     return result;
