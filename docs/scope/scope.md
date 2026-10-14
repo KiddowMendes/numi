@@ -104,11 +104,11 @@ Users with irregular income often have multiple money sources (cash, bank accoun
 **Done when:** a user can add a new wallet, edit a wallet's name or type, and see balances across all wallets on the home screen.
 
 - [x] Design it (spec): `/architect wallet management` · [0003](../specs/0003-wallet-management.md) · code in `packages/domain/` and `apps/mobile/`
-- [ ] Build it: /develop wallet management
-  - [ ] Domain engine: unique name, non negative balance, update and delete, and the guard calculations
-  - [ ] Seed freemium and the store actions: add, update, delete, and stranded draft cleanup
-  - [ ] WalletSheet, the wallets screen, and the Settings entry
-  - [ ] Home Wallets group and edge cases end to end
+- [x] Build it: /develop wallet management
+  - [x] Domain engine: unique name, non negative balance, update and delete, and the guard calculations
+  - [x] Seed freemium and the store actions: add, update, delete, and stranded draft cleanup
+  - [x] WalletSheet, the wallets screen, and the Settings entry
+  - [x] Home Wallets group and edge cases end to end
 - [ ] Verify it: /check verify wallet management
 - [ ] Test it: /test wallet management
 
