@@ -143,10 +143,6 @@ packages/
 │       ├── index.ts
 │       ├── currency.ts
 │       └── date.ts
-│
-├── ui/                      # @repo/ui — Turborepo scaffold leftover
-├── eslint-config/           # @repo/eslint-config — scaffold leftover
-└── typescript-config/       # @repo/typescript-config — scaffold leftover
 ```
 
 **Rule:** `packages/domain` must not import `packages/database`. The dependency arrow points inward: `database` depends on `domain`, not reverse.
@@ -155,7 +151,7 @@ packages/
 
 **Repo note:**
 
-- The three `@repo/*` packages are create-turborepo leftovers. Remove them once `tooling/` configs are in use.
+- `@repo/ui` was a create-turborepo leftover and has been removed. `@repo/eslint-config` and `@repo/typescript-config` live under `tooling/` and are in use: `apps/web` imports `@repo/eslint-config/next-js` in `eslint.config.js` and extends `@repo/typescript-config/nextjs.json` in `tsconfig.json`. `apps/mobile` does not use them — it has its own `eslint-config-expo`.
 
 ---
 
@@ -189,19 +185,21 @@ docs/
 
 ```
 tooling/
-├── eslint-config/
-│   ├── package.json
-│   └── index.js
-└── typescript-config/
+├── eslint-config/           # @repo/eslint-config
+│   ├── package.json         # exports: ./base, ./next-js, ./react-internal
+│   ├── base.js
+│   ├── next.js
+│   └── react-internal.js
+└── typescript-config/       # @repo/typescript-config
     ├── package.json
     ├── base.json
     ├── nextjs.json
-    └── react-native.json
+    └── react-library.json
 ```
 
 **Rule:** Shared configs only. No application code.
 
-**Repo note:** `tooling/*` is not listed in `pnpm-workspace.yaml`. Add `- "tooling/*"` when the configs are referenced as workspace packages, or import them via file paths.
+**Repo note:** `tooling/*` is listed in `pnpm-workspace.yaml`, and both packages are workspace dependencies of `apps/web` (`@repo/eslint-config`, `@repo/typescript-config`).
 
 ---
 
@@ -236,13 +234,13 @@ packages/database   packages/domain      packages/utils
 
 ## Package Naming
 
-| Package       | Import Name           | Scope                  | State           |
-| ------------- | --------------------- | ---------------------- | --------------- |
-| Domain        | `@numi/domain`        | Business engine        | Exists          |
-| Database      | `@numi/database`      | SQLite repository      | Not created yet |
-| Design System | `@numi/design-system` | Tokens                 | Exists          |
-| Types         | `@numi/types`         | Shared interfaces      | Exists          |
-| Utils         | `@numi/utils`         | Currency, date helpers | Exists          |
+| Package       | Import Name           | Scope                  | State  |
+| ------------- | --------------------- | ---------------------- | ------ |
+| Domain        | `@numi/domain`        | Business engine        | Exists |
+| Database      | `@numi/database`      | SQLite repository      | Exists |
+| Design System | `@numi/design-system` | Tokens                 | Exists |
+| Types         | `@numi/types`         | Shared interfaces      | Exists |
+| Utils         | `@numi/utils`         | Currency, date helpers | Exists |
 
 ---
 
@@ -253,29 +251,15 @@ In `apps/mobile/package.json`:
 ```json
 {
   "dependencies": {
-    "@numi/domain": "workspace:*",
     "@numi/database": "workspace:*",
     "@numi/design-system": "workspace:*",
-    "@numi/types": "workspace:*",
-    "@numi/utils": "workspace:*"
-  }
-}
-```
-
-In `apps/web/package.json` (no database — forbidden arrow):
-
-```json
-{
-  "dependencies": {
     "@numi/domain": "workspace:*",
-    "@numi/design-system": "workspace:*",
-    "@numi/types": "workspace:*",
     "@numi/utils": "workspace:*"
   }
 }
 ```
 
-**Repo note:** Mobile currently imports only Expo SDK packages; web imports `@repo/ui`. The `@numi/*` workspace references replace these once package names are set.
+`apps/web/package.json` has no `@numi/*` dependencies yet — only `next`, `react`, and the `@repo/*` tooling configs (`@repo/eslint-config`, `@repo/typescript-config` as devDependencies). When it does grow them, the forbidden arrow still applies: no `@numi/database`.
 
 ---
 
