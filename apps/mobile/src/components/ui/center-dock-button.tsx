@@ -9,6 +9,8 @@ export type CenterDockButtonProps = {
   onPress?: () => void;
   label: string;
   accessibilityHint?: string;
+  /** Blocks the press and dims the button, e.g. at the wallet tier cap. */
+  disabled?: boolean;
   /** Lift the button clear of the tab bar. */
   offset?: number;
   style?: ViewStyle;
@@ -26,6 +28,7 @@ export function CenterDockButton({
   onPress,
   label,
   accessibilityHint,
+  disabled = false,
   offset = 0,
   style,
 }: CenterDockButtonProps) {
@@ -39,16 +42,20 @@ export function CenterDockButton({
       <View style={[styles.halo, { backgroundColor: theme.background }]} />
       <Pressable
         onPress={onPress}
+        disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled }}
         style={({ pressed }) => [
           styles.button,
           shadow.lg,
           {
             backgroundColor: theme.primary,
-            opacity: pressed ? motion.pressOpacity : 1,
-            transform: [{ scale: pressed ? motion.pressScale : 1 }],
+            opacity: disabled ? 0.4 : pressed ? motion.pressOpacity : 1,
+            transform: [
+              { scale: pressed && !disabled ? motion.pressScale : 1 },
+            ],
           },
         ]}
       >

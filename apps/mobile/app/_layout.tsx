@@ -110,6 +110,7 @@ function Routing() {
       <Stack.Protected guard={showApp}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="review" />
+        <Stack.Screen name="wallets" />
       </Stack.Protected>
     </Stack>
   );

@@ -37,7 +37,7 @@ function createInitialState(): AppState {
   const now = new Date();
 
   return {
-    user: { id: "user-1", tier: "free" },
+    user: { id: "user-1", tier: "freemium" },
     activePeriod: null,
     periods: [],
     wallets: [],

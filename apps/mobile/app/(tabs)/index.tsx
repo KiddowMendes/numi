@@ -28,6 +28,7 @@ import {
   type StateToken,
 } from "@/constants/tokens";
 import { useTabBarSpace } from "@/hooks/use-tab-bar-space";
+import { walletTypeIcon, walletTypeLabel } from "@/lib/wallet-types";
 import { useStore } from "@/store";
 
 export default function HomeScreen() {
@@ -177,6 +178,21 @@ export default function HomeScreen() {
             trailingIcon={undefined}
             isLast
           />
+        </GroupList>
+
+        <GroupList label="Wallets">
+          {wallets.map((wallet, index) => (
+            <GroupRow
+              key={wallet.id}
+              label={wallet.name}
+              icon={walletTypeIcon(wallet.type)}
+              detail={walletTypeLabel(wallet.type)}
+              value={formatCents(wallet.balance)}
+              valueTone="textPrimary"
+              trailingIcon={undefined}
+              isLast={index === wallets.length - 1}
+            />
+          ))}
         </GroupList>
 
         <GroupList label="Recent">

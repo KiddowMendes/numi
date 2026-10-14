@@ -39,3 +39,4 @@ export { TransactionLogSheet } from "./transaction-log-sheet";
 export type { TransactionLogSheetProps } from "./transaction-log-sheet";
 export { TransactionRow } from "./transaction-row";
 export type { TransactionKind, TransactionRowProps } from "./transaction-row";
+export { WalletSheet } from "./wallet-sheet";

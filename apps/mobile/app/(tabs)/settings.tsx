@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 
 import { ScreenBackground } from "@/components/screen-background";
 import { ThemedText } from "@/components/themed-text";
@@ -59,6 +60,16 @@ export default function SettingsScreen() {
             {active.description}
           </ThemedText>
         ) : null}
+
+        <GroupList label="Manage">
+          <GroupRow
+            label="Wallets"
+            icon="balance"
+            detail="Add, rename, or remove a money source"
+            onPress={() => router.push("/wallets")}
+            isLast
+          />
+        </GroupList>
 
         <GroupList label="About">
           <GroupRow

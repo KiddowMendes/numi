@@ -5,6 +5,8 @@ import type {
   EngineAPI,
   Transaction,
   Assignment,
+  Wallet,
+  WalletType,
 } from "@numi/domain";
 import { randToCents } from "@numi/utils";
 
@@ -43,6 +45,28 @@ type AssignmentResult =
   | { ok: false; errors: { code: string; message: string }[] };
 
 type AssignmentDeleteResult =
+  | { ok: true }
+  | { ok: false; errors: { code: string; message: string }[] };
+
+/**
+ * The transient wallet form the sheet edits, held as component state (not in
+ * the store) so a half typed row never survives the sheet closing. Add and edit
+ * share it; delete needs no draft.
+ */
+export type WalletDraft = {
+  name: string;
+  type: WalletType;
+  balance: string;
+};
+
+/** Which mode the wallet sheet is in. `closed` hides it. */
+export type WalletSheetMode = "closed" | "add" | "edit";
+
+type WalletResult =
+  | { ok: true; value: Wallet }
+  | { ok: false; errors: { code: string; message: string }[] };
+
+type WalletDeleteResult =
   | { ok: true }
   | { ok: false; errors: { code: string; message: string }[] };
 
@@ -117,6 +141,10 @@ type StoreState = {
   assignmentSheetMode: AssignmentSheetMode;
   /** The row the sheet is editing, or null in add mode. */
   editingAssignmentId: string | null;
+  /** Which mode the wallet sheet is in. `closed` hides it. */
+  walletSheetMode: WalletSheetMode;
+  /** The wallet the sheet is editing, or null in add mode. */
+  editingWalletId: string | null;
   /** Light/dark choice. Never defaults to `system`. */
   themePreference: ThemePreferenceValue;
 };
@@ -178,6 +206,21 @@ type StoreActions = {
   updateAssignment: () => AssignmentResult;
   /** Delete the editing row. */
   deleteAssignment: () => AssignmentDeleteResult;
+  /** Open the wallet sheet in add mode. */
+  openAddWalletSheet: () => void;
+  /** Open the wallet sheet in edit mode for the given wallet. */
+  openEditWalletSheet: (id: string) => void;
+  /** Close the wallet sheet. Keeps no draft; the form clears on close. */
+  closeWalletSheet: () => void;
+  /** Create a wallet from the drafted form. */
+  addWallet: (draft: WalletDraft) => WalletResult;
+  /** Update the editing wallet from the drafted form, patching only changes. */
+  updateWallet: (draft: WalletDraft) => WalletResult;
+  /**
+   * Delete the editing wallet, and clear any stored draft that pointed at it so
+   * the transaction and assignment sheets fall back to the first wallet.
+   */
+  deleteWallet: () => WalletDeleteResult;
   /** Set the light/dark choice. Called from Settings. */
   setThemePreference: (preference: ThemePreferenceValue) => void;
 };
@@ -202,7 +245,7 @@ const INITIAL_ASSIGNMENT_DRAFT: AssignmentDraft = {
  * "500.00". The currency helpers stay out of the draft and apply at display and
  * submit only.
  */
-function centsToDraftAmount(cents: number): string {
+export function centsToDraftAmount(cents: number): string {
   return (cents / 100).toFixed(2);
 }
 
@@ -226,7 +269,7 @@ function findDuplicateAssignment(
 }
 
 const INITIAL_APP_STATE: AppState = {
-  user: { id: "", tier: "free" },
+  user: { id: "", tier: "freemium" },
   activePeriod: null,
   periods: [],
   wallets: [],
@@ -249,6 +292,8 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
   assignmentDraft: { ...INITIAL_ASSIGNMENT_DRAFT },
   assignmentSheetMode: "closed",
   editingAssignmentId: null,
+  walletSheetMode: "closed",
+  editingWalletId: null,
   themePreference: defaultThemePreference,
 
   setEngine: (engine) => {
@@ -313,6 +358,8 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
       assignmentDraft: { ...INITIAL_ASSIGNMENT_DRAFT },
       assignmentSheetMode: "closed",
       editingAssignmentId: null,
+      walletSheetMode: "closed",
+      editingWalletId: null,
     });
   },
 
@@ -596,6 +643,124 @@ export const useStore = create<StoreState & StoreActions>((set, get) => ({
         assignmentSheetMode: "closed",
         editingAssignmentId: null,
         assignmentDraft: { ...INITIAL_ASSIGNMENT_DRAFT },
+      });
+    }
+
+    return result;
+  },
+
+  openAddWalletSheet: () => {
+    set({ walletSheetMode: "add", editingWalletId: null });
+  },
+
+  openEditWalletSheet: (id) => {
+    set({ walletSheetMode: "edit", editingWalletId: id });
+  },
+
+  closeWalletSheet: () => {
+    set({ walletSheetMode: "closed" });
+  },
+
+  addWallet: (draft) => {
+    const { engine } = get();
+    if (!engine) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "Engine not initialized" }],
+      };
+    }
+
+    const wallet: Wallet = {
+      id: generateId(),
+      name: draft.name.trim(),
+      type: draft.type,
+      balance: randToCents(draft.balance || "0"),
+      currency: "ZAR",
+      created_at: new Date(),
+    };
+
+    const result = engine.createWallet(wallet);
+
+    if (result.ok) {
+      get().syncFromEngine();
+      set({ walletSheetMode: "closed", editingWalletId: null });
+    }
+
+    return result;
+  },
+
+  updateWallet: (draft) => {
+    const { engine, appState, editingWalletId } = get();
+    if (!engine) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "Engine not initialized" }],
+      };
+    }
+    if (!editingWalletId) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "No wallet selected" }],
+      };
+    }
+
+    const wallet = appState.wallets.find((w) => w.id === editingWalletId);
+    if (!wallet) {
+      return {
+        ok: false,
+        errors: [{ code: "NOT_FOUND", message: "No wallet available" }],
+      };
+    }
+
+    // Patch only the fields that changed, so an untouched field keeps its value.
+    const patch: Partial<Pick<Wallet, "name" | "type" | "balance">> = {};
+    const name = draft.name.trim();
+    if (name !== wallet.name) patch.name = name;
+    if (draft.type !== wallet.type) patch.type = draft.type;
+    const balance = randToCents(draft.balance || "0");
+    if (balance !== wallet.balance) patch.balance = balance;
+
+    const result = engine.updateWallet(editingWalletId, patch);
+
+    if (result.ok) {
+      get().syncFromEngine();
+      set({ walletSheetMode: "closed", editingWalletId: null });
+    }
+
+    return result;
+  },
+
+  deleteWallet: () => {
+    const { engine, editingWalletId, draft, assignmentDraft } = get();
+    if (!engine) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "Engine not initialized" }],
+      };
+    }
+    if (!editingWalletId) {
+      return {
+        ok: false,
+        errors: [{ code: "INVALID_STATE", message: "No wallet selected" }],
+      };
+    }
+
+    const deletedId = editingWalletId;
+    const result = engine.deleteWallet(deletedId);
+
+    if (result.ok) {
+      get().syncFromEngine();
+      set({
+        walletSheetMode: "closed",
+        editingWalletId: null,
+        // A draft aimed at the deleted wallet would point at nothing; clear it
+        // so the sheets fall back to the first wallet.
+        draft:
+          draft.walletId === deletedId ? { ...draft, walletId: null } : draft,
+        assignmentDraft:
+          assignmentDraft.walletId === deletedId
+            ? { ...assignmentDraft, walletId: null }
+            : assignmentDraft,
       });
     }
 

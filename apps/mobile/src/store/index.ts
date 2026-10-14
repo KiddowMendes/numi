@@ -1,2 +1,3 @@
 export { EngineProvider, useEngine } from "./provider";
-export { useStore } from "./store";
+export { centsToDraftAmount, useStore } from "./store";
+export type { WalletDraft } from "./store";
