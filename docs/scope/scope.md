@@ -20,8 +20,8 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | G. Mobile history screen  | Foundation | existing    |
 | H. Web app (Next.js)      | Foundation | existing    |
 | 1. Transaction entry      | Slice 1    | in-progress |
-| 2. Assignment management  | Slice 2    | planned     |
-| 3. Wallet management      | Slice 3    | planned     |
+| 2. Assignment management  | Slice 2    | in-progress |
+| 3. Wallet management      | Slice 3    | in-progress |
 | 4. Review screen          | Slice 4    | planned     |
 | 5. Home & plan display    | Slice 5    | planned     |
 | 6. Period management      | Slice 6    | planned     |
@@ -81,21 +81,36 @@ The core loop. Let users record income and expenses from the home screen so the 
 
 ## Slice 2: Assignment management
 
-### 2. Assignment management · needs a decision
+### 2. Assignment management
 
 After recording transactions, users need to adjust their budget plan. Let them create, edit, and delete assignments after onboarding so the safe to spend calculation reflects their current commitments.
 **Done when:** a user can add a new assignment from the plan screen, edit an existing assignment's amount, delete an assignment, and see the safe to spend number recalculate to reflect the change.
 
-- [ ] Design it (spec): `/architect assignment management`
+- [x] Design it (spec): `/architect assignment management` · [0002](../specs/0002-assignment-management/index.md) · code in `packages/domain/` and `apps/mobile/`
+- [x] Build it: /develop assignment management
+  - [x] Domain engine: uniqueness, active period, and updateAssignment checks
+  - [x] Store: assignment draft, add or edit mode, and CRUD actions
+  - [x] AssignmentSheet component
+  - [x] Plan screen wiring: add button, tap to edit, duplicate route
+  - [x] Edge cases end to end
+- [ ] Verify it: /check verify assignment management
+- [ ] Test it: /test assignment management
 
 ## Slice 3: Wallet management
 
-### 3. Wallet management · needs a decision
+### 3. Wallet management
 
 Users with irregular income often have multiple money sources (cash, bank account, stokvel). Let them add and manage wallets after onboarding so they can track money across sources.
 **Done when:** a user can add a new wallet, edit a wallet's name or type, and see balances across all wallets on the home screen.
 
-- [ ] Design it (spec): `/architect wallet management`
+- [x] Design it (spec): `/architect wallet management` · [0003](../specs/0003-wallet-management.md) · code in `packages/domain/` and `apps/mobile/`
+- [ ] Build it: /develop wallet management
+  - [ ] Domain engine: unique name, non negative balance, update and delete, and the guard calculations
+  - [ ] Seed freemium and the store actions: add, update, delete, and stranded draft cleanup
+  - [ ] WalletSheet, the wallets screen, and the Settings entry
+  - [ ] Home Wallets group and edge cases end to end
+- [ ] Verify it: /check verify wallet management
+- [ ] Test it: /test wallet management
 
 ## Slice 4: Review screen
 
@@ -138,6 +153,10 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Cloud sync**: sync data across devices · needs a decision
 - **Voice logging**: record transactions by voice · needs a decision
 - **Web parity**: bring mobile features to the web app · needs a decision
+- **Data persistence**: save and load app state through the sql.js repository so assignments and transactions survive a relaunch · from spec 0002
+- **Wallet balance reconciliation**: adjust a wallet balance through a recorded transaction instead of a direct edit · from spec 0003
+- **Wallet reordering and archive**: order wallets, or hide one while keeping its history · from spec 0003
+- **Mashonisa wallet type**: offer the mashonisa wallet type (Premium v2) in the picker · from spec 0003
 
 ## Legend
 
