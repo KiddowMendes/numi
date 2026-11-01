@@ -82,18 +82,13 @@ export default function HomeScreen() {
     [transactions],
   );
 
-  const ready = Boolean(activePeriod) && wallets.length > 0;
-
-  if (!ready) {
+  if (wallets.length === 0) {
     return (
       <ScreenBackground style={styles.root}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
           <ThemedText type="heading1">NUMI</ThemedText>
         </View>
-        <EmptyState
-          variant={wallets.length === 0 ? "noWallet" : "noPeriod"}
-          style={styles.empty}
-        />
+        <EmptyState variant="noWallet" style={styles.empty} />
       </ScreenBackground>
     );
   }
@@ -113,20 +108,33 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.headerText}>
             <ThemedText type="overline" tone="textMuted" numberOfLines={1}>
-              {activePeriod?.name}
+              {activePeriod?.name ?? "No period open"}
             </ThemedText>
             <ThemedText type="heading1">Today</ThemedText>
           </View>
-          <GemBadge
-            label={
-              daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`
-            }
-            tone="primary"
-            icon="calendar"
-          />
+          {activePeriod ? (
+            <GemBadge
+              label={
+                daysRemaining === 1
+                  ? "1 day left"
+                  : `${daysRemaining} days left`
+              }
+              tone="primary"
+              icon="calendar"
+            />
+          ) : null}
         </View>
 
-        {amount !== null && amount > 0 ? (
+        {!activePeriod ? (
+          <SafeToSpendHero
+            amount="--"
+            consumed={0}
+            daysRemaining={null}
+            state="stateCaution"
+            caption="no period open"
+            style={styles.hero}
+          />
+        ) : amount !== null && amount > 0 ? (
           <SafeToSpendHero
             amount={formatCents(amount)}
             consumed={committed}

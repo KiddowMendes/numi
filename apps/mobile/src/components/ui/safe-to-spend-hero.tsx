@@ -22,8 +22,8 @@ export type SafeToSpendHeroProps = {
   amount: string;
   /** Fraction of the period already committed or spent, 0–1. Drives the arc. */
   consumed: number;
-  /** How many days are left in the period. */
-  daysRemaining: number;
+  /** How many days are left in the period, or null when no period is open. */
+  daysRemaining: number | null;
   state: StateToken;
   caption?: string;
   style?: ViewStyle;
@@ -83,12 +83,17 @@ export function SafeToSpendHero({
   const progressColor = theme[state];
   const iconColor = theme[state];
 
+  const remainingLabel =
+    daysRemaining === null
+      ? "No period is open."
+      : `${daysRemaining} ${daysRemaining === 1 ? "day" : "days"} remaining.`;
+
   return (
     <View
       style={[styles.wrap, style]}
       accessible
       accessibilityRole="text"
-      accessibilityLabel={`Safe to spend today: ${amount}. ${daysRemaining} ${daysRemaining === 1 ? "day" : "days"} remaining.`}
+      accessibilityLabel={`Safe to spend today: ${amount}. ${remainingLabel}`}
     >
       <View style={styles.gauge}>
         <Svg width={SIZE} height={SIZE}>
@@ -139,13 +144,15 @@ export function SafeToSpendHero({
         </View>
       </View>
 
-      <View style={styles.footer}>
-        <AppIcon name="calendar" size={14} color={theme.textMuted} />
-        <ThemedText type="label" tone="textSecondary">
-          {daysRemaining} {daysRemaining === 1 ? "day" : "days"} left this
-          period
-        </ThemedText>
-      </View>
+      {daysRemaining === null ? null : (
+        <View style={styles.footer}>
+          <AppIcon name="calendar" size={14} color={theme.textMuted} />
+          <ThemedText type="label" tone="textSecondary">
+            {daysRemaining} {daysRemaining === 1 ? "day" : "days"} left this
+            period
+          </ThemedText>
+        </View>
+      )}
     </View>
   );
 }

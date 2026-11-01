@@ -76,7 +76,7 @@ The core loop. Let users record income and expenses from the home screen so the 
   - [x] CategoryChip component
   - [x] FAB wiring and confirm flow
   - [x] End-to-end testing and edge cases
-- [ ] Verify it: /check verify transaction entry
+- [x] Verify it: /check verify transaction entry
 - [ ] Test it: /test transaction entry
 
 ## Slice 2: Assignment management

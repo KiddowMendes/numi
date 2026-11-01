@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { router } from "expo-router";
 
 import { AppIcon } from "@/components/app-icon";
+import { showToast } from "@/components/app-toast";
 import { ThemedText } from "@/components/themed-text";
 import { AmountInput } from "@/components/ui/amount-input";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -40,12 +42,26 @@ export function TransactionLogSheet({
   const clearDraft = useStore((s) => s.clearDraft);
   const logTransaction = useStore((s) => s.logTransaction);
   const categories = useStore((s) => s.appState.categories);
+  const wallets = useStore((s) => s.appState.wallets);
 
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  // A ref as well as state: two clicks can land before React re-renders, and
+  // the second must not start a second engine operation.
+  const savingRef = useRef(false);
 
   const cents = Math.round(Number.parseFloat(draft.amount || "0") * 100);
   const isExpense = draft.type === "expense";
-  const needsCategory = isExpense && categories.length > 0;
+  const hasCategories = categories.length > 0;
+  const needsCategory = isExpense && hasCategories;
+  const blockedNoCategories = isExpense && !hasCategories;
+  const selectedWallet = wallets.find(
+    (wallet) => wallet.id === (draft.walletId || wallets[0]?.id),
+  );
+  const canSubmit =
+    cents > 0 &&
+    !blockedNoCategories &&
+    (!needsCategory || draft.categoryId !== null);
 
   const options = categories.map((category) => ({
     id: category.id,
@@ -54,6 +70,7 @@ export function TransactionLogSheet({
   }));
 
   function handleLog() {
+    if (savingRef.current) return;
     if (cents <= 0) {
       setError("Enter an amount greater than zero.");
       return;
@@ -63,13 +80,30 @@ export function TransactionLogSheet({
       return;
     }
 
+    savingRef.current = true;
+    setSaving(true);
+    setError(null);
+
     const result = logTransaction();
     if (!result.ok) {
-      setError(result.errors[0]?.message ?? "Could not log that. Try again.");
+      savingRef.current = false;
+      setSaving(false);
+      const failure = result.errors[0];
+      if (failure?.code === "INSUFFICIENT_BALANCE" && selectedWallet) {
+        setError(`Not enough in ${selectedWallet.name}`);
+        return;
+      }
+      // Error codes never reach the user; the guards above cover the cases a
+      // person can act on.
+      setError("Something went wrong");
       return;
     }
 
-    setError(null);
+    // The refresh for the home screen and history happens inside
+    // `logTransaction` through `syncFromEngine`.
+    showToast("success", isExpense ? "Logged" : "Income logged");
+    savingRef.current = false;
+    setSaving(false);
     clearDraft();
     onLogged?.();
     onClose();
@@ -108,21 +142,39 @@ export function TransactionLogSheet({
           error={error ?? undefined}
         />
 
-        {needsCategory ? (
-          <CategoryPicker
-            label="Category"
-            options={options}
-            value={draft.categoryId}
-            onChange={(id) => {
-              setDraftField("categoryId", id);
-              setError(null);
-            }}
-          />
+        {isExpense ? (
+          hasCategories ? (
+            <CategoryPicker
+              label="Category"
+              options={options}
+              value={draft.categoryId}
+              onChange={(id) => {
+                setDraftField("categoryId", id);
+                setError(null);
+              }}
+            />
+          ) : (
+            <View style={styles.noCategories}>
+              <ThemedText type="caption" tone="textMuted" align="center">
+                No categories available. Set up your budget first.
+              </ThemedText>
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={() => {
+                  handleClose();
+                  router.navigate("/(tabs)/plan");
+                }}
+              >
+                Set up your budget
+              </Button>
+            </View>
+          )
         ) : null}
 
         <TextField
           label="Note"
-          placeholder="Optional"
+          placeholder="What was this for?"
           value={draft.note}
           maxLength={60}
           onChangeText={(value) => setDraftField("note", value)}
@@ -142,6 +194,8 @@ export function TransactionLogSheet({
           size="lg"
           onPress={handleLog}
           icon="check"
+          disabled={!canSubmit || saving}
+          loading={saving}
           accessibilityHint="Saves this entry and updates your safe to spend"
         >
           Save
@@ -168,5 +222,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     alignSelf: "center",
+  },
+  noCategories: {
+    gap: spacing.sm,
+    alignItems: "center",
   },
 });
